@@ -1,0 +1,1693 @@
+MAPA DEL SITIO DEL MARKETPLACE SEO LOCAL + ODOO REFERENCIAL
+Perfiles de usuario públicos y privados + módulos funcionales Odoo nativos referenciales + módulos propios SEO Local + tablas por perfil
+
+CRITERIO DE ARQUITECTURA
+No existe integración técnica entre el ERP Odoo y el Marketplace de SEO Local.
+Odoo se usa únicamente como referencia de normalización funcional y de base de datos.
+Las tablas propias del Marketplace SEO Local se crean cuando la lógica de negocio no queda soportada por tablas nativas de Odoo.
+Las tablas propias usan prefijo seo_* para separarlas de las tablas nativas Odoo.
+Las tablas Odoo se listan como referencia conceptual, no como dependencia técnica obligatoria ni como integración directa.
+
+REGLA DE DECISIÓN
+├── Usar tabla Odoo nativa como referencia cuando la lógica sea estándar:
+│   ├── Usuarios, contactos, compañías, grupos, permisos
+│   ├── CRM, leads, oportunidades
+│   ├── Catálogo de productos/servicios, listas de precio
+│   ├── Cotizaciones, órdenes, facturas, pagos
+│   ├── Proyectos, tareas, actividades
+│   ├── Helpdesk, mensajes, adjuntos
+│   ├── Website, páginas, menús, formularios
+│   └── Rating, documentos, calendario, reportes básicos
+└── Crear tabla propia SEO Local cuando la lógica sea específica:
+    ├── Directorio de agencias SEO Local
+    ├── Perfil público ampliado de agencia
+    ├── Especialidades conectadas a 45 servicios SEO
+    ├── Ranking interno de agencias
+    ├── Comparador de servicios/agencias
+    ├── Marketplace de contratación de servicios SEO
+    ├── Gestión de reseñas y reputación GBP
+    ├── Auditoría SEO Local
+    ├── Google Business Profile / GBP
+    ├── Local Pack, mapas, grid geográfico y keywords locales
+    ├── NAP, citaciones y directorios
+    ├── Link building local y PR local
+    ├── Schema local, páginas locales y contenido local
+    ├── Reportes SEO, KPIs, dashboards y snapshots
+    └── Evidencias, entregables, aprobaciones y flujos FUR
+
+
+HOME
+│
+├── 1. Presentación del Marketplace SEO Local
+│   ├── Hero principal
+│   ├── Buscador principal conectado a resultados reales
+│   ├── Servicios Locales Populares
+│   ├── Directorio de agencias destacadas
+│   ├── Categorías principales del marketplace
+│   ├── CTA para clientes
+│   ├── CTA para agencias
+│   ├── Beneficios del ecosistema
+│   ├── Casos de éxito
+│   ├── Preguntas frecuentes
+│   ├── Newsletter
+│   └── Versionado público del portal
+│
+│   ├── Módulos Odoo nativos referenciales:
+│   │   ├── Website
+│   │   ├── Website Pages
+│   │   ├── Website Menus
+│   │   ├── Website Visitors
+│   │   ├── Website Forms
+│   │   ├── CRM Leads
+│   │   ├── Contacts
+│   │   ├── Product Catalog
+│   │   └── Attachments / Mail
+│   ├── Módulos propios SEO Local:
+│   │   ├── Portal público SEO Local
+│   │   ├── CMS público del marketplace
+│   │   ├── Bloques dinámicos por demanda
+│   │   ├── Buscador público
+│   │   ├── Servicios populares
+│   │   ├── Categorías comerciales SEO
+│   │   ├── Captura de interés
+│   │   └── Versionado público del portal
+│   ├── Tablas Odoo nativas referenciales:
+│   │   ├── website
+│   │   ├── website_page
+│   │   ├── website_menu
+│   │   ├── website_visitor
+│   │   ├── website_track
+│   │   ├── website_form_config
+│   │   ├── crm_lead
+│   │   ├── res_partner
+│   │   ├── product_template
+│   │   ├── product_product
+│   │   ├── product_category
+│   │   ├── ir_attachment
+│   │   ├── mail_message
+│   │   └── mail_activity
+│   └── Tablas propias SEO Local:
+│       ├── seo_cms_page
+│       ├── seo_cms_menu
+│       ├── seo_home_section
+│       ├── seo_home_banner
+│       ├── seo_home_popular_service
+│       ├── seo_public_notice
+│       ├── seo_external_platform_link
+│       ├── seo_faq
+│       ├── seo_contact_request
+│       ├── seo_interest_registration
+│       ├── seo_newsletter_subscription
+│       ├── seo_public_search_log
+│       ├── seo_public_cta_event
+│       ├── seo_legal_policy
+│       ├── seo_legal_policy_version
+│       └── seo_portal_version
+│
+├── 2. Acceso al Sistema y Autenticación
+│   ├── Inicio de sesión
+│   ├── Registro de cliente
+│   ├── Registro de agencia
+│   ├── Recuperación de contraseña
+│   ├── Validación de correo
+│   ├── Aceptación de términos
+│   ├── Selección de perfil
+│   ├── Gestión de sesiones
+│   ├── Seguridad de cuenta
+│   └── Historial de acceso
+│
+│   ├── Módulos Odoo nativos referenciales:
+│   │   ├── Users
+│   │   ├── Groups
+│   │   ├── Access Rights
+│   │   ├── Record Rules
+│   │   ├── Contacts
+│   │   ├── Companies
+│   │   ├── Attachments
+│   │   └── Mail / Notifications
+│   ├── Módulos propios SEO Local:
+│   │   ├── Habilitación de usuario por perfil
+│   │   ├── Onboarding de agencia
+│   │   ├── Onboarding de cliente
+│   │   ├── Validación documental de agencia
+│   │   ├── Perfil comercial privado
+│   │   ├── Aceptación de políticas
+│   │   └── Control de alcance operativo por rol
+│   ├── Tablas Odoo nativas referenciales:
+│   │   ├── res_users
+│   │   ├── res_partner
+│   │   ├── res_company
+│   │   ├── res_groups
+│   │   ├── res_groups_users_rel
+│   │   ├── ir_model
+│   │   ├── ir_model_fields
+│   │   ├── ir_model_access
+│   │   ├── ir_rule
+│   │   ├── ir_config_parameter
+│   │   ├── ir_attachment
+│   │   ├── mail_message
+│   │   └── mail_activity
+│   └── Tablas propias SEO Local:
+│       ├── seo_profile_type
+│       ├── seo_user_profile
+│       ├── seo_client_profile
+│       ├── seo_agency_profile
+│       ├── seo_agency_team_member
+│       ├── seo_company_profile
+│       ├── seo_user_enablement_request
+│       ├── seo_user_enablement_document
+│       ├── seo_user_enablement_step
+│       ├── seo_user_role_assignment
+│       ├── seo_user_access_scope
+│       ├── seo_login_security_event
+│       ├── seo_policy_acceptance
+│       ├── seo_account_activation
+│       └── seo_training_acceptance
+│
+├── 3. Área Pública del Marketplace
+│
+│   ├── 3.1 Visitante / Usuario No Registrado
+│   │   ├── Consulta de servicios SEO Local
+│   │   ├── Consulta de categorías
+│   │   ├── Consulta de agencias
+│   │   ├── Consulta de perfiles públicos
+│   │   ├── Consulta de precios referenciales
+│   │   ├── Consulta de casos de éxito
+│   │   ├── Contacto y conversión
+│   │   ├── Recursos y contenido educativo
+│   │   └── Información institucional y legal
+│   │
+│   │   ├── Módulos Odoo nativos referenciales:
+│   │   │   ├── Website
+│   │   │   ├── Website Pages
+│   │   │   ├── Website Menus
+│   │   │   ├── Website Visitors
+│   │   │   ├── Website Forms
+│   │   │   ├── Product Catalog
+│   │   │   ├── Product Categories
+│   │   │   ├── Pricelists
+│   │   │   ├── CRM Leads
+│   │   │   ├── Ratings
+│   │   │   └── Attachments
+│   │   ├── Módulos propios SEO Local:
+│   │   │   ├── Catálogo público SEO Local
+│   │   │   ├── Ficha pública de servicio
+│   │   │   ├── Ficha pública de agencia
+│   │   │   ├── Buscador público por ciudad/categoría
+│   │   │   ├── Consulta de precios referenciales
+│   │   │   ├── Consulta de casos de éxito
+│   │   │   ├── Registro de interés
+│   │   │   └── Contenido educativo SEO Local
+│   │   ├── Tablas Odoo nativas referenciales:
+│   │   │   ├── website
+│   │   │   ├── website_page
+│   │   │   ├── website_menu
+│   │   │   ├── website_visitor
+│   │   │   ├── website_track
+│   │   │   ├── product_template
+│   │   │   ├── product_product
+│   │   │   ├── product_category
+│   │   │   ├── product_pricelist
+│   │   │   ├── product_pricelist_item
+│   │   │   ├── res_partner
+│   │   │   ├── rating_rating
+│   │   │   ├── crm_lead
+│   │   │   └── ir_attachment
+│   │   └── Tablas propias SEO Local:
+│   │       ├── seo_service_category
+│   │       ├── seo_service_subcategory
+│   │       ├── seo_service
+│   │       ├── seo_service_detail
+│   │       ├── seo_service_requirement
+│   │       ├── seo_service_deliverable
+│   │       ├── seo_service_tariff
+│   │       ├── seo_service_sla
+│   │       ├── seo_service_coverage_city
+│   │       ├── seo_service_evidence_type
+│   │       ├── seo_agency_public_profile
+│   │       ├── seo_agency_public_metric
+│   │       ├── seo_agency_case_study
+│   │       ├── seo_public_notice
+│   │       ├── seo_faq
+│   │       ├── seo_contact_request
+│   │       ├── seo_interest_registration
+│   │       └── seo_document_requirement
+│
+│   ├── 3.2 Directorio Público de Agencias
+│   │   ├── Grid de agencias
+│   │   ├── Filtro por ciudad
+│   │   ├── Filtro por categoría
+│   │   ├── Filtro por rating
+│   │   ├── Filtro por precio
+│   │   ├── Especialidades conectadas a servicios
+│   │   ├── CTA Ver perfil
+│   │   ├── CTA Comparar servicios
+│   │   ├── Orden por relevancia
+│   │   ├── Orden por demanda
+│   │   └── Ranking interno del marketplace
+│   │
+│   │   ├── Módulos Odoo nativos referenciales:
+│   │   │   ├── Contacts
+│   │   │   ├── Companies
+│   │   │   ├── Product Catalog
+│   │   │   ├── Product Categories
+│   │   │   ├── Ratings
+│   │   │   ├── CRM Leads
+│   │   │   └── Website
+│   │   ├── Módulos propios SEO Local:
+│   │   │   ├── Directorio de agencias
+│   │   │   ├── Perfil público de agencia
+│   │   │   ├── Ubicación y cobertura local
+│   │   │   ├── Ranking interno de agencia
+│   │   │   ├── Especialidades por servicio
+│   │   │   ├── Filtros avanzados
+│   │   │   ├── Comparación de agencias
+│   │   │   └── Métricas públicas agregadas
+│   │   ├── Tablas Odoo nativas referenciales:
+│   │   │   ├── res_partner
+│   │   │   ├── res_company
+│   │   │   ├── product_template
+│   │   │   ├── product_product
+│   │   │   ├── product_category
+│   │   │   ├── product_pricelist
+│   │   │   ├── product_pricelist_item
+│   │   │   ├── rating_rating
+│   │   │   ├── crm_lead
+│   │   │   ├── website
+│   │   │   └── website_track
+│   │   └── Tablas propias SEO Local:
+│   │       ├── seo_agency_profile
+│   │       ├── seo_agency_location
+│   │       ├── seo_agency_nap
+│   │       ├── seo_agency_service
+│   │       ├── seo_agency_specialty
+│   │       ├── seo_agency_industry
+│   │       ├── seo_agency_client_type
+│   │       ├── seo_agency_pricing_range
+│   │       ├── seo_agency_rating_summary
+│   │       ├── seo_agency_badge
+│   │       ├── seo_agency_verification
+│   │       ├── seo_agency_availability
+│   │       ├── seo_agency_ranking_score
+│   │       ├── seo_agency_ranking_history
+│   │       ├── seo_agency_map_position
+│   │       ├── seo_directory_filter_option
+│   │       ├── seo_directory_search_log
+│   │       ├── seo_compare_session
+│   │       └── seo_compare_item
+│
+│   ├── 3.3 Perfil Público de Agencia
+│   │   ├── Nombre de agencia
+│   │   ├── Información general
+│   │   ├── NAP visible en barra superior
+│   │   ├── GBP embebido
+│   │   ├── Reseñas embebidas
+│   │   ├── Servicios y especialidades
+│   │   ├── Enfoque
+│   │   ├── Industrias
+│   │   ├── Cliente ideal
+│   │   ├── Casos de éxito
+│   │   ├── Canales de contacto
+│   │   └── CTA contratar / solicitar cotización
+│   │
+│   │   ├── Módulos Odoo nativos referenciales:
+│   │   │   ├── Contacts
+│   │   │   ├── Companies
+│   │   │   ├── Products / Services
+│   │   │   ├── CRM Leads
+│   │   │   ├── Rating
+│   │   │   ├── Website
+│   │   │   └── Attachments
+│   │   ├── Módulos propios SEO Local:
+│   │   │   ├── Perfil enriquecido de agencia
+│   │   │   ├── Datos NAP
+│   │   │   ├── Enlaces sociales
+│   │   │   ├── GBP público embebido
+│   │   │   ├── Reseñas públicas
+│   │   │   ├── Portafolio
+│   │   │   ├── Casos de éxito
+│   │   │   └── CTA de conversión
+│   │   ├── Tablas Odoo nativas referenciales:
+│   │   │   ├── res_partner
+│   │   │   ├── res_company
+│   │   │   ├── product_template
+│   │   │   ├── product_product
+│   │   │   ├── crm_lead
+│   │   │   ├── rating_rating
+│   │   │   ├── website_page
+│   │   │   ├── ir_attachment
+│   │   │   └── mail_message
+│   │   └── Tablas propias SEO Local:
+│   │       ├── seo_agency_profile
+│   │       ├── seo_agency_public_profile
+│   │       ├── seo_agency_nap
+│   │       ├── seo_agency_location
+│   │       ├── seo_agency_social_link
+│   │       ├── seo_agency_contact_channel
+│   │       ├── seo_agency_service
+│   │       ├── seo_agency_specialty
+│   │       ├── seo_agency_focus_area
+│   │       ├── seo_agency_industry
+│   │       ├── seo_agency_ideal_client
+│   │       ├── seo_agency_case_study
+│   │       ├── seo_agency_portfolio_item
+│   │       ├── seo_agency_media
+│   │       ├── seo_agency_gbp_embed
+│   │       ├── seo_agency_review_embed
+│   │       └── seo_agency_cta_event
+│
+│   ├── 3.4 Catálogo Público de Servicios SEO Local
+│   │   ├── 45 servicios SEO Local
+│   │   ├── Categorías y subcategorías
+│   │   ├── Ficha técnica FUR por servicio
+│   │   ├── Precio referencial
+│   │   ├── Alcance
+│   │   ├── Requisitos
+│   │   ├── Entregables
+│   │   ├── KPIs
+│   │   ├── Tiempo estimado
+│   │   ├── Servicios relacionados
+│   │   └── Agencias disponibles por servicio
+│   │
+│   │   ├── Módulos Odoo nativos referenciales:
+│   │   │   ├── Product Catalog
+│   │   │   ├── Product Variants
+│   │   │   ├── Product Categories
+│   │   │   ├── Product Attributes
+│   │   │   ├── Pricelists
+│   │   │   ├── Website
+│   │   │   └── Ratings
+│   │   ├── Módulos propios SEO Local:
+│   │   │   ├── Catálogo FUR de servicios SEO Local
+│   │   │   ├── Ficha funcional por servicio
+│   │   │   ├── Simuladores por servicio
+│   │   │   ├── Entregables y requisitos
+│   │   │   ├── Relación servicio-agencia
+│   │   │   ├── Relación categoría-servicio M:N
+│   │   │   └── Reglas de publicación
+│   │   ├── Tablas Odoo nativas referenciales:
+│   │   │   ├── product_template
+│   │   │   ├── product_product
+│   │   │   ├── product_category
+│   │   │   ├── product_attribute
+│   │   │   ├── product_attribute_value
+│   │   │   ├── product_template_attribute_line
+│   │   │   ├── product_pricelist
+│   │   │   ├── product_pricelist_item
+│   │   │   ├── uom_uom
+│   │   │   ├── uom_category
+│   │   │   └── rating_rating
+│   │   └── Tablas propias SEO Local:
+│   │       ├── seo_service_category
+│   │       ├── seo_service_subcategory
+│   │       ├── seo_service
+│   │       ├── seo_service_category_rel
+│   │       ├── seo_service_detail
+│   │       ├── seo_service_feature
+│   │       ├── seo_service_requirement
+│   │       ├── seo_service_deliverable
+│   │       ├── seo_service_kpi
+│   │       ├── seo_service_sla
+│   │       ├── seo_service_tariff
+│   │       ├── seo_service_package
+│   │       ├── seo_service_publication
+│   │       ├── seo_service_publication_version
+│   │       ├── seo_service_related_service
+│   │       ├── seo_service_agency_availability
+│   │       ├── seo_service_simulator_config
+│   │       └── seo_service_fur_template
+│
+├── 4. Perfiles Privados
+│
+│   ├── 4.1 Cliente del Marketplace SEO Local
+│   │   ├── Dashboard de cliente
+│   │   ├── Gestión de empresa
+│   │   ├── Gestión de ubicaciones
+│   │   ├── Solicitud de cotización
+│   │   ├── Carrito de servicios
+│   │   ├── Contratación de servicios
+│   │   ├── Órdenes activas
+│   │   ├── Seguimiento de entregables
+│   │   ├── Aprobaciones
+│   │   ├── Pagos y referencias
+│   │   ├── Reportes recibidos
+│   │   └── Centro de ayuda
+│   │
+│   │   ├── Módulos Odoo nativos referenciales:
+│   │   │   ├── Contacts
+│   │   │   ├── Companies
+│   │   │   ├── Users
+│   │   │   ├── Sales / Quotations / Sales Orders
+│   │   │   ├── Products / Pricelists
+│   │   │   ├── Accounting / Invoicing / Payments
+│   │   │   ├── Project
+│   │   │   ├── Documents / Attachments
+│   │   │   ├── Mail / Activities
+│   │   │   ├── Helpdesk
+│   │   │   └── Rating
+│   │   ├── Módulos propios SEO Local:
+│   │   │   ├── Perfil de cliente SEO
+│   │   │   ├── Negocios y ubicaciones del cliente
+│   │   │   ├── Cotización multi-agencia
+│   │   │   ├── Comparación de propuestas
+│   │   │   ├── Carrito de servicios SEO
+│   │   │   ├── Contratación de servicios SEO
+│   │   │   ├── Expediente de proyecto SEO
+│   │   │   ├── Aprobación de entregables
+│   │   │   └── Reportes SEO por cliente
+│   │   ├── Tablas Odoo nativas referenciales:
+│   │   │   ├── res_users
+│   │   │   ├── res_partner
+│   │   │   ├── res_company
+│   │   │   ├── product_template
+│   │   │   ├── product_product
+│   │   │   ├── product_category
+│   │   │   ├── product_pricelist
+│   │   │   ├── product_pricelist_item
+│   │   │   ├── sale_order
+│   │   │   ├── sale_order_line
+│   │   │   ├── account_move
+│   │   │   ├── account_move_line
+│   │   │   ├── account_payment
+│   │   │   ├── payment_provider
+│   │   │   ├── payment_transaction
+│   │   │   ├── project_project
+│   │   │   ├── project_task
+│   │   │   ├── project_task_type
+│   │   │   ├── ir_attachment
+│   │   │   ├── mail_message
+│   │   │   ├── mail_activity
+│   │   │   ├── helpdesk_ticket
+│   │   │   └── rating_rating
+│   │   └── Tablas propias SEO Local:
+│   │       ├── seo_client_profile
+│   │       ├── seo_client_business
+│   │       ├── seo_client_location
+│   │       ├── seo_client_website
+│   │       ├── seo_client_gbp_reference
+│   │       ├── seo_client_competitor
+│   │       ├── seo_quote_request
+│   │       ├── seo_quote_request_line
+│   │       ├── seo_quote
+│   │       ├── seo_quote_line
+│   │       ├── seo_quote_comparison
+│   │       ├── seo_service_cart
+│   │       ├── seo_service_cart_item
+│   │       ├── seo_service_contract
+│   │       ├── seo_service_contract_line
+│   │       ├── seo_marketplace_order
+│   │       ├── seo_marketplace_order_line
+│   │       ├── seo_invoice_reference
+│   │       ├── seo_payment_reference
+│   │       ├── seo_transaction_history
+│   │       ├── seo_project
+│   │       ├── seo_project_phase
+│   │       ├── seo_project_milestone
+│   │       ├── seo_deliverable
+│   │       ├── seo_deliverable_revision
+│   │       ├── seo_approval_request
+│   │       ├── seo_client_feedback
+│   │       └── seo_client_report_access
+│
+│   ├── 4.2 Agencia SEO / Proveedor del Marketplace
+│   │   ├── Dashboard de agencia
+│   │   ├── Perfil comercial
+│   │   ├── Perfil público
+│   │   ├── Gestión de servicios publicados
+│   │   ├── Gestión de precios
+│   │   ├── Gestión de disponibilidad
+│   │   ├── Leads recibidos
+│   │   ├── Cotizaciones emitidas
+│   │   ├── Órdenes contratadas
+│   │   ├── Proyectos activos
+│   │   ├── Entregables
+│   │   ├── Equipo de trabajo
+│   │   ├── Reputación
+│   │   └── Liquidaciones/comisiones del marketplace
+│   │
+│   │   ├── Módulos Odoo nativos referenciales:
+│   │   │   ├── Contacts / Companies
+│   │   │   ├── Users / Groups
+│   │   │   ├── Products / Services
+│   │   │   ├── Sales Quotations / Sales Orders
+│   │   │   ├── Accounting / Vendor Bills / Payments
+│   │   │   ├── Project / Tasks
+│   │   │   ├── Documents / Attachments
+│   │   │   ├── Mail / Activities
+│   │   │   ├── Helpdesk
+│   │   │   └── Ratings
+│   │   ├── Módulos propios SEO Local:
+│   │   │   ├── Onboarding de agencia
+│   │   │   ├── Validación de agencia
+│   │   │   ├── Publicación de servicios SEO
+│   │   │   ├── Gestión de portafolio
+│   │   │   ├── Gestión de equipo
+│   │   │   ├── Gestión de entregables
+│   │   │   ├── Reputación de agencia
+│   │   │   ├── Ranking de agencia
+│   │   │   └── Liquidación del marketplace
+│   │   ├── Tablas Odoo nativas referenciales:
+│   │   │   ├── res_users
+│   │   │   ├── res_partner
+│   │   │   ├── res_company
+│   │   │   ├── res_groups
+│   │   │   ├── res_groups_users_rel
+│   │   │   ├── product_template
+│   │   │   ├── product_product
+│   │   │   ├── product_category
+│   │   │   ├── product_pricelist
+│   │   │   ├── product_pricelist_item
+│   │   │   ├── sale_order
+│   │   │   ├── sale_order_line
+│   │   │   ├── account_move
+│   │   │   ├── account_move_line
+│   │   │   ├── account_payment
+│   │   │   ├── project_project
+│   │   │   ├── project_task
+│   │   │   ├── ir_attachment
+│   │   │   ├── mail_message
+│   │   │   ├── mail_activity
+│   │   │   ├── helpdesk_ticket
+│   │   │   └── rating_rating
+│   │   └── Tablas propias SEO Local:
+│   │       ├── seo_agency_profile
+│   │       ├── seo_agency_public_profile
+│   │       ├── seo_agency_location
+│   │       ├── seo_agency_nap
+│   │       ├── seo_agency_verification
+│   │       ├── seo_agency_document
+│   │       ├── seo_agency_onboarding_step
+│   │       ├── seo_agency_team_member
+│   │       ├── seo_agency_service
+│   │       ├── seo_agency_service_price
+│   │       ├── seo_agency_service_capacity
+│   │       ├── seo_agency_availability
+│   │       ├── seo_agency_portfolio_item
+│   │       ├── seo_agency_case_study
+│   │       ├── seo_agency_lead
+│   │       ├── seo_agency_quote
+│   │       ├── seo_agency_project_assignment
+│   │       ├── seo_agency_deliverable_queue
+│   │       ├── seo_agency_reputation_score
+│   │       ├── seo_agency_ranking_score
+│   │       ├── seo_commission_rule
+│   │       ├── seo_commission_settlement
+│   │       └── seo_payout_reference
+│
+│   ├── 4.3 Superadministrador del Marketplace
+│   │   ├── Dashboard enterprise
+│   │   ├── Gestión de usuarios
+│   │   ├── Gestión de agencias
+│   │   ├── Gestión de clientes
+│   │   ├── Gestión del catálogo de servicios
+│   │   ├── Gestión de categorías
+│   │   ├── Gestión de órdenes
+│   │   ├── Gestión de comisiones
+│   │   ├── Moderación de reseñas
+│   │   ├── Gobierno de datos
+│   │   ├── Configuración de reglas
+│   │   ├── Reportes globales
+│   │   └── Auditoría de plataforma
+│   │
+│   │   ├── Módulos Odoo nativos referenciales:
+│   │   │   ├── Users / Groups / Access Rights
+│   │   │   ├── Contacts / Companies
+│   │   │   ├── Sales
+│   │   │   ├── Accounting
+│   │   │   ├── Products
+│   │   │   ├── Project
+│   │   │   ├── Helpdesk
+│   │   │   ├── Rating
+│   │   │   ├── Mail
+│   │   │   └── Reporting / Configuration
+│   │   ├── Módulos propios SEO Local:
+│   │   │   ├── Administración global del marketplace
+│   │   │   ├── RBAC propio por perfil
+│   │   │   ├── Gestión de catálogo SEO
+│   │   │   ├── Gobierno de agencias
+│   │   │   ├── Gobierno de órdenes
+│   │   │   ├── Moderación de reputación
+│   │   │   ├── Dashboard enterprise
+│   │   │   └── Auditoría y trazabilidad
+│   │   ├── Tablas Odoo nativas referenciales:
+│   │   │   ├── res_users
+│   │   │   ├── res_partner
+│   │   │   ├── res_company
+│   │   │   ├── res_groups
+│   │   │   ├── res_groups_users_rel
+│   │   │   ├── ir_model
+│   │   │   ├── ir_model_fields
+│   │   │   ├── ir_model_access
+│   │   │   ├── ir_rule
+│   │   │   ├── ir_sequence
+│   │   │   ├── ir_config_parameter
+│   │   │   ├── product_template
+│   │   │   ├── product_product
+│   │   │   ├── product_category
+│   │   │   ├── sale_order
+│   │   │   ├── sale_order_line
+│   │   │   ├── account_move
+│   │   │   ├── account_move_line
+│   │   │   ├── account_payment
+│   │   │   ├── project_project
+│   │   │   ├── project_task
+│   │   │   ├── helpdesk_ticket
+│   │   │   ├── rating_rating
+│   │   │   ├── mail_message
+│   │   │   ├── mail_activity
+│   │   │   └── ir_attachment
+│   │   └── Tablas propias SEO Local:
+│   │       ├── seo_admin_dashboard_layout
+│   │       ├── seo_admin_navigation_item
+│   │       ├── seo_platform_setting
+│   │       ├── seo_profile_type
+│   │       ├── seo_user_role_assignment
+│   │       ├── seo_user_access_scope
+│   │       ├── seo_permission_rule
+│   │       ├── seo_agency_verification
+│   │       ├── seo_agency_status_history
+│   │       ├── seo_service_publication
+│   │       ├── seo_service_publication_version
+│   │       ├── seo_moderation_case
+│   │       ├── seo_review_moderation_case
+│   │       ├── seo_dispute_case
+│   │       ├── seo_commission_rule
+│   │       ├── seo_commission_settlement
+│   │       ├── seo_kpi_definition
+│   │       ├── seo_kpi_measurement
+│   │       ├── seo_dashboard_widget
+│   │       ├── seo_governance_audit_log
+│   │       └── seo_data_quality_issue
+│
+│   ├── 4.4 Soporte / Moderador
+│   │   ├── Centro de soporte
+│   │   ├── Tickets de cliente
+│   │   ├── Tickets de agencia
+│   │   ├── Disputas
+│   │   ├── Moderación de reseñas
+│   │   ├── Reporte de reseña
+│   │   ├── Apelación de reseña
+│   │   ├── Base de conocimiento
+│   │   └── SLA de atención
+│   │
+│   │   ├── Módulos Odoo nativos referenciales:
+│   │   │   ├── Helpdesk
+│   │   │   ├── Mail
+│   │   │   ├── Activities
+│   │   │   ├── Rating
+│   │   │   ├── Contacts
+│   │   │   ├── Documents
+│   │   │   └── Knowledge / Website
+│   │   ├── Módulos propios SEO Local:
+│   │   │   ├── Soporte marketplace
+│   │   │   ├── Moderación de reputación
+│   │   │   ├── Disputas de servicio
+│   │   │   ├── Apelaciones
+│   │   │   ├── SLA operativo
+│   │   │   └── Base de conocimiento SEO
+│   │   ├── Tablas Odoo nativas referenciales:
+│   │   │   ├── helpdesk_ticket
+│   │   │   ├── helpdesk_stage
+│   │   │   ├── helpdesk_team
+│   │   │   ├── mail_message
+│   │   │   ├── mail_activity
+│   │   │   ├── rating_rating
+│   │   │   ├── res_partner
+│   │   │   ├── res_users
+│   │   │   ├── ir_attachment
+│   │   │   └── website_page
+│   │   └── Tablas propias SEO Local:
+│   │       ├── seo_support_ticket_context
+│   │       ├── seo_support_sla_rule
+│   │       ├── seo_support_escalation
+│   │       ├── seo_dispute_case
+│   │       ├── seo_dispute_message
+│   │       ├── seo_dispute_resolution
+│   │       ├── seo_review_report
+│   │       ├── seo_review_appeal
+│   │       ├── seo_review_moderation_case
+│   │       ├── seo_moderation_action
+│   │       ├── seo_knowledge_article
+│   │       ├── seo_knowledge_category
+│   │       └── seo_support_audit_log
+│
+├── 5. Módulos Funcionales FUR de Servicios SEO Local
+│
+│   ├── 5.1 Auditoría SEO Local
+│   │   ├── Auditoría de presencia local
+│   │   ├── Auditoría GBP
+│   │   ├── Auditoría NAP
+│   │   ├── Auditoría citaciones
+│   │   ├── Auditoría técnica local
+│   │   ├── Auditoría de reputación
+│   │   ├── Score local
+│   │   ├── Hallazgos
+│   │   ├── Recomendaciones
+│   │   └── Plan de acción
+│   │
+│   │   ├── Módulos Odoo nativos referenciales:
+│   │   │   ├── Project
+│   │   │   ├── Tasks
+│   │   │   ├── Documents
+│   │   │   ├── Mail / Activities
+│   │   │   ├── Sales
+│   │   │   └── Reporting
+│   │   ├── Módulos propios SEO Local:
+│   │   │   ├── Auditoría SEO Local
+│   │   │   ├── Checklist de auditoría
+│   │   │   ├── Scoring por módulo
+│   │   │   ├── Issues y recomendaciones
+│   │   │   ├── Evidencias
+│   │   │   └── Reporte de auditoría
+│   │   ├── Tablas Odoo nativas referenciales:
+│   │   │   ├── project_project
+│   │   │   ├── project_task
+│   │   │   ├── project_task_type
+│   │   │   ├── sale_order
+│   │   │   ├── sale_order_line
+│   │   │   ├── ir_attachment
+│   │   │   ├── mail_message
+│   │   │   └── mail_activity
+│   │   └── Tablas propias SEO Local:
+│   │       ├── seo_local_audit
+│   │       ├── seo_local_audit_scope
+│   │       ├── seo_local_audit_checklist
+│   │       ├── seo_local_audit_item
+│   │       ├── seo_local_audit_score
+│   │       ├── seo_local_audit_issue
+│   │       ├── seo_local_audit_recommendation
+│   │       ├── seo_local_audit_evidence
+│   │       ├── seo_local_audit_action_plan
+│   │       └── seo_local_audit_report
+│
+│   ├── 5.2 Google Business Profile / GBP
+│   │   ├── Perfil GBP
+│   │   ├── Categorías GBP
+│   │   ├── Servicios GBP
+│   │   ├── Horarios
+│   │   ├── Fotos
+│   │   ├── Posts
+│   │   ├── Preguntas y respuestas
+│   │   ├── Métricas GBP
+│   │   ├── Optimización
+│   │   └── Historial de cambios
+│   │
+│   │   ├── Módulos Odoo nativos referenciales:
+│   │   │   ├── Contacts
+│   │   │   ├── Website
+│   │   │   ├── Project
+│   │   │   ├── Documents
+│   │   │   └── Mail / Activities
+│   │   ├── Módulos propios SEO Local:
+│   │   │   ├── Snapshot GBP
+│   │   │   ├── Optimización GBP
+│   │   │   ├── Historial GBP
+│   │   │   ├── Inspección de perfil
+│   │   │   ├── Evidencias GBP
+│   │   │   └── Métricas GBP
+│   │   ├── Tablas Odoo nativas referenciales:
+│   │   │   ├── res_partner
+│   │   │   ├── project_project
+│   │   │   ├── project_task
+│   │   │   ├── ir_attachment
+│   │   │   ├── mail_message
+│   │   │   └── mail_activity
+│   │   └── Tablas propias SEO Local:
+│   │       ├── seo_gbp_profile
+│   │       ├── seo_gbp_profile_snapshot
+│   │       ├── seo_gbp_category
+│   │       ├── seo_gbp_service
+│   │       ├── seo_gbp_business_hour
+│   │       ├── seo_gbp_special_hour
+│   │       ├── seo_gbp_photo
+│   │       ├── seo_gbp_post
+│   │       ├── seo_gbp_question
+│   │       ├── seo_gbp_answer
+│   │       ├── seo_gbp_insight_snapshot
+│   │       ├── seo_gbp_optimization_task
+│   │       ├── seo_gbp_change_log
+│   │       └── seo_gbp_evidence
+│
+│   ├── 5.3 Gestión de Reseñas y Reputación GBP
+│   │   ├── Reseñas de agencias
+│   │   ├── Reseñas de servicios
+│   │   ├── Calificaciones por categoría
+│   │   ├── Casos de éxito
+│   │   ├── Empresas verificadas
+│   │   ├── Política de reseñas
+│   │   ├── Reporte de reseña
+│   │   ├── Apelación de reseña
+│   │   └── Moderación de reputación
+│   │
+│   │   ├── Módulos Odoo nativos referenciales:
+│   │   │   ├── Rating
+│   │   │   ├── CRM
+│   │   │   ├── Sales
+│   │   │   ├── Helpdesk
+│   │   │   ├── Mail
+│   │   │   ├── Contacts
+│   │   │   └── Website
+│   │   ├── Módulos propios SEO Local:
+│   │   │   ├── Reputación de agencia
+│   │   │   ├── Reputación de servicio
+│   │   │   ├── Reputación GBP
+│   │   │   ├── Solicitudes de reseña
+│   │   │   ├── Respuestas a reseñas
+│   │   │   ├── Moderación
+│   │   │   ├── Apelaciones
+│   │   │   └── Sentimiento
+│   │   ├── Tablas Odoo nativas referenciales:
+│   │   │   ├── rating_rating
+│   │   │   ├── res_partner
+│   │   │   ├── sale_order
+│   │   │   ├── sale_order_line
+│   │   │   ├── helpdesk_ticket
+│   │   │   ├── mail_message
+│   │   │   ├── mail_activity
+│   │   │   └── website_page
+│   │   └── Tablas propias SEO Local:
+│   │       ├── seo_review_source
+│   │       ├── seo_review_profile
+│   │       ├── seo_review
+│   │       ├── seo_review_response
+│   │       ├── seo_review_category_score
+│   │       ├── seo_review_request_campaign
+│   │       ├── seo_review_request_recipient
+│   │       ├── seo_review_request_event
+│   │       ├── seo_review_report
+│   │       ├── seo_review_appeal
+│   │       ├── seo_review_moderation_case
+│   │       ├── seo_reputation_score
+│   │       ├── seo_sentiment_analysis
+│   │       ├── seo_verified_business
+│   │       └── seo_review_policy_version
+│
+│   ├── 5.4 Local Pack, Ranking y Mapas
+│   │   ├── Keywords locales
+│   │   ├── Ciudad/zona de búsqueda
+│   │   ├── Coordenadas geográficas
+│   │   ├── Grid de ranking local
+│   │   ├── Resultados Local Pack
+│   │   ├── Competidores
+│   │   ├── Historial de posiciones
+│   │   ├── Oportunidades por zona
+│   │   └── Reporte de visibilidad
+│   │
+│   │   ├── Módulos Odoo nativos referenciales:
+│   │   │   ├── Project
+│   │   │   ├── Reporting
+│   │   │   ├── Documents
+│   │   │   ├── Contacts
+│   │   │   └── Mail / Activities
+│   │   ├── Módulos propios SEO Local:
+│   │   │   ├── Tracking de keywords locales
+│   │   │   ├── Grid geográfico
+│   │   │   ├── Local Pack tracker
+│   │   │   ├── Competidores locales
+│   │   │   ├── Historial SERP
+│   │   │   └── Score de visibilidad local
+│   │   ├── Tablas Odoo nativas referenciales:
+│   │   │   ├── project_project
+│   │   │   ├── project_task
+│   │   │   ├── res_partner
+│   │   │   ├── ir_attachment
+│   │   │   ├── mail_message
+│   │   │   └── mail_activity
+│   │   └── Tablas propias SEO Local:
+│   │       ├── seo_keyword
+│   │       ├── seo_local_keyword_cluster
+│   │       ├── seo_location_geo_point
+│   │       ├── seo_grid_scan
+│   │       ├── seo_grid_scan_cell
+│   │       ├── seo_serp_scan
+│   │       ├── seo_serp_result
+│   │       ├── seo_local_pack_result
+│   │       ├── seo_ranking_position_history
+│   │       ├── seo_competitor_business
+│   │       ├── seo_visibility_score
+│   │       └── seo_ranking_report
+│
+│   ├── 5.5 NAP, Citaciones y Directorios Locales
+│   │   ├── Nombre, dirección y teléfono
+│   │   ├── Consistencia NAP
+│   │   ├── Fuentes de citación
+│   │   ├── Directorios locales
+│   │   ├── Alta de citaciones
+│   │   ├── Corrección de inconsistencias
+│   │   ├── Evidencias de publicación
+│   │   └── Score de consistencia
+│   │
+│   │   ├── Módulos Odoo nativos referenciales:
+│   │   │   ├── Contacts
+│   │   │   ├── Website
+│   │   │   ├── Project
+│   │   │   ├── Documents
+│   │   │   └── Mail / Activities
+│   │   ├── Módulos propios SEO Local:
+│   │   │   ├── Perfil NAP
+│   │   │   ├── Auditoría NAP
+│   │   │   ├── Fuentes de citaciones
+│   │   │   ├── Gestión de directorios
+│   │   │   ├── Envíos y correcciones
+│   │   │   └── Evidencias de citación
+│   │   ├── Tablas Odoo nativas referenciales:
+│   │   │   ├── res_partner
+│   │   │   ├── res_company
+│   │   │   ├── project_project
+│   │   │   ├── project_task
+│   │   │   ├── ir_attachment
+│   │   │   ├── mail_message
+│   │   │   └── mail_activity
+│   │   └── Tablas propias SEO Local:
+│   │       ├── seo_nap_profile
+│   │       ├── seo_nap_consistency_check
+│   │       ├── seo_nap_consistency_issue
+│   │       ├── seo_citation_source
+│   │       ├── seo_directory_category
+│   │       ├── seo_citation_listing
+│   │       ├── seo_citation_submission
+│   │       ├── seo_citation_correction
+│   │       ├── seo_citation_evidence
+│   │       ├── seo_citation_status_history
+│   │       └── seo_nap_score
+│
+│   ├── 5.6 Link Building Local y PR Local
+│   │   ├── Prospectos locales
+│   │   ├── Outreach
+│   │   ├── Contactos
+│   │   ├── Campañas
+│   │   ├── Backlinks
+│   │   ├── Menciones de marca
+│   │   ├── PR local
+│   │   ├── Autoridad local
+│   │   └── Evidencias
+│   │
+│   │   ├── Módulos Odoo nativos referenciales:
+│   │   │   ├── CRM
+│   │   │   ├── Email Marketing
+│   │   │   ├── Contacts
+│   │   │   ├── Project
+│   │   │   ├── Documents
+│   │   │   └── Mail
+│   │   ├── Módulos propios SEO Local:
+│   │   │   ├── Prospectos de enlaces locales
+│   │   │   ├── Campañas de outreach
+│   │   │   ├── Control de backlinks
+│   │   │   ├── PR local
+│   │   │   ├── Seguimiento de menciones
+│   │   │   └── Calidad de enlaces
+│   │   ├── Tablas Odoo nativas referenciales:
+│   │   │   ├── crm_lead
+│   │   │   ├── res_partner
+│   │   │   ├── mail_message
+│   │   │   ├── mail_activity
+│   │   │   ├── project_project
+│   │   │   ├── project_task
+│   │   │   ├── ir_attachment
+│   │   │   ├── mass_mailing_mailing
+│   │   │   └── mass_mailing_trace
+│   │   └── Tablas propias SEO Local:
+│   │       ├── seo_backlink_prospect
+│   │       ├── seo_backlink_prospect_contact
+│   │       ├── seo_outreach_campaign
+│   │       ├── seo_outreach_contact
+│   │       ├── seo_outreach_email_event
+│   │       ├── seo_backlink_placement
+│   │       ├── seo_backlink_quality_score
+│   │       ├── seo_local_pr_campaign
+│   │       ├── seo_media_mention
+│   │       ├── seo_brand_mention
+│   │       └── seo_link_evidence
+│
+│   ├── 5.7 SEO Técnico Local, Velocidad y On-Page
+│   │   ├── Auditoría técnica
+│   │   ├── Core Web Vitals
+│   │   ├── URLs locales
+│   │   ├── Meta tags locales
+│   │   ├── Indexabilidad
+│   │   ├── Rendimiento móvil
+│   │   ├── Errores técnicos
+│   │   ├── Plan de corrección
+│   │   └── Validación posterior
+│   │
+│   │   ├── Módulos Odoo nativos referenciales:
+│   │   │   ├── Website
+│   │   │   ├── Project
+│   │   │   ├── Documents
+│   │   │   ├── Mail / Activities
+│   │   │   └── Reporting
+│   │   ├── Módulos propios SEO Local:
+│   │   │   ├── Auditoría técnica local
+│   │   │   ├── Auditoría de páginas
+│   │   │   ├── Core Web Vitals
+│   │   │   ├── Issues técnicos
+│   │   │   ├── Priorización técnica
+│   │   │   └── Evidencias de corrección
+│   │   ├── Tablas Odoo nativas referenciales:
+│   │   │   ├── website
+│   │   │   ├── website_page
+│   │   │   ├── project_project
+│   │   │   ├── project_task
+│   │   │   ├── ir_attachment
+│   │   │   ├── mail_message
+│   │   │   └── mail_activity
+│   │   └── Tablas propias SEO Local:
+│   │       ├── seo_website_asset
+│   │       ├── seo_technical_audit
+│   │       ├── seo_technical_audit_run
+│   │       ├── seo_page_audit
+│   │       ├── seo_page_issue
+│   │       ├── seo_core_web_vital_snapshot
+│   │       ├── seo_speed_test_result
+│   │       ├── seo_mobile_experience_check
+│   │       ├── seo_indexability_check
+│   │       ├── seo_technical_fix_task
+│   │       └── seo_technical_validation
+│
+│   ├── 5.8 Contenido Local, Blog Local, Páginas de Servicio y Landing Page Local
+│   │   ├── Plan de contenido local
+│   │   ├── Blog local mensual
+│   │   ├── Páginas de servicio
+│   │   ├── Landing pages locales
+│   │   ├── Briefs
+│   │   ├── Producción
+│   │   ├── Revisión
+│   │   ├── Publicación
+│   │   ├── Enlazado interno
+│   │   └── Métricas de conversión
+│   │
+│   │   ├── Módulos Odoo nativos referenciales:
+│   │   │   ├── Website / Blog
+│   │   │   ├── Website Pages
+│   │   │   ├── Project
+│   │   │   ├── Documents
+│   │   │   ├── Sales
+│   │   │   └── Mail / Activities
+│   │   ├── Módulos propios SEO Local:
+│   │   │   ├── Plan editorial local
+│   │   │   ├── Brief de contenido
+│   │   │   ├── Producción de contenido
+│   │   │   ├── Página de servicio local
+│   │   │   ├── Landing page local
+│   │   │   ├── Simulador de conversión
+│   │   │   └── Control de publicación
+│   │   ├── Tablas Odoo nativas referenciales:
+│   │   │   ├── website
+│   │   │   ├── website_page
+│   │   │   ├── blog_blog
+│   │   │   ├── blog_post
+│   │   │   ├── project_project
+│   │   │   ├── project_task
+│   │   │   ├── sale_order
+│   │   │   ├── sale_order_line
+│   │   │   ├── ir_attachment
+│   │   │   ├── mail_message
+│   │   │   └── mail_activity
+│   │   └── Tablas propias SEO Local:
+│   │       ├── seo_content_plan
+│   │       ├── seo_content_calendar
+│   │       ├── seo_content_brief
+│   │       ├── seo_content_order
+│   │       ├── seo_content_draft
+│   │       ├── seo_content_revision
+│   │       ├── seo_content_publication
+│   │       ├── seo_blog_topic
+│   │       ├── seo_local_blog_post
+│   │       ├── seo_service_page
+│   │       ├── seo_service_page_section
+│   │       ├── seo_local_landing_page
+│   │       ├── seo_landing_conversion_model
+│   │       ├── seo_internal_link_plan
+│   │       └── seo_content_performance_snapshot
+│
+│   ├── 5.9 Schema Local
+│   │   ├── LocalBusiness schema
+│   │   ├── Organization schema
+│   │   ├── Service schema
+│   │   ├── FAQ schema
+│   │   ├── Review schema
+│   │   ├── Validación
+│   │   ├── Errores
+│   │   ├── Versiones
+│   │   └── Evidencias
+│   │
+│   │   ├── Módulos Odoo nativos referenciales:
+│   │   │   ├── Website
+│   │   │   ├── Products
+│   │   │   ├── Contacts
+│   │   │   ├── Rating
+│   │   │   ├── Project
+│   │   │   └── Documents
+│   │   ├── Módulos propios SEO Local:
+│   │   │   ├── Generador de schema local
+│   │   │   ├── Validación de schema
+│   │   │   ├── Versionado de marcado
+│   │   │   ├── Evidencias técnicas
+│   │   │   └── Estado de implementación
+│   │   ├── Tablas Odoo nativas referenciales:
+│   │   │   ├── website
+│   │   │   ├── website_page
+│   │   │   ├── product_template
+│   │   │   ├── product_product
+│   │   │   ├── res_partner
+│   │   │   ├── rating_rating
+│   │   │   ├── project_task
+│   │   │   └── ir_attachment
+│   │   └── Tablas propias SEO Local:
+│   │       ├── seo_schema_type
+│   │       ├── seo_schema_template
+│   │       ├── seo_schema_markup
+│   │       ├── seo_schema_field_mapping
+│   │       ├── seo_schema_validation_run
+│   │       ├── seo_schema_validation_result
+│   │       ├── seo_schema_error
+│   │       ├── seo_schema_version
+│   │       ├── seo_schema_implementation_status
+│   │       └── seo_schema_evidence
+│
+├── 6. Módulos Globales Transversales
+│
+│   ├── 6.1 Catálogo Global de Servicios
+│   │   ├── Odoo: product_template, product_product, product_category, product_pricelist, product_pricelist_item, product_attribute, product_attribute_value, uom_uom, uom_category, rating_rating
+│   │   └── SEO Local: seo_service_category, seo_service_subcategory, seo_service, seo_service_category_rel, seo_service_detail, seo_service_feature, seo_service_requirement, seo_service_deliverable, seo_service_kpi, seo_service_sla, seo_service_tariff, seo_service_package, seo_service_publication, seo_service_publication_version, seo_service_agency_availability
+│
+│   ├── 6.2 CRM, Leads y Conversión
+│   │   ├── Odoo: crm_lead, crm_stage, crm_team, res_partner, res_users, mail_message, mail_activity, utm_campaign, utm_source, utm_medium
+│   │   └── SEO Local: seo_lead_source, seo_lead_capture_form, seo_lead_enrichment, seo_lead_assignment, seo_lead_score, seo_lead_routing_rule, seo_lead_conversion_event, seo_agency_lead, seo_client_intent_signal
+│
+│   ├── 6.3 Cotización, Carrito, Orden y Contrato
+│   │   ├── Odoo: sale_order, sale_order_line, product_template, product_product, product_pricelist, product_pricelist_item, res_partner, account_move, account_move_line, account_payment, payment_transaction
+│   │   └── SEO Local: seo_quote_request, seo_quote_request_line, seo_quote, seo_quote_line, seo_quote_comparison, seo_service_cart, seo_service_cart_item, seo_service_contract, seo_service_contract_line, seo_marketplace_order, seo_marketplace_order_line, seo_order_status_event
+│
+│   ├── 6.4 Proyectos, Entregables y Evidencias
+│   │   ├── Odoo: project_project, project_task, project_task_type, project_milestone, ir_attachment, mail_message, mail_activity, rating_rating
+│   │   └── SEO Local: seo_project, seo_project_phase, seo_project_milestone, seo_project_task_dependency, seo_work_order, seo_deliverable, seo_deliverable_revision, seo_evidence_file, seo_approval_request, seo_change_request, seo_client_feedback
+│
+│   ├── 6.5 Documentos Maestros
+│   │   ├── Odoo: ir_attachment, documents_document, documents_folder, documents_tag, mail_message, mail_activity
+│   │   └── SEO Local: seo_document, seo_document_type, seo_document_version, seo_document_file, seo_document_metadata, seo_document_status, seo_document_relation, seo_document_requirement, seo_document_checklist, seo_document_access_log
+│
+│   ├── 6.6 RBAC, Permisos y Gobernanza
+│   │   ├── Odoo: res_users, res_groups, res_groups_users_rel, ir_model, ir_model_fields, ir_model_access, ir_rule, ir_config_parameter
+│   │   └── SEO Local: seo_profile_type, seo_user_profile, seo_user_role_assignment, seo_user_access_scope, seo_permission_rule, seo_governance_matrix, seo_governance_matrix_version, seo_process_raci_matrix, seo_raci_assignment, seo_governance_audit_log, seo_segregation_rule, seo_escalation_matrix
+│
+│   ├── 6.7 Reportes, Dashboards y KPIs
+│   │   ├── Odoo: sale_report, account_move, account_move_line, project_task, rating_rating, crm_lead, mail_message, ir_attachment
+│   │   └── SEO Local: seo_report_template, seo_report_definition, seo_report_filter, seo_report_snapshot, seo_kpi_definition, seo_kpi_measurement, seo_dashboard_widget, seo_dashboard_profile_layout, seo_analytics_event, seo_audit_report, seo_data_snapshot
+│
+│   ├── 6.8 Configuración General
+│   │   ├── Odoo: ir_config_parameter, ir_sequence, res_currency, res_currency_rate, account_tax, product_pricelist, product_pricelist_item, res_users, res_groups, ir_model_access, ir_rule, mail_template
+│   │   └── SEO Local: seo_parameter, seo_parameter_group, seo_country, seo_region, seo_city, seo_business_category, seo_industry, seo_notification_rule, seo_sla_rule, seo_catalog, seo_catalog_item, seo_workflow_config, seo_marketplace_fee_config
+│
+│   └── 6.9 Integraciones Externas SEO sin Integración con Odoo
+│       ├── Aclaratoria: estas tablas no integran Odoo; guardan referencias, snapshots o datos operativos de herramientas SEO externas.
+│       ├── Odoo: no aplica integración técnica directa
+│       └── SEO Local: seo_external_platform, seo_external_account_reference, seo_external_api_credential_reference, seo_import_job, seo_export_job, seo_webhook_event, seo_data_sync_log, seo_api_rate_limit_log, seo_gbp_profile_snapshot, seo_serp_scan, seo_core_web_vital_snapshot
+│
+├── 7. Procesos Operativos del Marketplace
+│
+│   ├── 7.1 Habilitación de Agencia
+│   │   ├── Solicitud
+│   │   ├── Carga documental
+│   │   ├── Revisión
+│   │   ├── Validación
+│   │   ├── Configuración de perfil
+│   │   ├── Publicación de servicios
+│   │   └── Activación
+│   │
+│   │   ├── Odoo: res_users, res_partner, res_company, res_groups, ir_model_access, ir_rule, ir_attachment, mail_message, mail_activity
+│   │   └── SEO Local: seo_agency_profile, seo_agency_document, seo_agency_verification, seo_agency_onboarding_step, seo_agency_status_history, seo_user_role_assignment, seo_user_access_scope, seo_policy_acceptance
+│
+│   ├── 7.2 Contratación de Servicio SEO
+│   │   ├── Búsqueda
+│   │   ├── Comparación
+│   │   ├── Carrito
+│   │   ├── Solicitud de cotización
+│   │   ├── Propuesta
+│   │   ├── Contrato
+│   │   ├── Orden
+│   │   ├── Pago referencial
+│   │   └── Inicio de proyecto
+│   │
+│   │   ├── Odoo: product_template, product_product, product_category, product_pricelist, product_pricelist_item, sale_order, sale_order_line, account_move, account_move_line, account_payment, payment_transaction, project_project, project_task
+│   │   └── SEO Local: seo_compare_session, seo_compare_item, seo_service_cart, seo_service_cart_item, seo_quote_request, seo_quote, seo_service_contract, seo_marketplace_order, seo_payment_reference, seo_project, seo_project_phase
+│
+│   ├── 7.3 Ejecución y Aprobación de Entregables
+│   │   ├── Creación de proyecto
+│   │   ├── Asignación de agencia
+│   │   ├── Fases
+│   │   ├── Tareas
+│   │   ├── Evidencias
+│   │   ├── Revisión del cliente
+│   │   ├── Aprobación
+│   │   ├── Rechazo
+│   │   └── Cierre
+│   │
+│   │   ├── Odoo: project_project, project_task, project_task_type, ir_attachment, mail_message, mail_activity, rating_rating
+│   │   └── SEO Local: seo_project, seo_project_phase, seo_project_milestone, seo_work_order, seo_deliverable, seo_deliverable_revision, seo_evidence_file, seo_approval_request, seo_change_request, seo_project_status_event
+│
+│   ├── 7.4 Moderación de Reseñas y Reputación
+│   │   ├── Reseña recibida
+│   │   ├── Detección de riesgo
+│   │   ├── Reporte
+│   │   ├── Caso de moderación
+│   │   ├── Apelación
+│   │   ├── Resolución
+│   │   └── Actualización de score
+│   │
+│   │   ├── Odoo: rating_rating, helpdesk_ticket, mail_message, mail_activity, res_partner, ir_attachment
+│   │   └── SEO Local: seo_review, seo_review_response, seo_review_report, seo_review_appeal, seo_review_moderation_case, seo_moderation_action, seo_reputation_score, seo_sentiment_analysis
+│
+│   └── 7.5 Reporte SEO y Dashboard
+│       ├── Captura de datos
+│       ├── Snapshots
+│       ├── KPIs
+│       ├── Widgets
+│       ├── Reporte cliente
+│       ├── Reporte agencia
+│       ├── Reporte superadmin
+│       └── Histórico
+│
+│       ├── Odoo: sale_report, account_move, account_move_line, project_task, rating_rating, crm_lead, mail_message, ir_attachment
+│       └── SEO Local: seo_report_template, seo_report_definition, seo_report_snapshot, seo_kpi_definition, seo_kpi_measurement, seo_dashboard_widget, seo_dashboard_profile_layout, seo_analytics_event, seo_data_snapshot, seo_client_report_access
+│
+└── 8. Footer, Legal y Soporte Público
+    ├── Términos y condiciones
+    ├── Política de privacidad
+    ├── Política de cookies
+    ├── Política de reseñas
+    ├── Política de agencias verificadas
+    ├── Ayuda
+    ├── Centro de soporte
+    ├── Sitemap
+    ├── Contacto
+    ├── Redes sociales
+    ├── Newsletter
+    └── Versionado del portal
+
+    ├── Módulos Odoo nativos referenciales:
+    │   ├── Website
+    │   ├── Website Pages
+    │   ├── Website Menus
+    │   ├── CRM Leads
+    │   ├── Helpdesk
+    │   ├── Mail
+    │   └── Attachments
+    ├── Módulos propios SEO Local:
+    │   ├── Legal del marketplace
+    │   ├── Políticas versionadas
+    │   ├── Centro de ayuda público
+    │   ├── Sitemap público
+    │   ├── Contacto público
+    │   └── Newsletter
+    ├── Tablas Odoo nativas referenciales:
+    │   ├── website
+    │   ├── website_page
+    │   ├── website_menu
+    │   ├── crm_lead
+    │   ├── helpdesk_ticket
+    │   ├── mail_message
+    │   ├── mail_activity
+    │   └── ir_attachment
+    └── Tablas propias SEO Local:
+        ├── seo_legal_policy
+        ├── seo_legal_policy_version
+        ├── seo_cookie_consent
+        ├── seo_review_policy_version
+        ├── seo_help_center_category
+        ├── seo_help_center_article
+        ├── seo_sitemap_entry
+        ├── seo_contact_request
+        ├── seo_newsletter_subscription
+        └── seo_portal_version
+
+
+RESUMEN DE TABLAS ODOO NATIVAS REFERENCIALES
+│
+├── Base / seguridad / configuración:
+│   ├── res_users
+│   ├── res_partner
+│   ├── res_company
+│   ├── res_groups
+│   ├── res_groups_users_rel
+│   ├── ir_model
+│   ├── ir_model_fields
+│   ├── ir_model_access
+│   ├── ir_rule
+│   ├── ir_sequence
+│   ├── ir_config_parameter
+│   ├── res_currency
+│   └── res_currency_rate
+│
+├── Website / portal / contenido:
+│   ├── website
+│   ├── website_page
+│   ├── website_menu
+│   ├── website_visitor
+│   ├── website_track
+│   ├── blog_blog
+│   └── blog_post
+│
+├── CRM / leads / marketing:
+│   ├── crm_lead
+│   ├── crm_stage
+│   ├── crm_team
+│   ├── utm_campaign
+│   ├── utm_source
+│   ├── utm_medium
+│   ├── mass_mailing_mailing
+│   └── mass_mailing_trace
+│
+├── Catálogo / productos / precios:
+│   ├── product_template
+│   ├── product_product
+│   ├── product_category
+│   ├── product_attribute
+│   ├── product_attribute_value
+│   ├── product_template_attribute_line
+│   ├── product_pricelist
+│   ├── product_pricelist_item
+│   ├── uom_uom
+│   └── uom_category
+│
+├── Ventas / órdenes / facturación / pagos:
+│   ├── sale_order
+│   ├── sale_order_line
+│   ├── sale_report
+│   ├── account_move
+│   ├── account_move_line
+│   ├── account_payment
+│   ├── account_tax
+│   ├── payment_provider
+│   └── payment_transaction
+│
+├── Proyectos / tareas / operación:
+│   ├── project_project
+│   ├── project_task
+│   ├── project_task_type
+│   └── project_milestone
+│
+├── Soporte / reputación / comunicación:
+│   ├── helpdesk_ticket
+│   ├── helpdesk_stage
+│   ├── helpdesk_team
+│   ├── rating_rating
+│   ├── mail_message
+│   ├── mail_activity
+│   ├── mail_followers
+│   └── mail_template
+│
+└── Documentos / adjuntos:
+    ├── ir_attachment
+    ├── documents_document
+    ├── documents_folder
+    └── documents_tag
+
+
+RESUMEN DE TABLAS PROPIAS MÍNIMAS DEL MARKETPLACE SEO LOCAL
+│
+├── Núcleo de usuarios, perfiles y seguridad:
+│   ├── seo_profile_type
+│   ├── seo_user_profile
+│   ├── seo_client_profile
+│   ├── seo_agency_profile
+│   ├── seo_company_profile
+│   ├── seo_agency_team_member
+│   ├── seo_user_enablement_request
+│   ├── seo_user_enablement_document
+│   ├── seo_user_enablement_step
+│   ├── seo_user_role_assignment
+│   ├── seo_user_access_scope
+│   ├── seo_permission_rule
+│   ├── seo_login_security_event
+│   └── seo_policy_acceptance
+│
+├── Portal público y CMS:
+│   ├── seo_cms_page
+│   ├── seo_cms_menu
+│   ├── seo_home_section
+│   ├── seo_home_banner
+│   ├── seo_home_popular_service
+│   ├── seo_public_notice
+│   ├── seo_faq
+│   ├── seo_contact_request
+│   ├── seo_interest_registration
+│   ├── seo_newsletter_subscription
+│   ├── seo_legal_policy
+│   ├── seo_legal_policy_version
+│   └── seo_portal_version
+│
+├── Catálogo de servicios SEO Local:
+│   ├── seo_service_category
+│   ├── seo_service_subcategory
+│   ├── seo_service
+│   ├── seo_service_category_rel
+│   ├── seo_service_detail
+│   ├── seo_service_feature
+│   ├── seo_service_requirement
+│   ├── seo_service_deliverable
+│   ├── seo_service_kpi
+│   ├── seo_service_sla
+│   ├── seo_service_tariff
+│   ├── seo_service_package
+│   ├── seo_service_publication
+│   ├── seo_service_publication_version
+│   └── seo_service_fur_template
+│
+├── Directorio y perfil de agencias:
+│   ├── seo_agency_public_profile
+│   ├── seo_agency_location
+│   ├── seo_agency_nap
+│   ├── seo_agency_social_link
+│   ├── seo_agency_contact_channel
+│   ├── seo_agency_service
+│   ├── seo_agency_specialty
+│   ├── seo_agency_focus_area
+│   ├── seo_agency_industry
+│   ├── seo_agency_ideal_client
+│   ├── seo_agency_case_study
+│   ├── seo_agency_portfolio_item
+│   ├── seo_agency_rating_summary
+│   ├── seo_agency_verification
+│   ├── seo_agency_badge
+│   ├── seo_agency_availability
+│   ├── seo_agency_ranking_score
+│   ├── seo_agency_ranking_history
+│   └── seo_agency_map_position
+│
+├── Búsqueda, comparación y matching:
+│   ├── seo_public_search_log
+│   ├── seo_directory_search_log
+│   ├── seo_directory_filter_option
+│   ├── seo_search_filter_usage
+│   ├── seo_compare_session
+│   ├── seo_compare_item
+│   ├── seo_matching_score
+│   ├── seo_recommendation_rule
+│   └── seo_client_intent_signal
+│
+├── Cotización, contratación y orden:
+│   ├── seo_quote_request
+│   ├── seo_quote_request_line
+│   ├── seo_quote
+│   ├── seo_quote_line
+│   ├── seo_quote_comparison
+│   ├── seo_service_cart
+│   ├── seo_service_cart_item
+│   ├── seo_service_contract
+│   ├── seo_service_contract_line
+│   ├── seo_marketplace_order
+│   ├── seo_marketplace_order_line
+│   ├── seo_order_status_event
+│   ├── seo_invoice_reference
+│   ├── seo_payment_reference
+│   ├── seo_transaction_history
+│   ├── seo_commission_rule
+│   ├── seo_commission_settlement
+│   └── seo_payout_reference
+│
+├── Proyectos, entregables y evidencias:
+│   ├── seo_project
+│   ├── seo_project_phase
+│   ├── seo_project_milestone
+│   ├── seo_project_status_event
+│   ├── seo_project_task_dependency
+│   ├── seo_work_order
+│   ├── seo_deliverable
+│   ├── seo_deliverable_revision
+│   ├── seo_evidence_file
+│   ├── seo_approval_request
+│   ├── seo_change_request
+│   └── seo_client_feedback
+│
+├── Auditoría SEO Local:
+│   ├── seo_local_audit
+│   ├── seo_local_audit_scope
+│   ├── seo_local_audit_checklist
+│   ├── seo_local_audit_item
+│   ├── seo_local_audit_score
+│   ├── seo_local_audit_issue
+│   ├── seo_local_audit_recommendation
+│   ├── seo_local_audit_evidence
+│   ├── seo_local_audit_action_plan
+│   └── seo_local_audit_report
+│
+├── Google Business Profile / GBP:
+│   ├── seo_gbp_profile
+│   ├── seo_gbp_profile_snapshot
+│   ├── seo_gbp_category
+│   ├── seo_gbp_service
+│   ├── seo_gbp_business_hour
+│   ├── seo_gbp_special_hour
+│   ├── seo_gbp_photo
+│   ├── seo_gbp_post
+│   ├── seo_gbp_question
+│   ├── seo_gbp_answer
+│   ├── seo_gbp_insight_snapshot
+│   ├── seo_gbp_optimization_task
+│   ├── seo_gbp_change_log
+│   └── seo_gbp_evidence
+│
+├── Reseñas y reputación:
+│   ├── seo_review_source
+│   ├── seo_review_profile
+│   ├── seo_review
+│   ├── seo_review_response
+│   ├── seo_review_category_score
+│   ├── seo_review_request_campaign
+│   ├── seo_review_request_recipient
+│   ├── seo_review_request_event
+│   ├── seo_review_report
+│   ├── seo_review_appeal
+│   ├── seo_review_moderation_case
+│   ├── seo_reputation_score
+│   ├── seo_sentiment_analysis
+│   ├── seo_verified_business
+│   └── seo_review_policy_version
+│
+├── Local Pack, ranking y mapas:
+│   ├── seo_keyword
+│   ├── seo_local_keyword_cluster
+│   ├── seo_location_geo_point
+│   ├── seo_grid_scan
+│   ├── seo_grid_scan_cell
+│   ├── seo_serp_scan
+│   ├── seo_serp_result
+│   ├── seo_local_pack_result
+│   ├── seo_ranking_position_history
+│   ├── seo_competitor_business
+│   ├── seo_visibility_score
+│   └── seo_ranking_report
+│
+├── NAP, citaciones y directorios:
+│   ├── seo_nap_profile
+│   ├── seo_nap_consistency_check
+│   ├── seo_nap_consistency_issue
+│   ├── seo_citation_source
+│   ├── seo_directory_category
+│   ├── seo_citation_listing
+│   ├── seo_citation_submission
+│   ├── seo_citation_correction
+│   ├── seo_citation_evidence
+│   ├── seo_citation_status_history
+│   └── seo_nap_score
+│
+├── Link building local y PR local:
+│   ├── seo_backlink_prospect
+│   ├── seo_backlink_prospect_contact
+│   ├── seo_outreach_campaign
+│   ├── seo_outreach_contact
+│   ├── seo_outreach_email_event
+│   ├── seo_backlink_placement
+│   ├── seo_backlink_quality_score
+│   ├── seo_local_pr_campaign
+│   ├── seo_media_mention
+│   ├── seo_brand_mention
+│   └── seo_link_evidence
+│
+├── SEO técnico, velocidad, on-page y schema:
+│   ├── seo_website_asset
+│   ├── seo_technical_audit
+│   ├── seo_technical_audit_run
+│   ├── seo_page_audit
+│   ├── seo_page_issue
+│   ├── seo_core_web_vital_snapshot
+│   ├── seo_speed_test_result
+│   ├── seo_mobile_experience_check
+│   ├── seo_indexability_check
+│   ├── seo_technical_fix_task
+│   ├── seo_technical_validation
+│   ├── seo_schema_type
+│   ├── seo_schema_template
+│   ├── seo_schema_markup
+│   ├── seo_schema_field_mapping
+│   ├── seo_schema_validation_run
+│   ├── seo_schema_validation_result
+│   ├── seo_schema_error
+│   └── seo_schema_version
+│
+├── Contenido local, blog, páginas de servicio y landing:
+│   ├── seo_content_plan
+│   ├── seo_content_calendar
+│   ├── seo_content_brief
+│   ├── seo_content_order
+│   ├── seo_content_draft
+│   ├── seo_content_revision
+│   ├── seo_content_publication
+│   ├── seo_blog_topic
+│   ├── seo_local_blog_post
+│   ├── seo_service_page
+│   ├── seo_service_page_section
+│   ├── seo_local_landing_page
+│   ├── seo_landing_conversion_model
+│   ├── seo_internal_link_plan
+│   └── seo_content_performance_snapshot
+│
+├── Reportes, dashboards y analítica:
+│   ├── seo_report_template
+│   ├── seo_report_definition
+│   ├── seo_report_filter
+│   ├── seo_report_snapshot
+│   ├── seo_kpi_definition
+│   ├── seo_kpi_measurement
+│   ├── seo_dashboard_widget
+│   ├── seo_dashboard_profile_layout
+│   ├── seo_analytics_event
+│   ├── seo_audit_report
+│   ├── seo_data_snapshot
+│   └── seo_client_report_access
+│
+└── Configuración, gobierno y soporte:
+    ├── seo_parameter
+    ├── seo_parameter_group
+    ├── seo_country
+    ├── seo_region
+    ├── seo_city
+    ├── seo_business_category
+    ├── seo_industry
+    ├── seo_notification_rule
+    ├── seo_sla_rule
+    ├── seo_support_ticket_context
+    ├── seo_support_sla_rule
+    ├── seo_support_escalation
+    ├── seo_dispute_case
+    ├── seo_dispute_message
+    ├── seo_dispute_resolution
+    ├── seo_governance_matrix
+    ├── seo_governance_matrix_version
+    ├── seo_process_raci_matrix
+    ├── seo_raci_assignment
+    ├── seo_governance_audit_log
+    ├── seo_data_quality_issue
+    └── seo_marketplace_fee_config
+
+
+NOTAS DE NORMALIZACIÓN
+├── Las tablas Odoo no se copian ni se integran; sirven como guía de nombres, dominios funcionales y normalización.
+├── El Marketplace SEO Local debe tener su propio esquema transaccional.
+├── Las tablas seo_* deben relacionarse entre sí por claves propias del marketplace.
+├── Las referencias a Odoo deben quedar documentadas solo como equivalencia conceptual.
+├── Las tablas de herramientas externas SEO deben guardar snapshots y referencias, no depender de una integración con Odoo.
+├── Las tablas de reseñas, GBP, Local Pack, NAP, citaciones, backlinks, schema y auditorías son propias porque Odoo no modela esa lógica SEO Local.
+├── Las tablas de venta, proyecto, CRM y helpdesk pueden inspirarse en Odoo, pero el marketplace debe mantener sus propias tablas cuando existan reglas de marketplace, comisiones, comparador, ranking, entregables SEO o aprobaciones.
+└── La versión final de base de datos debe validarse contra los FUR definitivos y contra las pantallas públicas/privadas aprobadas.

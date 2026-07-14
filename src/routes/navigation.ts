@@ -69,7 +69,9 @@ export function useSelectCategory() {
   const navigateHome = useNavigateHomeSection();
 
   return (category: MarketplaceCategory) => {
-    const route = CATEGORY_ROUTES[category.id];
+    // Las categorías reales (BD) traen `slug` y sus rutas de detalle coinciden 1:1 con él;
+    // `CATEGORY_ROUTES` queda como fallback para las categorías de datos mock (ids `directory-cat-XX`).
+    const route = (category.slug && `/categorias/${category.slug}`) || CATEGORY_ROUTES[category.id];
     if (route) {
       navigate(route);
       return;
