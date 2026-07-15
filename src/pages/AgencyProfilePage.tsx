@@ -6,22 +6,15 @@ import {
   BadgeCheck,
   BarChart3,
   BriefcaseBusiness,
-  CalendarDays,
   Check,
   ChevronDown,
   Clock3,
   ExternalLink,
   Globe2,
-  Heart,
   Link2,
-  LockKeyhole,
-  Mail,
   MapPin,
   MessageSquareText,
   Phone,
-  Send,
-  Share2,
-  ShieldCheck,
   ShoppingBag,
   Star,
   Target,
@@ -29,10 +22,12 @@ import {
   X,
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-import type { Agency, AgencyProfilePayload, AgencyReview, Service } from '@/types';
+import type { Agency, AgencyProfilePayload, AgencyProfileService, AgencyReview, AgencyTeamMember, Service } from '@/types';
 import { marketplaceApi } from '@/services/marketplaceApi';
-import { findServiceBySlug, normalizeServiceSlug, getServiceRoute } from '@/utils/serviceRoutes';
-import { useAppState } from '@/state/AppStateProvider';
+import { POPULAR_SERVICES } from '@/data';
+import { findServiceBySlug, normalizeServiceSlug, getServiceRoute, getServiceSlug } from '@/utils/serviceRoutes';
+import { useAppState } from '@/state/useAppState';
+import TeamMemberModal from '@/components/modals/TeamMemberModal';
 
 const money = new Intl.NumberFormat('es-CO', {
   style: 'currency',
@@ -42,20 +37,91 @@ const money = new Intl.NumberFormat('es-CO', {
 
 const fallbackAvatar = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=320';
 
-const defaultProfile = (agency?: Agency): AgencyProfilePayload | null => {
-  if (!agency) return null;
-  const services = agency.services
-    .filter((service) => !['Presencial', 'Remota', 'Híbrida'].includes(service))
-    .slice(0, 6)
-    .map((service, index) => ({
-      id: `${agency.id}-service-${index}`,
-      title: service,
-      subtitle: index % 2 === 0 ? 'Auditoría, rastreo, priorización y optimización local.' : 'Gestión mensual con reportes, checklist y seguimiento operativo.',
-      serviceType: 'FUR-S vinculado',
-      serviceSlug: normalizeServiceSlug(service),
-      serviceRoute: `/servicios/${normalizeServiceSlug(service)}`,
+const WORK_MODES = ['Presencial', 'Remota', 'Híbrida'];
+
+const SERVICE_CATEGORY_ALIASES: Record<string, string[]> = {
+  'Google Business Profile': ['Google Business Profile'],
+  'Local Pack Strategy': ['Local Pack y Ranking'],
+  'Auditoría SEO Local': ['Auditoría SEO Local'],
+  'Optimización de Contenido': ['Contenido Local'],
+  'Gestión de Reseñas': ['Reputación y Reseñas'],
+  'Link Building Local': ['Link Building Local'],
+  'SEO Técnico Local': ['SEO Técnico Local'],
+  'SEO On-Page Local': ['SEO On-Page Local'],
+  'Reputación y Reseñas': ['Reputación y Reseñas'],
+  'Citaciones y NAP': ['Citaciones y NAP'],
+  'Reportes y Analytics': ['Reportes y Analytics'],
+  'Mapas de Calor Local': ['Mapas de Calor Local'],
+  'Contenido Local': ['Contenido Local'],
+  'Schema Local': ['Schema'],
+  'Consultoría y Estrategia': ['Consultoría'],
+  'SEO Local para E-commerce': ['SEO Local para E-commerce'],
+};
+
+const matchCatalogServicesByAgencyLabel = (label: string, catalog: Service[]): Service[] => {
+  const normalizedLabel = normalizeServiceSlug(label);
+  const aliases = SERVICE_CATEGORY_ALIASES[label] || [label];
+
+  const byCategory = catalog.filter((service) =>
+    aliases.some((alias) =>
+      service.categoryName?.toLowerCase() === alias.toLowerCase() ||
+      service.categorySlug === normalizeServiceSlug(alias)
+    )
+  );
+  if (byCategory.length > 0) return byCategory;
+
+  return catalog.filter((service) => {
+    const normalizedTitle = normalizeServiceSlug(service.title);
+    return normalizedTitle.includes(normalizedLabel) || normalizedLabel.includes(normalizedTitle);
+  });
+};
+
+const buildProfileServices = (agency: Agency, catalog: Service[]): AgencyProfileService[] => {
+  const serviceLabels = agency.services.filter((service) => !WORK_MODES.includes(service));
+
+  const matchedServices = serviceLabels
+    .flatMap((label) => {
+      const matches = matchCatalogServicesByAgencyLabel(label, catalog);
+      const picked = matches.find((service) => service.isPopular) || matches[0];
+      return picked ? [picked] : [];
+    })
+    .filter((service, index, self) => self.findIndex((item) => item.id === service.id) === index)
+    .slice(0, 6);
+
+  if (matchedServices.length > 0) {
+    return matchedServices.map((service) => ({
+      id: service.id,
+      title: service.title,
+      subtitle: service.description,
+      serviceType: service.categoryName || 'FUR-S vinculado',
       included: true,
+      productId: service.id,
+      serviceId: service.id,
+      serviceCode: service.code,
+      serviceSlug: getServiceSlug(service),
+      serviceRoute: getServiceRoute(service),
+      furNumber: service.furNumber,
+      price: service.price,
+      currencyCode: service.currencyCode,
+      billingPeriod: service.billingPeriod,
+      categoryName: service.categoryName,
     }));
+  }
+
+  return serviceLabels.slice(0, 6).map((service, index) => ({
+    id: `${agency.id}-service-${index}`,
+    title: service,
+    subtitle: index % 2 === 0 ? 'Auditoría, rastreo, priorización y optimización local.' : 'Gestión mensual con reportes, checklist y seguimiento operativo.',
+    serviceType: 'FUR-S vinculado',
+    serviceSlug: normalizeServiceSlug(service),
+    serviceRoute: `/servicios/${normalizeServiceSlug(service)}`,
+    included: true,
+  }));
+};
+
+const defaultProfile = (agency?: Agency, servicesCatalog: Service[] = POPULAR_SERVICES): AgencyProfilePayload | null => {
+  if (!agency) return null;
+  const services = buildProfileServices(agency, servicesCatalog);
 
   return {
     agency,
@@ -75,9 +141,57 @@ const defaultProfile = (agency?: Agency): AgencyProfilePayload | null => {
       { id: `${agency.id}-cert-3`, issuer: 'Semrush Partner Network', title: 'Semrush Local SEO Certified', validUntil: '2026-12-31' },
     ],
     team: [
-      { id: `${agency.id}-team-1`, name: 'Andrés Torres', roleTitle: 'CEO & Estratega Principal', bio: 'Experto en posicionamiento local con 12+ años de experiencia homologada.', avatarUrl: fallbackAvatar },
-      { id: `${agency.id}-team-2`, name: 'Laura García', roleTitle: 'Especialista GBP & Reputación', bio: 'Gestiona auditorías de ficha, reseñas y procesos de mejora continua.', avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=320' },
-      { id: `${agency.id}-team-3`, name: 'Diego Ramírez', roleTitle: 'Analista SEO Senior', bio: 'Programa reportes, geogrids, mapas de calor y validación de rankings.', avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=320' },
+      {
+        id: `${agency.id}-team-1`,
+        name: 'Andrés Torres',
+        roleTitle: 'CEO & Estratega Principal',
+        bio: 'Experto en posicionamiento local con 12+ años de experiencia homologada.',
+        avatarUrl: fallbackAvatar,
+        fullBio: 'Andrés lidera la estrategia de SEO local de la agencia desde 2012. Ha diseñado metodologías de auditoría FUR-S para franquicias, cadenas regionales y pymes con sedes físicas. Combina análisis técnico, contenido georreferenciado y optimización de señales NAP para convertir búsquedas locales en oportunidades reales.',
+        experience: '12+ años',
+        skills: ['SEO Local', 'Google Business Profile', 'Auditoría FUR-S', 'Estrategia de contenido local', 'Analítica y reporting'],
+        certifications: ['Google Analytics 4 Certified', 'Semrush Local SEO Certified', 'Google Business Profile Product Expert'],
+        email: `andres.torres@${agency.slug || 'agencia'}.com`,
+        phone: agency.phone,
+        linkedIn: 'https://www.linkedin.com/in/andres-torres-seo',
+        languages: ['Español', 'Inglés'],
+        availability: 'Lunes a viernes 08:00 - 18:00',
+        projects: 340,
+      },
+      {
+        id: `${agency.id}-team-2`,
+        name: 'Laura García',
+        roleTitle: 'Especialista GBP & Reputación',
+        bio: 'Gestiona auditorías de ficha, reseñas y procesos de mejora continua.',
+        avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=320',
+        fullBio: 'Laura supervisa la optimización de Google Business Profile y el ciclo de reputación online. Diseña protocolos de respuesta a reseñas, mejora la foto de la ficha y coordina campañas de generación de opiniones verificadas para clínicas, restaurantes y comercios locales.',
+        experience: '8 años',
+        skills: ['Gestión de GBP', 'Reputación Online', 'Respuesta a reseñas', 'Optimización de fichas', 'Customer success'],
+        certifications: ['Google Business Profile Product Expert', 'Trustpilot Partner Academy'],
+        email: `laura.garcia@${agency.slug || 'agencia'}.com`,
+        phone: agency.phone,
+        linkedIn: 'https://www.linkedin.com/in/laura-garcia-gbp',
+        languages: ['Español'],
+        availability: 'Lunes a viernes 09:00 - 17:00',
+        projects: 215,
+      },
+      {
+        id: `${agency.id}-team-3`,
+        name: 'Diego Ramírez',
+        roleTitle: 'Analista SEO Senior',
+        bio: 'Programa reportes, geogrids, mapas de calor y validación de rankings.',
+        avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=320',
+        fullBio: 'Diego se encarga de la medición y validación de resultados. Construye reportes operativos, geogrids de visibilidad local y alertas de ranking para priorizar acciones por ubicación. Su enfoque conecta diagnóstico técnico con decisiones comerciales concretas.',
+        experience: '7 años',
+        skills: ['Análisis de rankings', 'Geogrids', 'Reportes SEO', 'Screaming Frog', 'Data Studio / Looker'],
+        certifications: ['Google Analytics 4 Certified', 'Semrush SEO Toolkit Certification'],
+        email: `diego.ramirez@${agency.slug || 'agencia'}.com`,
+        phone: agency.phone,
+        linkedIn: 'https://www.linkedin.com/in/diego-ramirez-seo',
+        languages: ['Español', 'Inglés'],
+        availability: 'Lunes a viernes 08:00 - 18:00',
+        projects: 180,
+      },
     ],
     channels: [
       { id: `${agency.id}-channel-1`, type: 'email', label: 'Correo Oficial', value: agency.email, url: `mailto:${agency.email}`, isVerified: true },
@@ -118,33 +232,32 @@ const scrollToBlock = (id: string) => {
 export default function AgencyProfilePage() {
   const navigate = useNavigate();
   const { slug = '' } = useParams<{ slug: string }>();
-  const { agenciesList, servicesList: servicesCatalog, favorites, handleToggleFavorite, handleHireAgency, handleAddReview } = useAppState();
+  const { agenciesList, servicesList: servicesCatalog, handleHireAgency, handleAddReview } = useAppState();
 
   const profileIdentifier = decodeURIComponent(slug);
   const agency = profileIdentifier
     ? agenciesList.find((a) => a.slug === profileIdentifier || a.id === profileIdentifier || a.id === `agency-${profileIdentifier}`)
     : undefined;
 
-  const onToggleFavorite = handleToggleFavorite;
   const onBackToDirectory = () => navigate('/agencias');
   const onRequestQuote = handleHireAgency;
   const onOpenService = (service: Service) => navigate(getServiceRoute(service));
   const onAddReview = handleAddReview;
 
-  const [payload, setPayload] = useState<AgencyProfilePayload | null>(() => defaultProfile(agency));
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState('');
+  const [payload, setPayload] = useState<AgencyProfilePayload | null>(() => defaultProfile(agency, POPULAR_SERVICES));
+  const [loading, setLoading] = useState(!defaultProfile(agency, POPULAR_SERVICES));
   const [expandedServices, setExpandedServices] = useState(false);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewName, setReviewName] = useState('');
   const [reviewText, setReviewText] = useState('');
   const [reviewNotice, setReviewNotice] = useState('');
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [selectedTeamMember, setSelectedTeamMember] = useState<AgencyTeamMember | null>(null);
 
+  /* eslint-disable react-hooks/set-state-in-effect -- Carga inicial del perfil; migrar a React Query queda fuera del alcance de esta estabilización. */
   useEffect(() => {
     const controller = new AbortController();
     setLoading(true);
-    setLoadError('');
 
     marketplaceApi.getAgencyProfile(profileIdentifier, controller.signal)
       .then((result) => {
@@ -153,17 +266,16 @@ export default function AgencyProfilePage() {
       })
       .catch((error) => {
         if (error instanceof DOMException && error.name === 'AbortError') return;
-        const fallback = defaultProfile(agency);
+        const fallback = defaultProfile(agency, servicesCatalog);
         setPayload(fallback);
-        setLoadError(fallback ? 'Vista cargada con datos locales mientras la API termina de sincronizar el perfil.' : 'No se encontró el perfil solicitado.');
         setLoading(false);
       });
 
     return () => controller.abort();
-  }, [agency, profileIdentifier]);
+  }, [agency, profileIdentifier, servicesCatalog]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const currentAgency = payload?.agency || agency;
-  const isFavorite = currentAgency ? favorites.includes(currentAgency.id) : false;
 
   const visibleServices = useMemo(() => {
     const services = payload?.services || [];
@@ -207,7 +319,7 @@ export default function AgencyProfilePage() {
     }
 
     const fallbackSlug = profileService.serviceSlug || normalizeServiceSlug(profileService.serviceCode || profileService.productId || profileService.title);
-    window.location.hash = profileService.serviceRoute || `/servicios/${fallbackSlug}`;
+    navigate(profileService.serviceRoute?.replace(/^#/, '') || `/servicios/${fallbackSlug}`);
   };
 
   if (loading && !currentAgency) {
@@ -305,18 +417,10 @@ export default function AgencyProfilePage() {
   const linkedinLabel = linkedinChannel?.value && linkedinChannel.value !== 'Perfil externo'
     ? linkedinChannel.value
     : `/company/${(currentAgency.slug || currentAgency.name).toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
-  const galleryImages = [currentAgency.image, ...payload.team.map((member) => member.avatarUrl).filter(Boolean)].slice(0, 5);
-
   return (
     <section className="bg-[#f5f5f5] min-h-screen pb-28">
       <div className="w-full mx-0 px-0 pt-0">
-        {loadError && (
-          <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-bold text-amber-800">
-            {loadError}
-          </div>
-        )}
-
-        {(currentAgency as any).status === 'review' && (
+        {currentAgency.status === 'review' && (
           <div className="mx-4 sm:mx-6 lg:mx-8 mb-4 rounded-[24px] border border-amber-200 bg-amber-50 px-5 py-4 text-amber-900 shadow-sm">
             <p className="text-sm font-black">Agencia temporalmente en vacaciones</p>
             <p className="mt-1 text-xs font-semibold">Esta agencia mantiene su perfil visible, pero puede tener tiempos de respuesta más altos o disponibilidad limitada.</p>
@@ -698,12 +802,18 @@ export default function AgencyProfilePage() {
 
               <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-5">
                 {payload.team.map((member) => (
-                  <div key={member.id} className="rounded-2xl border border-gray-200 bg-gray-50 p-5 text-center">
+                  <button
+                    key={member.id}
+                    type="button"
+                    onClick={() => setSelectedTeamMember(member)}
+                    className="rounded-2xl border border-gray-200 bg-gray-50 p-5 text-center transition-all hover:border-[#D32323]/40 hover:shadow-md hover:bg-white text-left"
+                  >
                     <img src={member.avatarUrl || fallbackAvatar} alt={member.name} className="w-20 h-20 rounded-full object-cover mx-auto ring-4 ring-white shadow" />
                     <h3 className="mt-4 text-sm font-black text-[#333]">{member.name}</h3>
                     <p className="text-[10px] uppercase font-black text-[#D32323] mt-1">{member.roleTitle}</p>
                     <p className="mt-3 text-xs font-semibold text-gray-500 leading-relaxed">{member.bio}</p>
-                  </div>
+                    <span className="mt-4 inline-flex items-center gap-1 text-[10px] font-black text-[#0074E0]">Ver perfil completo</span>
+                  </button>
                 ))}
               </div>
             </section>
@@ -763,6 +873,10 @@ export default function AgencyProfilePage() {
             </form>
           </div>
         </div>
+      )}
+
+      {selectedTeamMember && (
+        <TeamMemberModal member={selectedTeamMember} onClose={() => setSelectedTeamMember(null)} />
       )}
 
       <div className="fixed left-0 right-0 bottom-0 z-40 bg-white/95 backdrop-blur-md border-t border-gray-200 shadow-2xl">

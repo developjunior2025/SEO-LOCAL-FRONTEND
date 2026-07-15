@@ -17,7 +17,7 @@ import Footer from '@/components/Footer';
 import CheckoutModal from '@/components/modals/CheckoutModal';
 import AgencyDetailsModal from '@/components/modals/AgencyDetailsModal';
 import ProjectRequestModal from '@/components/modals/ProjectRequestModal';
-import { useAppState } from '@/state/AppStateProvider';
+import { useAppState } from '@/state/useAppState';
 import type { Service } from '@/types';
 import { getServiceRoute } from '@/utils/serviceRoutes';
 

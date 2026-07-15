@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import type { MarketplaceCategory } from '@/types';
-import { useAppState } from '@/state/AppStateProvider';
+import { useAppState } from '@/state/useAppState';
 
 // Mapa 1:1 con el switch de `handleDirectoryCategorySelect` del App.tsx original.
 const CATEGORY_ROUTES: Record<string, string> = {

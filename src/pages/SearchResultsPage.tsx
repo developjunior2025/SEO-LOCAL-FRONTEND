@@ -1,9 +1,9 @@
 import { FormEvent, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { Agency, Service } from '@/types';
-import { ArrowLeft, Building2, Filter, Globe2, MapPin, Search, ShieldCheck, ShoppingBag, SlidersHorizontal, Sparkles, Star, Target, X } from 'lucide-react';
+import { ArrowLeft, Building2, Globe2, MapPin, Search, ShieldCheck, ShoppingBag, SlidersHorizontal, Star, Target } from 'lucide-react';
 import { getServiceRoute } from '@/utils/serviceRoutes';
-import { useAppState } from '@/state/AppStateProvider';
+import { useAppState } from '@/state/useAppState';
 import { useSelectCategory, useHeroSearch } from '@/routes/navigation';
 
 type ResultTab = 'all' | 'agencies' | 'services' | 'categories';

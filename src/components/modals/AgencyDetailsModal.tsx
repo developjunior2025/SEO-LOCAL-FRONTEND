@@ -8,12 +8,9 @@ import {
   Mail, 
   ShieldCheck, 
   Star, 
-  MessageSquare, 
   ChevronRight, 
   Heart, 
-  Sparkles, 
   ThumbsUp, 
-  ExternalLink,
   CheckCircle2
 } from 'lucide-react';
 

@@ -2,7 +2,6 @@ import { motion } from 'motion/react';
 import {
   BadgeCheck,
   BarChart3,
-  Building2,
   Camera,
   ChevronRight,
   ClipboardCheck,
@@ -13,7 +12,6 @@ import {
   ListChecks,
   MapPinned,
   PhoneCall,
-  Search,
   ShieldCheck,
   Star,
   Store,
@@ -31,7 +29,6 @@ import {
   ShoppingBag,
   Stethoscope,
   UtensilsCrossed,
-  BookOpen,
   Sparkles,
   CheckCircle2,
 } from 'lucide-react';

@@ -14,7 +14,6 @@ import {
   Gauge,
   GitCompare,
   Grid3X3,
-  Heart,
   Image,
   Lightbulb,
   Link2,

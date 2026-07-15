@@ -4,7 +4,6 @@ import {
   BarChart3,
   CalendarCheck2,
   CalendarDays,
-  Camera,
   CheckCircle2,
   ChevronRight,
   Clock3,
@@ -16,13 +15,11 @@ import {
   MessageCircle,
   MessageSquareText,
   MousePointerClick,
-  PackageCheck,
   Send,
   ShieldCheck,
   ShoppingBag,
   Sparkles,
   Target,
-  TrendingUp,
   UsersRound,
   Zap,
 } from 'lucide-react';
@@ -113,13 +110,6 @@ const processSteps = [
   ['Publicación', 'Organizamos entregas, fechas sugeridas y flujo para mantener consistencia.'],
   ['Medición', 'Analizamos interacción, clics, llamadas y oportunidades para el siguiente mes.'],
 ];
-
-function formatBillingPeriod(period?: string) {
-  if (!period || period === 'único') return 'pago único';
-  if (period === 'mes') return '/mes';
-  if (period === 'trimestre') return '/trimestre';
-  return period;
-}
 
 function PostsVisualMockup() {
   return (
@@ -251,9 +241,6 @@ function PublicationPlanner() {
 }
 
 export default function GbpPostsServicePage({ service, relatedServices, onAddToCart, onBackToServices }: GbpPostsServicePageProps) {
-  const delivery = service.deliveryDays ? `${service.deliveryDays} días` : '30 días';
-  const billing = formatBillingPeriod(service.billingPeriod);
-
   return (
     <div className="bg-white text-[#333]">
       <section className="overflow-hidden border-b border-gray-200 bg-gradient-to-br from-white via-[#f8f8f8] to-[#f5f5f5] py-12 lg:py-16">

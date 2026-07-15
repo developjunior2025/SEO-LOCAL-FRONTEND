@@ -24,7 +24,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { Agency, Service } from '@/types';
-import { useAppState } from '@/state/AppStateProvider';
+import { useAppState } from '@/state/useAppState';
 import { useFindAgencies } from '@/routes/navigation';
 import { FunctionalEvaluationResponse, marketplaceApi, SeoTecnicoQuoteResponse } from '@/services/marketplaceApi';
 

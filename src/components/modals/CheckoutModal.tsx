@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Service, Offer } from '@/types';
-import { X, CheckCircle, ShieldCheck, CreditCard, Sparkles, Building2, Globe, MapPin } from 'lucide-react';
+import { X, CheckCircle, ShieldCheck, CreditCard, Building2, Globe, MapPin } from 'lucide-react';
 
 interface CheckoutModalProps {
   isOpen: boolean;

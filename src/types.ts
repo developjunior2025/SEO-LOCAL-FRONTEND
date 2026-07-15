@@ -12,6 +12,8 @@ export interface Agency {
   services: string[];
   location: string;
   coords: { x: number; y: number }; // Relative percentage coordinates for our interactive map grid
+  lat?: number; // Real-world latitude for Leaflet map
+  lng?: number; // Real-world longitude for Leaflet map
   distance: number; // in km
   isVerified: boolean;
   isTopRated: boolean;
@@ -38,6 +40,7 @@ export interface Agency {
   budgetMax?: number;
   audited?: boolean;
   profileCompleteness?: number;
+  status?: 'review' | string;
 }
 
 export interface Service {
@@ -138,6 +141,16 @@ export interface AgencyTeamMember {
   bio: string;
   avatarUrl: string;
   specialty?: string;
+  fullBio?: string;
+  experience?: string;
+  skills?: string[];
+  certifications?: string[];
+  email?: string;
+  phone?: string;
+  linkedIn?: string;
+  languages?: string[];
+  availability?: string;
+  projects?: number;
 }
 
 export interface AgencyChannel {
@@ -184,4 +197,14 @@ export interface AgencyProfilePayload {
   hours: AgencyBusinessHour[];
   trustItems: AgencyTrustItem[];
   reviews: AgencyReview[];
+}
+
+export type UserRole = 'client' | 'seller' | 'admin';
+
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  avatar?: string;
 }

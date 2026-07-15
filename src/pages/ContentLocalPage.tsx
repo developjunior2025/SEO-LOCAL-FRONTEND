@@ -9,23 +9,18 @@ import {
   FileText,
   HelpCircle,
   Image,
-  Layers,
   Loader2,
   MapPin,
-  MessageSquare,
   Newspaper,
   PenLine,
   Search,
   ShieldCheck,
   Sparkles,
   Star,
-  Target,
-  TrendingUp,
-  Users,
   Video,
 } from 'lucide-react';
-import { Agency, Service } from '@/types';
-import { useAppState } from '@/state/AppStateProvider';
+import type { Service } from '@/types';
+import { useAppState } from '@/state/useAppState';
 import { useFindAgencies } from '@/routes/navigation';
 import { ContentLocalQuoteResponse, FunctionalEvaluationResponse, marketplaceApi } from '@/services/marketplaceApi';
 
@@ -127,13 +122,13 @@ function ContentLocalPage() {
   const [location, setLocation] = useState('Bogotá Centro');
   const [keyword, setKeyword] = useState('odontólogo cerca de mi');
   const [monthlyTraffic, setMonthlyTraffic] = useState('420');
-  const [gbpViews, setGbpViews] = useState('650');
+  const [gbpViews] = useState('650');
   const [publishedArticles, setPublishedArticles] = useState('2');
   const [contentFreshness, setContentFreshness] = useState('45');
-  const [localLandingPages, setLocalLandingPages] = useState('1');
+  const [localLandingPages] = useState('1');
   const [faqCoverage, setFaqCoverage] = useState('30');
   const [multimediaScore, setMultimediaScore] = useState('38');
-  const [conversionRate, setConversionRate] = useState('2.1');
+  const [conversionRate] = useState('2.1');
 
   const [selectedModules, setSelectedModules] = useState<Record<ModuleKey, boolean>>({
     blogArticles: true,

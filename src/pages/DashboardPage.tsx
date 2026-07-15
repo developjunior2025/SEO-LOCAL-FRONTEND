@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import {
   adminApi,
@@ -6,15 +6,14 @@ import {
   DashboardSession,
   DashboardUser,
 } from '@/services/adminApi';
+import type { LucideIcon } from 'lucide-react';
 import {
   Activity,
   BarChart3,
   Building2,
-  CheckCircle2,
   ClipboardList,
   Database,
   Edit3,
-  FileText,
   FolderKanban,
   KeyRound,
   Layers3,
@@ -47,6 +46,8 @@ type ModuleKey =
   | 'reports'
   | 'activity';
 
+type AdminRecord = Record<string, unknown>;
+
 type FieldType = 'text' | 'number' | 'textarea' | 'select' | 'checkbox' | 'password';
 
 type FieldDef = {
@@ -62,7 +63,7 @@ type ModuleDef = {
   key: ModuleKey;
   title: string;
   subtitle: string;
-  icon: any;
+  icon: LucideIcon;
   readPermission?: string;
   managePermission?: string;
   listMethod?: string;
@@ -316,13 +317,23 @@ function has(user: DashboardUser | null, permission?: string) {
   return Boolean(user?.permissions?.includes(permission));
 }
 
-function stringify(value: any) {
+function stringify(value: unknown) {
   if (value === null || value === undefined) return '';
   if (typeof value === 'object') return JSON.stringify(value);
   return String(value);
 }
 
-function coerceValue(field: FieldDef, value: any) {
+function str(value: unknown, fallback = '') {
+  if (value === null || value === undefined) return fallback;
+  return String(value);
+}
+
+function num(value: unknown, fallback = 0) {
+  const n = Number(value);
+  return Number.isNaN(n) ? fallback : n;
+}
+
+function coerceValue(field: FieldDef, value: unknown) {
   if (field.type === 'number') return value === '' || value === null || value === undefined ? null : Number(value);
   if (field.type === 'checkbox') return Boolean(value);
   return value;
@@ -341,8 +352,8 @@ function LoginCard() {
     try {
       const session = await adminApi.login(login, password);
       window.dispatchEvent(new CustomEvent('seo-dashboard-login', { detail: session }));
-    } catch (err: any) {
-      setError(err?.message || 'No se pudo iniciar sesión.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'No se pudo iniciar sesión.');
     } finally {
       setLoading(false);
     }
@@ -381,7 +392,7 @@ function LoginCard() {
   );
 }
 
-function StatCard({ label, value, icon: Icon }: { label: string; value: any; icon: any }) {
+function StatCard({ label, value, icon: Icon }: { label: string; value: string | number | null | undefined; icon: LucideIcon }) {
   return (
     <div className="rounded-[24px] bg-white border border-gray-200 p-5 shadow-sm">
       <div className="flex items-center justify-between">
@@ -402,17 +413,17 @@ function EditModal({
 }: {
   title: string;
   fields: FieldDef[];
-  initial: any;
+  initial: AdminRecord;
   onClose: () => void;
-  onSave: (data: any) => Promise<void>;
+  onSave: (data: AdminRecord) => Promise<void>;
 }) {
-  const [form, setForm] = useState<Record<string, any>>(() => ({ ...initial }));
+  const [form, setForm] = useState<AdminRecord>(() => ({ ...initial }));
   const [saving, setSaving] = useState(false);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
     setSaving(true);
-    const data: Record<string, any> = {};
+    const data: AdminRecord = {};
     fields.forEach((field) => {
       data[field.key] = coerceValue(field, form[field.key]);
     });
@@ -488,30 +499,33 @@ function GenericModule({
   module: ModuleDef;
   user: DashboardUser | null;
 }) {
-  const [items, setItems] = useState<any[]>([]);
-  const [meta, setMeta] = useState<Record<string, any>>({});
-  const [editing, setEditing] = useState<any | null>(null);
+  const [items, setItems] = useState<AdminRecord[]>([]);
+  const [meta, setMeta] = useState<AdminRecord>({});
+  const [editing, setEditing] = useState<AdminRecord | null>(null);
   const [creating, setCreating] = useState(false);
   const [query, setQuery] = useState('');
   const [error, setError] = useState('');
   const canManage = has(user, module.managePermission);
 
-  async function load() {
+  const load = useCallback(async () => {
     if (!module.listMethod) return;
     setError('');
     try {
-      const fn = (adminApi as any)[module.listMethod];
-      const result = await fn();
+      const api = adminApi as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>;
+      const fn = api[module.listMethod];
+      const result = (await fn()) as { items?: AdminRecord[]; meta?: AdminRecord };
       setItems(result.items || []);
       setMeta(result.meta || {});
-    } catch (err: any) {
-      setError(err?.message || 'No se pudo cargar el módulo.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'No se pudo cargar el módulo.');
     }
-  }
+  }, [module.listMethod]);
 
+  /* eslint-disable react-hooks/set-state-in-effect -- Carga inicial del módulo; migrar a React Query queda fuera del alcance de esta estabilización. */
   useEffect(() => {
     load();
-  }, [module.key]);
+  }, [load]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const fields = module.fields || [];
   const filtered = useMemo(() => {
@@ -520,15 +534,17 @@ function GenericModule({
     return items.filter((item) => JSON.stringify(item).toLowerCase().includes(q));
   }, [items, query]);
 
-  async function saveEdit(data: any) {
+  async function saveEdit(data: AdminRecord) {
     const id = editing?.[module.idKey || 'id'];
-    const fn = (adminApi as any)[module.updateMethod || ''];
+    const api = adminApi as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>;
+    const fn = api[module.updateMethod || ''];
     await fn(Number(id), data);
     await load();
   }
 
-  async function saveCreate(data: any) {
-    const fn = (adminApi as any)[module.createMethod || ''];
+  async function saveCreate(data: AdminRecord) {
+    const api = adminApi as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>;
+    const fn = api[module.createMethod || ''];
     await fn(data);
     await load();
   }
@@ -582,7 +598,7 @@ function GenericModule({
             </thead>
             <tbody className="divide-y divide-gray-100">
               {filtered.map((item, index) => (
-                <tr key={item.id || item.external_id || index} className="hover:bg-gray-50/80">
+                <tr key={String(item.id ?? item.external_id ?? index)} className="hover:bg-gray-50/80">
                   {columns.map((col) => <td key={col} className="px-5 py-4 max-w-[260px] truncate font-semibold text-gray-700">{stringify(item[col])}</td>)}
                   <td className="px-5 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
@@ -593,7 +609,7 @@ function GenericModule({
                           onClick={async () => {
                             const current = String(item.status || 'draft');
                             const next = current === 'published' ? 'review' : current === 'review' ? 'suspended' : 'published';
-                            await (adminApi as any).updateAgencyStatus(Number(item.id), next);
+                            await adminApi.updateAgencyStatus(Number(item.id), next);
                             await load();
                           }}
                           className={`rounded-full w-9 h-9 border-2 shadow-sm transition-all ${
@@ -635,22 +651,24 @@ function GenericModule({
 }
 
 function Overview({ user, onNavigate }: { user: DashboardUser | null; onNavigate: (module: ModuleKey) => void }) {
-  const [summary, setSummary] = useState<any>({});
-  const [reports, setReports] = useState<any>({});
+  const [summary, setSummary] = useState<AdminRecord>({});
+  const [reports, setReports] = useState<AdminRecord>({});
   const [error, setError] = useState('');
 
-  async function load() {
+  const load = useCallback(async () => {
     setError('');
     try {
       const [summaryResult, reportResult] = await Promise.all([adminApi.summary(), adminApi.reports()]);
       setSummary(summaryResult);
       setReports(reportResult);
-    } catch (err: any) {
-      setError(err?.message || 'No se pudo cargar el resumen.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'No se pudo cargar el resumen.');
     }
-  }
+  }, []);
 
-  useEffect(() => { load(); }, []);
+  /* eslint-disable react-hooks/set-state-in-effect -- Carga inicial del resumen; migrar a React Query queda fuera del alcance de esta estabilización. */
+  useEffect(() => { load(); }, [load]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   return (
     <section className="space-y-6">
@@ -665,14 +683,14 @@ function Overview({ user, onNavigate }: { user: DashboardUser | null; onNavigate
       {error && <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-bold text-[#D32323]">{error}</div>}
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
-        <StatCard label="Agencias" value={summary.totalAgencies} icon={Building2} />
-        <StatCard label="Servicios FUR-S" value={summary.totalServices} icon={ClipboardList} />
-        <StatCard label="Leads" value={summary.totalLeads} icon={FolderKanban} />
-        <StatCard label="Rating promedio" value={summary.averageRating} icon={Star} />
-        <StatCard label="Categorías" value={summary.totalCategories} icon={Tags} />
-        <StatCard label="Reseñas" value={summary.totalReviews} icon={MessageSquareText} />
-        <StatCard label="Planes" value={summary.totalPlans} icon={WalletCards} />
-        <StatCard label="Pipeline" value={`US$ ${Number(summary.pipelineValue || 0).toLocaleString()}`} icon={BarChart3} />
+        <StatCard label="Agencias" value={num(summary.totalAgencies)} icon={Building2} />
+        <StatCard label="Servicios FUR-S" value={num(summary.totalServices)} icon={ClipboardList} />
+        <StatCard label="Leads" value={num(summary.totalLeads)} icon={FolderKanban} />
+        <StatCard label="Rating promedio" value={num(summary.averageRating)} icon={Star} />
+        <StatCard label="Categorías" value={num(summary.totalCategories)} icon={Tags} />
+        <StatCard label="Reseñas" value={num(summary.totalReviews)} icon={MessageSquareText} />
+        <StatCard label="Planes" value={num(summary.totalPlans)} icon={WalletCards} />
+        <StatCard label="Pipeline" value={`US$ ${num(summary.pipelineValue).toLocaleString()}`} icon={BarChart3} />
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
@@ -687,7 +705,7 @@ function Overview({ user, onNavigate }: { user: DashboardUser | null; onNavigate
         <div className="rounded-[28px] bg-white border border-gray-200 p-6 shadow-sm xl:col-span-2">
           <h3 className="font-black text-[#333]">Alertas operativas</h3>
           <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
-            {(reports.alerts || []).map((alert: any) => {
+            {((reports.alerts as AdminRecord[]) || []).map((alert: AdminRecord) => {
               const alertMap: Record<string, { module: ModuleKey; action: string }> = {
                 'Agencias no publicadas': { module: 'agencies', action: 'Ir a agencias' },
                 'Servicios por agencia pausados': { module: 'agencyServices', action: 'Ir a servicios por agencia' },
@@ -695,22 +713,22 @@ function Overview({ user, onNavigate }: { user: DashboardUser | null; onNavigate
                 'Leads abiertos': { module: 'leads', action: 'Ir a leads' },
                 'Servicios sin categoría': { module: 'services', action: 'Ir a catálogo FUR-S' },
               };
-              const target = alertMap[alert.label] || { module: 'reports' as ModuleKey, action: 'Ver reporte' };
-              const disabled = Number(alert.value || 0) <= 0;
+              const target = alertMap[str(alert.label)] || { module: 'reports' as ModuleKey, action: 'Ver reporte' };
+              const disabled = num(alert.value) <= 0;
               return (
                 <button
-                  key={alert.label}
+                  key={str(alert.label)}
                   type="button"
                   disabled={disabled}
                   onClick={() => onNavigate(target.module)}
                   className={`rounded-2xl border p-4 text-left transition-all ${disabled ? 'border-gray-200 bg-gray-50 opacity-70 cursor-default' : 'border-red-100 bg-red-50/40 hover:-translate-y-0.5 hover:border-[#D32323]/40 hover:shadow-md cursor-pointer'}`}
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <p className="text-xs font-black uppercase text-gray-500">{alert.label}</p>
+                    <p className="text-xs font-black uppercase text-gray-500">{str(alert.label)}</p>
                     {!disabled && <span className="rounded-full bg-white px-2.5 py-1 text-[10px] font-black text-[#D32323] border border-red-100">{target.action}</span>}
                   </div>
-                  <strong className="mt-2 block text-2xl font-black text-[#D32323]">{alert.value}</strong>
-                  <p className="mt-1 text-xs text-gray-500">{alert.description}</p>
+                  <strong className="mt-2 block text-2xl font-black text-[#D32323]">{num(alert.value)}</strong>
+                  <p className="mt-1 text-xs text-gray-500">{str(alert.description)}</p>
                   {!disabled && <p className="mt-3 text-xs font-black text-[#333]">Click para resolver esta alerta →</p>}
                 </button>
               );
@@ -724,18 +742,18 @@ function Overview({ user, onNavigate }: { user: DashboardUser | null; onNavigate
 
 
 function AgencyProfileModules({ user }: { user: DashboardUser | null }) {
-  const [agencies, setAgencies] = useState<any[]>([]);
+  const [agencies, setAgencies] = useState<AdminRecord[]>([]);
   const [agencyId, setAgencyId] = useState(user?.agencyPartnerId ? String(user.agencyPartnerId) : '');
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<AdminRecord | null>(null);
   const [moduleKey, setModuleKey] = useState('profile');
-  const [profileForm, setProfileForm] = useState<any>({});
+  const [profileForm, setProfileForm] = useState<AdminRecord>({});
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
   const canEdit = has(user, 'agency_profile.modules') || has(user, 'agency_profile.own.modules') || has(user, 'agencies.update') || has(user, 'agencies.own.update');
   const selectedAgency = agencies.find((agency) => String(agency.id) === String(agencyId));
 
-  async function loadAgencies() {
+  const loadAgencies = useCallback(async () => {
     setError('');
     try {
       const result = await adminApi.agencies();
@@ -744,20 +762,21 @@ function AgencyProfileModules({ user }: { user: DashboardUser | null }) {
       if (!agencyId && list.length) {
         setAgencyId(String(user?.agencyPartnerId || list[0].id));
       }
-    } catch (err: any) {
-      setError(err?.message || 'No se pudieron cargar agencias desde la base de datos.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'No se pudieron cargar agencias desde la base de datos.');
     }
-  }
+  }, [agencyId, user]);
 
-  async function load() {
+  const load = useCallback(async () => {
     if (!agencyId) return;
     setError('');
     try {
       const [modulesResult, agenciesResult] = await Promise.all([adminApi.agencyModules(Number(agencyId)), adminApi.agencies()]);
-      const list = agenciesResult.items || [];
-      const agency = list.find((item: any) => String(item.id) === String(agencyId));
+      const list = (agenciesResult.items || []) as AdminRecord[];
+      const agency = list.find((item) => String(item.id) === String(agencyId));
       setAgencies(list);
       setData(modulesResult);
+      const detail = modulesResult?.detail as AdminRecord | undefined;
       setProfileForm({
         name: agency?.name || '',
         email: agency?.email || '',
@@ -775,22 +794,24 @@ function AgencyProfileModules({ user }: { user: DashboardUser | null }) {
         is_verified: Boolean(agency?.is_verified),
         is_top_rated: Boolean(agency?.is_top_rated),
         status: agency?.status || 'draft',
-        tagline: modulesResult?.detail?.tagline || agency?.tagline || '',
-        focus: modulesResult?.detail?.focus || agency?.focus || '',
-        methodology: modulesResult?.detail?.methodology || agency?.methodology || '',
-        client_profile: modulesResult?.detail?.client_profile || agency?.client_profile || '',
-        promise_headline: modulesResult?.detail?.promise_headline || '',
-        industries: modulesResult?.detail?.industries || agency?.industries || [],
-        identity_tags: modulesResult?.detail?.identity_tags || agency?.identity_tags || [],
-        active: modulesResult?.detail?.active ?? true,
+        tagline: detail?.tagline || agency?.tagline || '',
+        focus: detail?.focus || agency?.focus || '',
+        methodology: detail?.methodology || agency?.methodology || '',
+        client_profile: detail?.client_profile || agency?.client_profile || '',
+        promise_headline: detail?.promise_headline || '',
+        industries: detail?.industries || agency?.industries || [],
+        identity_tags: detail?.identity_tags || agency?.identity_tags || [],
+        active: detail?.active ?? true,
       });
-    } catch (err: any) {
-      setError(err?.message || 'No se pudo cargar el perfil modular.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'No se pudo cargar el perfil modular.');
     }
-  }
+  }, [agencyId]);
 
-  useEffect(() => { loadAgencies(); }, []);
-  useEffect(() => { if (agencyId) load(); }, [agencyId]);
+  /* eslint-disable react-hooks/set-state-in-effect -- Carga inicial de agencias y perfil; migrar a React Query queda fuera del alcance de esta estabilizacion. */
+  useEffect(() => { loadAgencies(); }, [loadAgencies]);
+  useEffect(() => { if (agencyId) load(); }, [agencyId, load]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   async function saveProfile() {
     if (!agencyId) return;
@@ -833,15 +854,15 @@ function AgencyProfileModules({ user }: { user: DashboardUser | null }) {
         active: true,
       });
       await load();
-    } catch (err: any) {
-      setError(err?.message || 'No se pudo guardar el perfil de agencia.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'No se pudo guardar el perfil de agencia.');
     } finally {
       setSaving(false);
     }
   }
 
-  function updateProfile(key: string, value: any) {
-    setProfileForm((current: any) => ({ ...current, [key]: value }));
+  function updateProfile(key: string, value: unknown) {
+    setProfileForm((current: AdminRecord) => ({ ...current, [key]: value }));
   }
 
   const teamRows = Array.isArray(data?.team) ? data.team : [];
@@ -849,19 +870,19 @@ function AgencyProfileModules({ user }: { user: DashboardUser | null }) {
   const hourRows = Array.isArray(data?.hours) ? data.hours : [];
   const channelRows = Array.isArray(data?.channels) ? data.channels : [];
 
-  function updateArrayRow(collectionKey: string, index: number, key: string, value: any) {
-    const rows = Array.isArray(data?.[collectionKey]) ? [...data[collectionKey]] : [];
+  function updateArrayRow(collectionKey: string, index: number, key: string, value: unknown) {
+    const rows = Array.isArray(data?.[collectionKey]) ? [...(data[collectionKey] as AdminRecord[])] : [];
     rows[index] = { ...rows[index], [key]: value };
     setData({ ...data, [collectionKey]: rows });
   }
 
-  function addArrayRow(collectionKey: string, row: any) {
+  function addArrayRow(collectionKey: string, row: AdminRecord) {
     const rows = Array.isArray(data?.[collectionKey]) ? [...data[collectionKey]] : [];
     setData({ ...data, [collectionKey]: [...rows, row] });
   }
 
   function removeArrayRow(collectionKey: string, index: number) {
-    const rows = Array.isArray(data?.[collectionKey]) ? [...data[collectionKey]] : [];
+    const rows = Array.isArray(data?.[collectionKey]) ? [...(data[collectionKey] as AdminRecord[])] : [];
     rows.splice(index, 1);
     setData({ ...data, [collectionKey]: rows });
   }
@@ -873,8 +894,8 @@ function AgencyProfileModules({ user }: { user: DashboardUser | null }) {
     try {
       await adminApi.upsertAgencyModule(Number(agencyId), key, data[key] || []);
       await load();
-    } catch (err: any) {
-      setError(err?.message || `No se pudo guardar el módulo ${key}.`);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : `No se pudo guardar el módulo ${key}.`);
     } finally {
       setSaving(false);
     }
@@ -893,7 +914,7 @@ function AgencyProfileModules({ user }: { user: DashboardUser | null }) {
           <select value={agencyId} onChange={(e) => setAgencyId(e.target.value)} disabled={Boolean(user?.agencyPartnerId)} className="rounded-2xl border border-gray-200 px-4 py-3 font-semibold outline-none focus:border-[#D32323] bg-white">
             <option value="">Seleccionar agencia desde la base de datos...</option>
             {agencies.map((agency) => (
-              <option key={agency.id} value={agency.id}>{agency.name} · ID {agency.id} · {agency.city || 'Sin ciudad'}</option>
+              <option key={str(agency.id)} value={str(agency.id)}>{str(agency.name)} · ID {str(agency.id)} · {str(agency.city) || 'Sin ciudad'}</option>
             ))}
           </select>
           <button onClick={load} className="rounded-2xl bg-[#333] text-white px-5 py-3 font-black inline-flex items-center justify-center gap-2"><RefreshCw className="w-4 h-4" /> Cargar perfil</button>
@@ -920,7 +941,7 @@ function AgencyProfileModules({ user }: { user: DashboardUser | null }) {
               <button key={key} onClick={() => setModuleKey(key)} className={`w-full text-left rounded-2xl px-4 py-3 text-sm font-black ${moduleKey === key ? 'bg-[#D32323] text-white' : 'hover:bg-gray-50 text-[#333]'}`}>{label}</button>
             ))}
             {selectedAgency && (
-              <a href={`#/agencias/${String(selectedAgency.name || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}`} className="block rounded-2xl border border-gray-200 px-4 py-3 text-sm font-black text-[#0074E0] hover:bg-blue-50">Ver perfil público</a>
+              <a href={`#/agencias/${str(selectedAgency.name).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}`} className="block rounded-2xl border border-gray-200 px-4 py-3 text-sm font-black text-[#0074E0] hover:bg-blue-50">Ver perfil público</a>
             )}
           </div>
 
@@ -939,49 +960,49 @@ function AgencyProfileModules({ user }: { user: DashboardUser | null }) {
                 <div className="mt-6 grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6">
                   <div className="rounded-[24px] border border-gray-200 bg-gray-50 p-4">
                     <div className="aspect-[4/3] rounded-[20px] bg-white border border-gray-200 overflow-hidden flex items-center justify-center">
-                      {profileForm.image_url ? <img src={profileForm.image_url} alt="Imagen perfil agencia" className="w-full h-full object-cover" /> : <span className="text-sm font-bold text-gray-400">Vista previa imagen</span>}
+                      {profileForm.image_url ? <img src={str(profileForm.image_url)} alt="Imagen perfil agencia" className="w-full h-full object-cover" /> : <span className="text-sm font-bold text-gray-400">Vista previa imagen</span>}
                     </div>
                     <div className="mt-4 flex items-center gap-3">
-                      <span className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-black text-white" style={{ backgroundColor: profileForm.logo_bg_color?.startsWith('#') ? profileForm.logo_bg_color : '#D32323' }}>{profileForm.logo_letter || 'S'}</span>
+                      <span className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-black text-white" style={{ backgroundColor: str(profileForm.logo_bg_color).startsWith('#') ? str(profileForm.logo_bg_color) : '#D32323' }}>{str(profileForm.logo_letter) || 'S'}</span>
                       <div>
-                        <p className="font-black text-[#333]">{profileForm.name || 'Agencia'}</p>
+                        <p className="font-black text-[#333]">{str(profileForm.name) || 'Agencia'}</p>
                         <p className="text-xs text-gray-500">Logo público / ficha de perfil</p>
                       </div>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <label><span className={labelClass}>Nombre</span><input className={inputClass} value={profileForm.name || ''} onChange={(e) => updateProfile('name', e.target.value)} /></label>
-                    <label><span className={labelClass}>Email</span><input className={inputClass} value={profileForm.email || ''} onChange={(e) => updateProfile('email', e.target.value)} /></label>
-                    <label><span className={labelClass}>Teléfono</span><input className={inputClass} value={profileForm.phone || ''} onChange={(e) => updateProfile('phone', e.target.value)} /></label>
-                    <label><span className={labelClass}>Website</span><input className={inputClass} value={profileForm.website || ''} onChange={(e) => updateProfile('website', e.target.value)} /></label>
-                    <label><span className={labelClass}>Ciudad</span><input className={inputClass} value={profileForm.city || ''} onChange={(e) => updateProfile('city', e.target.value)} /></label>
-                    <label><span className={labelClass}>País</span><input className={inputClass} value={profileForm.country_code || ''} onChange={(e) => updateProfile('country_code', e.target.value)} /></label>
-                    <label><span className={labelClass}>Letra logo</span><input className={inputClass} value={profileForm.logo_letter || ''} onChange={(e) => updateProfile('logo_letter', e.target.value.toUpperCase().slice(0, 4))} /></label>
-                    <label><span className={labelClass}>Color logo HEX</span><input className={inputClass} value={profileForm.logo_bg_color || ''} onChange={(e) => updateProfile('logo_bg_color', e.target.value)} placeholder="#D32323" /></label>
-                    <label className="md:col-span-2"><span className={labelClass}>URL imagen hero/perfil</span><input className={inputClass} value={profileForm.image_url || ''} onChange={(e) => updateProfile('image_url', e.target.value)} /></label>
+                    <label><span className={labelClass}>Nombre</span><input className={inputClass} value={str(profileForm.name)} onChange={(e) => updateProfile('name', e.target.value)} /></label>
+                    <label><span className={labelClass}>Email</span><input className={inputClass} value={str(profileForm.email)} onChange={(e) => updateProfile('email', e.target.value)} /></label>
+                    <label><span className={labelClass}>Teléfono</span><input className={inputClass} value={str(profileForm.phone)} onChange={(e) => updateProfile('phone', e.target.value)} /></label>
+                    <label><span className={labelClass}>Website</span><input className={inputClass} value={str(profileForm.website)} onChange={(e) => updateProfile('website', e.target.value)} /></label>
+                    <label><span className={labelClass}>Ciudad</span><input className={inputClass} value={str(profileForm.city)} onChange={(e) => updateProfile('city', e.target.value)} /></label>
+                    <label><span className={labelClass}>País</span><input className={inputClass} value={str(profileForm.country_code)} onChange={(e) => updateProfile('country_code', e.target.value)} /></label>
+                    <label><span className={labelClass}>Letra logo</span><input className={inputClass} value={str(profileForm.logo_letter)} onChange={(e) => updateProfile('logo_letter', e.target.value.toUpperCase().slice(0, 4))} /></label>
+                    <label><span className={labelClass}>Color logo HEX</span><input className={inputClass} value={str(profileForm.logo_bg_color)} onChange={(e) => updateProfile('logo_bg_color', e.target.value)} placeholder="#D32323" /></label>
+                    <label className="md:col-span-2"><span className={labelClass}>URL imagen hero/perfil</span><input className={inputClass} value={str(profileForm.image_url)} onChange={(e) => updateProfile('image_url', e.target.value)} /></label>
                   </div>
                 </div>
 
                 <div className="mt-5 grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <label><span className={labelClass}>Rating</span><input type="number" className={inputClass} value={profileForm.rating || 0} onChange={(e) => updateProfile('rating', e.target.value)} /></label>
-                  <label><span className={labelClass}>Reseñas</span><input type="number" className={inputClass} value={profileForm.reviews_count || 0} onChange={(e) => updateProfile('reviews_count', e.target.value)} /></label>
-                  <label><span className={labelClass}>Precio desde</span><input type="number" className={inputClass} value={profileForm.starting_price || 0} onChange={(e) => updateProfile('starting_price', e.target.value)} /></label>
+                  <label><span className={labelClass}>Rating</span><input type="number" className={inputClass} value={num(profileForm.rating)} onChange={(e) => updateProfile('rating', e.target.value)} /></label>
+                  <label><span className={labelClass}>Reseñas</span><input type="number" className={inputClass} value={num(profileForm.reviews_count)} onChange={(e) => updateProfile('reviews_count', e.target.value)} /></label>
+                  <label><span className={labelClass}>Precio desde</span><input type="number" className={inputClass} value={num(profileForm.starting_price)} onChange={(e) => updateProfile('starting_price', e.target.value)} /></label>
                 </div>
 
                 <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                   <label className="rounded-2xl border border-gray-200 p-4 flex items-center gap-3"><input type="checkbox" checked={Boolean(profileForm.is_verified)} onChange={(e) => updateProfile('is_verified', e.target.checked)} /><span className="font-black text-sm">Agencia verificada</span></label>
                   <label className="rounded-2xl border border-gray-200 p-4 flex items-center gap-3"><input type="checkbox" checked={Boolean(profileForm.is_top_rated)} onChange={(e) => updateProfile('is_top_rated', e.target.checked)} /><span className="font-black text-sm">Top Rated</span></label>
-                  <label><span className={labelClass}>Estado</span><select className={inputClass} value={profileForm.status || 'draft'} onChange={(e) => updateProfile('status', e.target.value)}><option value="draft">draft</option><option value="review">review</option><option value="published">published</option><option value="suspended">suspended</option></select></label>
+                  <label><span className={labelClass}>Estado</span><select className={inputClass} value={str(profileForm.status, 'draft')} onChange={(e) => updateProfile('status', e.target.value)}><option value="draft">draft</option><option value="review">review</option><option value="published">published</option><option value="suspended">suspended</option></select></label>
                 </div>
 
                 <div className="mt-5 grid grid-cols-1 gap-4">
-                  <label><span className={labelClass}>Resumen público</span><textarea className={`${inputClass} min-h-[110px]`} value={profileForm.summary || ''} onChange={(e) => updateProfile('summary', e.target.value)} /></label>
-                  <label><span className={labelClass}>Tagline</span><input className={inputClass} value={profileForm.tagline || ''} onChange={(e) => updateProfile('tagline', e.target.value)} /></label>
-                  <label><span className={labelClass}>Enfoque</span><textarea className={`${inputClass} min-h-[90px]`} value={profileForm.focus || ''} onChange={(e) => updateProfile('focus', e.target.value)} /></label>
-                  <label><span className={labelClass}>Metodología</span><textarea className={`${inputClass} min-h-[90px]`} value={profileForm.methodology || ''} onChange={(e) => updateProfile('methodology', e.target.value)} /></label>
-                  <label><span className={labelClass}>Cliente ideal</span><textarea className={`${inputClass} min-h-[90px]`} value={profileForm.client_profile || ''} onChange={(e) => updateProfile('client_profile', e.target.value)} /></label>
-                  <label><span className={labelClass}>Promesa principal</span><input className={inputClass} value={profileForm.promise_headline || ''} onChange={(e) => updateProfile('promise_headline', e.target.value)} /></label>
+                  <label><span className={labelClass}>Resumen público</span><textarea className={`${inputClass} min-h-[110px]`} value={str(profileForm.summary)} onChange={(e) => updateProfile('summary', e.target.value)} /></label>
+                  <label><span className={labelClass}>Tagline</span><input className={inputClass} value={str(profileForm.tagline)} onChange={(e) => updateProfile('tagline', e.target.value)} /></label>
+                  <label><span className={labelClass}>Enfoque</span><textarea className={`${inputClass} min-h-[90px]`} value={str(profileForm.focus)} onChange={(e) => updateProfile('focus', e.target.value)} /></label>
+                  <label><span className={labelClass}>Metodología</span><textarea className={`${inputClass} min-h-[90px]`} value={str(profileForm.methodology)} onChange={(e) => updateProfile('methodology', e.target.value)} /></label>
+                  <label><span className={labelClass}>Cliente ideal</span><textarea className={`${inputClass} min-h-[90px]`} value={str(profileForm.client_profile)} onChange={(e) => updateProfile('client_profile', e.target.value)} /></label>
+                  <label><span className={labelClass}>Promesa principal</span><input className={inputClass} value={str(profileForm.promise_headline)} onChange={(e) => updateProfile('promise_headline', e.target.value)} /></label>
                 </div>
               </div>
             )}
@@ -993,15 +1014,15 @@ function AgencyProfileModules({ user }: { user: DashboardUser | null }) {
                   <div className="flex gap-3"><button onClick={() => addArrayRow('team', { name: 'Nuevo consultor', role_title: 'Especialista SEO Local', bio: '', avatar_url: '', specialty: '', active: true, sequence: teamRows.length + 1 })} className="rounded-2xl border border-gray-200 px-4 py-3 font-black text-sm"><Plus className="inline w-4 h-4 mr-1" /> Añadir personal</button><button onClick={() => saveModule('team')} disabled={!canEdit || saving} className="rounded-2xl bg-[#D32323] px-5 py-3 text-white font-black disabled:opacity-50">Guardar personal</button></div>
                 </div>
                 <div className="mt-5 space-y-4">
-                  {teamRows.map((row: any, index: number) => (
+                  {teamRows.map((row: AdminRecord, index: number) => (
                     <div key={index} className="rounded-[24px] border border-gray-200 bg-gray-50 p-4 grid grid-cols-1 lg:grid-cols-[96px_1fr_auto] gap-4">
-                      <div className="w-24 h-24 rounded-2xl bg-white border border-gray-200 overflow-hidden flex items-center justify-center">{row.avatar_url ? <img src={row.avatar_url} className="w-full h-full object-cover" /> : <Users className="w-8 h-8 text-gray-300" />}</div>
+                      <div className="w-24 h-24 rounded-2xl bg-white border border-gray-200 overflow-hidden flex items-center justify-center">{row.avatar_url ? <img src={str(row.avatar_url)} className="w-full h-full object-cover" /> : <Users className="w-8 h-8 text-gray-300" />}</div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <label><span className={labelClass}>Nombre</span><input className={inputClass} value={row.name || ''} onChange={(e) => updateArrayRow('team', index, 'name', e.target.value)} /></label>
-                        <label><span className={labelClass}>Cargo</span><input className={inputClass} value={row.role_title || ''} onChange={(e) => updateArrayRow('team', index, 'role_title', e.target.value)} /></label>
-                        <label><span className={labelClass}>Especialidad</span><input className={inputClass} value={row.specialty || ''} onChange={(e) => updateArrayRow('team', index, 'specialty', e.target.value)} /></label>
-                        <label><span className={labelClass}>Avatar URL</span><input className={inputClass} value={row.avatar_url || ''} onChange={(e) => updateArrayRow('team', index, 'avatar_url', e.target.value)} /></label>
-                        <label className="md:col-span-2"><span className={labelClass}>Bio</span><textarea className={`${inputClass} min-h-[80px]`} value={row.bio || ''} onChange={(e) => updateArrayRow('team', index, 'bio', e.target.value)} /></label>
+                        <label><span className={labelClass}>Nombre</span><input className={inputClass} value={str(row.name)} onChange={(e) => updateArrayRow('team', index, 'name', e.target.value)} /></label>
+                        <label><span className={labelClass}>Cargo</span><input className={inputClass} value={str(row.role_title)} onChange={(e) => updateArrayRow('team', index, 'role_title', e.target.value)} /></label>
+                        <label><span className={labelClass}>Especialidad</span><input className={inputClass} value={str(row.specialty)} onChange={(e) => updateArrayRow('team', index, 'specialty', e.target.value)} /></label>
+                        <label><span className={labelClass}>Avatar URL</span><input className={inputClass} value={str(row.avatar_url)} onChange={(e) => updateArrayRow('team', index, 'avatar_url', e.target.value)} /></label>
+                        <label className="md:col-span-2"><span className={labelClass}>Bio</span><textarea className={`${inputClass} min-h-[80px]`} value={str(row.bio)} onChange={(e) => updateArrayRow('team', index, 'bio', e.target.value)} /></label>
                       </div>
                       <button onClick={() => removeArrayRow('team', index)} className="rounded-2xl border border-red-200 px-3 py-2 h-fit text-[#D32323] font-black text-xs">Eliminar</button>
                     </div>
@@ -1014,14 +1035,14 @@ function AgencyProfileModules({ user }: { user: DashboardUser | null }) {
             {moduleKey === 'certifications' && (
               <div className="rounded-[28px] bg-white border border-gray-200 p-6 shadow-sm">
                 <div className="flex items-center justify-between gap-4"><h3 className="text-2xl font-black text-[#333]">Certificaciones</h3><div className="flex gap-3"><button onClick={() => addArrayRow('certifications', { issuer: 'Google', title: 'Nueva certificación', credential_url: '', valid_until: '', active: true, sequence: certificationRows.length + 1 })} className="rounded-2xl border border-gray-200 px-4 py-3 font-black text-sm">Añadir</button><button onClick={() => saveModule('certifications')} disabled={!canEdit || saving} className="rounded-2xl bg-[#D32323] px-5 py-3 text-white font-black disabled:opacity-50">Guardar</button></div></div>
-                <div className="mt-5 space-y-3">{certificationRows.map((row: any, index: number) => <div key={index} className="grid grid-cols-1 md:grid-cols-5 gap-3 rounded-2xl border border-gray-200 p-4"><input className={inputClass} value={row.issuer || ''} onChange={(e) => updateArrayRow('certifications', index, 'issuer', e.target.value)} placeholder="Issuer" /><input className={inputClass} value={row.title || ''} onChange={(e) => updateArrayRow('certifications', index, 'title', e.target.value)} placeholder="Título" /><input className={inputClass} value={row.credential_url || ''} onChange={(e) => updateArrayRow('certifications', index, 'credential_url', e.target.value)} placeholder="URL" /><input className={inputClass} value={row.valid_until || ''} onChange={(e) => updateArrayRow('certifications', index, 'valid_until', e.target.value)} placeholder="YYYY-MM-DD" /><button onClick={() => removeArrayRow('certifications', index)} className="rounded-2xl border border-red-200 text-[#D32323] font-black">Eliminar</button></div>)}</div>
+                <div className="mt-5 space-y-3">{certificationRows.map((row: AdminRecord, index: number) => <div key={index} className="grid grid-cols-1 md:grid-cols-5 gap-3 rounded-2xl border border-gray-200 p-4"><input className={inputClass} value={str(row.issuer)} onChange={(e) => updateArrayRow('certifications', index, 'issuer', e.target.value)} placeholder="Issuer" /><input className={inputClass} value={str(row.title)} onChange={(e) => updateArrayRow('certifications', index, 'title', e.target.value)} placeholder="Título" /><input className={inputClass} value={str(row.credential_url)} onChange={(e) => updateArrayRow('certifications', index, 'credential_url', e.target.value)} placeholder="URL" /><input className={inputClass} value={str(row.valid_until)} onChange={(e) => updateArrayRow('certifications', index, 'valid_until', e.target.value)} placeholder="YYYY-MM-DD" /><button onClick={() => removeArrayRow('certifications', index)} className="rounded-2xl border border-red-200 text-[#D32323] font-black">Eliminar</button></div>)}</div>
               </div>
             )}
 
             {moduleKey === 'hours' && (
               <div className="rounded-[28px] bg-white border border-gray-200 p-6 shadow-sm">
                 <div className="flex items-center justify-between gap-4"><h3 className="text-2xl font-black text-[#333]">Horarios</h3><div className="flex gap-3"><button onClick={() => addArrayRow('hours', { day_label: 'Nuevo día', opens_at: '09:00', closes_at: '18:00', is_closed: false, sequence: hourRows.length + 1 })} className="rounded-2xl border border-gray-200 px-4 py-3 font-black text-sm">Añadir</button><button onClick={() => saveModule('hours')} disabled={!canEdit || saving} className="rounded-2xl bg-[#D32323] px-5 py-3 text-white font-black disabled:opacity-50">Guardar</button></div></div>
-                <div className="mt-5 space-y-3">{hourRows.map((row: any, index: number) => <div key={index} className="grid grid-cols-1 md:grid-cols-5 gap-3 rounded-2xl border border-gray-200 p-4"><input className={inputClass} value={row.day_label || ''} onChange={(e) => updateArrayRow('hours', index, 'day_label', e.target.value)} /><input className={inputClass} value={row.opens_at || ''} onChange={(e) => updateArrayRow('hours', index, 'opens_at', e.target.value)} /><input className={inputClass} value={row.closes_at || ''} onChange={(e) => updateArrayRow('hours', index, 'closes_at', e.target.value)} /><label className="rounded-2xl border border-gray-200 px-4 py-3 flex items-center gap-2"><input type="checkbox" checked={Boolean(row.is_closed)} onChange={(e) => updateArrayRow('hours', index, 'is_closed', e.target.checked)} /> Cerrado</label><button onClick={() => removeArrayRow('hours', index)} className="rounded-2xl border border-red-200 text-[#D32323] font-black">Eliminar</button></div>)}</div>
+                <div className="mt-5 space-y-3">{hourRows.map((row: AdminRecord, index: number) => <div key={index} className="grid grid-cols-1 md:grid-cols-5 gap-3 rounded-2xl border border-gray-200 p-4"><input className={inputClass} value={str(row.day_label)} onChange={(e) => updateArrayRow('hours', index, 'day_label', e.target.value)} /><input className={inputClass} value={str(row.opens_at)} onChange={(e) => updateArrayRow('hours', index, 'opens_at', e.target.value)} /><input className={inputClass} value={str(row.closes_at)} onChange={(e) => updateArrayRow('hours', index, 'closes_at', e.target.value)} /><label className="rounded-2xl border border-gray-200 px-4 py-3 flex items-center gap-2"><input type="checkbox" checked={Boolean(row.is_closed)} onChange={(e) => updateArrayRow('hours', index, 'is_closed', e.target.checked)} /> Cerrado</label><button onClick={() => removeArrayRow('hours', index)} className="rounded-2xl border border-red-200 text-[#D32323] font-black">Eliminar</button></div>)}</div>
               </div>
             )}
 
@@ -1029,7 +1050,7 @@ function AgencyProfileModules({ user }: { user: DashboardUser | null }) {
               <div className="rounded-[28px] bg-white border border-gray-200 p-6 shadow-sm">
                 <div className="flex items-center justify-between gap-4"><h3 className="text-2xl font-black text-[#333]">Canales internos de agencia</h3><div className="flex gap-3"><button onClick={() => addArrayRow('channels', { channel_type: 'website', label: 'Sitio web', value: '', url: '', is_verified: true, active: true, sequence: channelRows.length + 1 })} className="rounded-2xl border border-gray-200 px-4 py-3 font-black text-sm">Añadir</button><button onClick={() => saveModule('channels')} disabled={!canEdit || saving} className="rounded-2xl bg-[#D32323] px-5 py-3 text-white font-black disabled:opacity-50">Guardar</button></div></div>
                 <p className="mt-2 text-xs font-semibold text-gray-500">Estos canales quedan en BD. El módulo público “Canales Externos Verificados” puede seguir oculto si así está configurado en el perfil.</p>
-                <div className="mt-5 space-y-3">{channelRows.map((row: any, index: number) => <div key={index} className="grid grid-cols-1 md:grid-cols-6 gap-3 rounded-2xl border border-gray-200 p-4"><input className={inputClass} value={row.channel_type || ''} onChange={(e) => updateArrayRow('channels', index, 'channel_type', e.target.value)} /><input className={inputClass} value={row.label || ''} onChange={(e) => updateArrayRow('channels', index, 'label', e.target.value)} /><input className={inputClass} value={row.value || ''} onChange={(e) => updateArrayRow('channels', index, 'value', e.target.value)} /><input className={inputClass} value={row.url || ''} onChange={(e) => updateArrayRow('channels', index, 'url', e.target.value)} /><label className="rounded-2xl border border-gray-200 px-4 py-3 flex items-center gap-2"><input type="checkbox" checked={Boolean(row.is_verified)} onChange={(e) => updateArrayRow('channels', index, 'is_verified', e.target.checked)} /> Verificado</label><button onClick={() => removeArrayRow('channels', index)} className="rounded-2xl border border-red-200 text-[#D32323] font-black">Eliminar</button></div>)}</div>
+                <div className="mt-5 space-y-3">{channelRows.map((row: AdminRecord, index: number) => <div key={index} className="grid grid-cols-1 md:grid-cols-6 gap-3 rounded-2xl border border-gray-200 p-4"><input className={inputClass} value={str(row.channel_type)} onChange={(e) => updateArrayRow('channels', index, 'channel_type', e.target.value)} /><input className={inputClass} value={str(row.label)} onChange={(e) => updateArrayRow('channels', index, 'label', e.target.value)} /><input className={inputClass} value={str(row.value)} onChange={(e) => updateArrayRow('channels', index, 'value', e.target.value)} /><input className={inputClass} value={str(row.url)} onChange={(e) => updateArrayRow('channels', index, 'url', e.target.value)} /><label className="rounded-2xl border border-gray-200 px-4 py-3 flex items-center gap-2"><input type="checkbox" checked={Boolean(row.is_verified)} onChange={(e) => updateArrayRow('channels', index, 'is_verified', e.target.checked)} /> Verificado</label><button onClick={() => removeArrayRow('channels', index)} className="rounded-2xl border border-red-200 text-[#D32323] font-black">Eliminar</button></div>)}</div>
               </div>
             )}
 
@@ -1063,6 +1084,7 @@ export default function DashboardPage() {
     }
   }
 
+  /* eslint-disable react-hooks/set-state-in-effect -- Verificación inicial de sesión y suscripción a evento de login; migrar a React Query queda fuera del alcance de esta estabilización. */
   useEffect(() => {
     loadMe();
     const handler = (event: Event) => {
@@ -1073,6 +1095,7 @@ export default function DashboardPage() {
     window.addEventListener('seo-dashboard-login', handler as EventListener);
     return () => window.removeEventListener('seo-dashboard-login', handler as EventListener);
   }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const user = session?.user || null;
   const visibleModules = modules.filter((module) => has(user, module.readPermission) || module.key === 'overview');

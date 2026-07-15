@@ -27,7 +27,7 @@ import {
   Workflow,
   X,
 } from 'lucide-react';
-import { useAppState } from '@/state/AppStateProvider';
+import { useAppState } from '@/state/useAppState';
 import { useSelectCategory } from '@/routes/navigation';
 
 const iconMap = {

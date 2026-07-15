@@ -1,7 +1,6 @@
 import { FormEvent, useMemo, useState } from 'react';
 import {
   AlertCircle,
-  ArrowRight,
   Building2,
   Check,
   CheckCircle2,
@@ -9,23 +8,16 @@ import {
   CopyCheck,
   Database,
   FileCheck,
-  Flag,
-  Globe2,
-  Layers,
-  ListChecks,
   Loader2,
   MapPin,
   Phone,
   Search,
   ShieldCheck,
   Sparkles,
-  Store,
-  Target,
   TrendingUp,
-  Users,
 } from 'lucide-react';
 import { Agency, Service } from '@/types';
-import { useAppState } from '@/state/AppStateProvider';
+import { useAppState } from '@/state/useAppState';
 import { useFindAgencies } from '@/routes/navigation';
 import { CitationsNapQuoteResponse, FunctionalEvaluationResponse, marketplaceApi } from '@/services/marketplaceApi';
 

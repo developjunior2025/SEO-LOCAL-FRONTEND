@@ -6,7 +6,6 @@ import {
   ClipboardCheck,
   Gauge,
   Loader2,
-  MapPinned,
   RefreshCcw,
   Save,
   SearchCheck,
