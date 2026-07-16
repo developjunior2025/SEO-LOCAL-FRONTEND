@@ -87,7 +87,7 @@ Una vez dentro del Command Center, las ocho pestañas permiten navegar por las d
 
 - Un componente por archivo para Fast Refresh.
 - Utilidades compartidas en archivos separados (`*Config.ts`, `*Helpers.ts`).
-- Tipado estricto; evitar `any`.
+- Tipado explícito y reducción progresiva de `any`. TypeScript strict queda pendiente para una fase posterior.
 - Estilos específicos del Command Center en `src/features/tools-audits/styles/command-center-360.css`.
 
 ## Estado global
