@@ -27,18 +27,9 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { Agency, Service } from '@/types';
-import { useAppState } from '@/state/AppStateProvider';
+import { useAppState } from '@/state/useAppState';
 import { useFindAgencies } from '@/routes/navigation';
 import { FunctionalEvaluationResponse, marketplaceApi, OnPageLocalQuoteResponse } from '@/services/marketplaceApi';
-
-type OnPageIssue = {
-  area: string;
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  title: string;
-  impactScore: number;
-  recommendation: string;
-  estimatedHours: number;
-};
 
 type ModuleKey = 'titles' | 'metaDescriptions' | 'headings' | 'localContent' | 'friendlyUrls' | 'images' | 'internalLinks' | 'structuredData' | 'mobileOptimization' | 'cta';
 
@@ -75,13 +66,6 @@ const paidTools = [
   ['Clearscope', 'Cobertura temática y relevancia de contenido.'],
   ['BrightLocal', 'SEO local, rankings y auditorías territoriales.'],
 ];
-
-const severityTone: Record<OnPageIssue['severity'], string> = {
-  low: 'bg-blue-50 text-blue-700 border-blue-100',
-  medium: 'bg-amber-50 text-amber-700 border-amber-100',
-  high: 'bg-red-50 text-[#D32323] border-red-100',
-  critical: 'bg-[#D32323] text-white border-[#D32323]',
-};
 
 function numeric(value: string, fallback: number) {
   const parsed = Number(value);

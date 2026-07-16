@@ -1,0 +1,24 @@
+import { lazy } from 'react';
+
+export const HomePage = lazy(() => import('@/pages/HomePage'));
+export const SearchResultsPage = lazy(() => import('@/pages/SearchResultsPage'));
+export const ServiceDetailPage = lazy(() => import('@/pages/ServiceDetailPage'));
+export const AgenciesPage = lazy(() => import('@/pages/AgenciesPage'));
+export const AgencyProfilePage = lazy(() => import('@/pages/AgencyProfilePage'));
+export const CategoriesPage = lazy(() => import('@/pages/CategoriesPage'));
+export const AuditSeoLocalPage = lazy(() => import('@/pages/AuditSeoLocalPage'));
+export const GoogleBusinessProfilePage = lazy(() => import('@/pages/GoogleBusinessProfilePage'));
+export const LocalPackRankingPage = lazy(() => import('@/pages/LocalPackRankingPage'));
+export const LinkBuildingLocalPage = lazy(() => import('@/pages/LinkBuildingLocalPage'));
+export const SeoTecnicoLocalPage = lazy(() => import('@/pages/SeoTecnicoLocalPage'));
+export const SeoOnPageLocalPage = lazy(() => import('@/pages/SeoOnPageLocalPage'));
+export const ReputationReviewsPage = lazy(() => import('@/pages/ReputationReviewsPage'));
+export const CitationsNapPage = lazy(() => import('@/pages/CitationsNapPage'));
+export const ReportsAnalyticsPage = lazy(() => import('@/pages/ReportsAnalyticsPage'));
+export const HeatMapsLocalPage = lazy(() => import('@/pages/HeatMapsLocalPage'));
+export const ContentLocalPage = lazy(() => import('@/pages/ContentLocalPage'));
+export const SeoLocalEcommercePage = lazy(() => import('@/pages/SeoLocalEcommercePage'));
+export const ConsultoriaEstrategiaPage = lazy(() => import('@/pages/ConsultoriaEstrategiaPage'));
+export const DashboardPage = lazy(() => import('@/pages/DashboardPage'));
+export const LoginPage = lazy(() => import('@/pages/LoginPage'));
+export const ClientAuditCommandCenterPage = lazy(() => import('@/pages/ClientAuditCommandCenterPage'));

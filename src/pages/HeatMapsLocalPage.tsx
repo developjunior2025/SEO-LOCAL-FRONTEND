@@ -2,29 +2,23 @@ import { FormEvent, useMemo, useState } from 'react';
 import {
   AlertCircle,
   ArrowRight,
-  BarChart3,
   Check,
   CheckCircle2,
   ClipboardList,
-  Eye,
   FileBarChart,
-  Gauge,
-  Layers,
   LineChart,
   Loader2,
   Map,
-  MapPin,
   Search,
   ShieldCheck,
   Sparkles,
   Star,
-  Store,
   Target,
   TrendingUp,
   Users,
 } from 'lucide-react';
 import { Agency, Service } from '@/types';
-import { useAppState } from '@/state/AppStateProvider';
+import { useAppState } from '@/state/useAppState';
 import { useFindAgencies } from '@/routes/navigation';
 import { FunctionalEvaluationResponse, HeatMapsLocalQuoteResponse, marketplaceApi } from '@/services/marketplaceApi';
 
@@ -104,20 +98,6 @@ const severityTone: Record<HeatmapIssue['severity'], string> = {
 function numeric(value: string, fallback: number) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
-}
-
-function ScoreBar({ label, value }: { label: string; value: number }) {
-  return (
-    <div>
-      <div className="flex items-center justify-between gap-3 text-xs font-bold text-gray-600">
-        <span>{label}</span>
-        <span className="text-[#D32323]">{Math.round(value)}%</span>
-      </div>
-      <div className="mt-2 h-2 rounded-full bg-gray-100 overflow-hidden">
-        <div className="h-full rounded-full bg-[#D32323] transition-all" style={{ width: `${Math.max(4, Math.min(100, value))}%` }} />
-      </div>
-    </div>
-  );
 }
 
 function MetricCard({ label, value, delta }: { label: string; value: string | number; delta?: string }) {

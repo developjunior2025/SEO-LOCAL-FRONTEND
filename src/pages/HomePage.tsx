@@ -1,26 +1,22 @@
 import { useNavigate } from 'react-router-dom';
 import Hero from '@/components/home/Hero';
-import MarketplaceDynamics from '@/components/home/MarketplaceDynamics';
 import Categories from '@/components/home/Categories';
 import MapView from '@/components/home/MapView';
 import FeaturedAgencies from '@/components/home/FeaturedAgencies';
 import PopularServices from '@/components/home/PopularServices';
 import Offers from '@/components/home/Offers';
 import Benefits from '@/components/home/Benefits';
-import { useAppState } from '@/state/AppStateProvider';
-import { useSelectCategory, useHeroSearch } from '@/routes/navigation';
+import { useAppState } from '@/state/useAppState';
+import { useHeroSearch } from '@/routes/navigation';
 import type { Agency, Service } from '@/types';
 import { getServiceRoute } from '@/utils/serviceRoutes';
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const onSelectCategory = useSelectCategory();
   const handleHeroSearch = useHeroSearch();
   const {
     agenciesList,
-    marketplaceCategories,
     servicesList,
-    backendSource,
     searchState,
     setSearchState,
     hoveredAgencyId,
@@ -37,13 +33,6 @@ export default function HomePage() {
 
   const navigateToService = (service: Service) => navigate(getServiceRoute(service));
   const navigateToAgencyProfile = (agency: Agency) => navigate(`/agencias/${agency.slug || agency.id}`);
-
-  const navigateToSearchResults = (keyword = '', location = '') => {
-    const params = new URLSearchParams();
-    if (keyword.trim()) params.set('q', keyword.trim());
-    if (location.trim()) params.set('loc', location.trim());
-    navigate(`/buscar${params.toString() ? `?${params.toString()}` : ''}`);
-  };
 
   // Category trigger
   const handleCategorySelect = (serviceName: string) => {
@@ -86,21 +75,6 @@ export default function HomePage() {
         onSearch={handleHeroSearch}
         selectedKeyword={searchState.keyword}
         selectedLocation={searchState.location}
-      />
-
-      <MarketplaceDynamics
-        agencies={agenciesList}
-        categories={marketplaceCategories}
-        services={servicesList}
-        selectedLocation={searchState.location}
-        backendSource={backendSource}
-        onSelectCity={(city) => {
-          setSearchState((prev) => ({ ...prev, location: city }));
-          if (city) window.localStorage.setItem('seoLocalPreferredCity', city);
-        }}
-        onSelectCategory={onSelectCategory}
-        onOpenService={navigateToService}
-        onOpenSearch={navigateToSearchResults}
       />
 
       {/* 3. Category Grid Component */}

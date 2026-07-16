@@ -1,75 +1,100 @@
-# React + TypeScript + Vite
+# SEOLOCAL · Marketplace de agencias SEO Local
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Frontend React + TypeScript + Vite del marketplace SEOLOCAL.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- React 19
+- TypeScript
+- Vite
+- React Router (BrowserRouter)
+- Tailwind CSS
+- Lucide React
 
-## React Compiler
+## Scripts
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+npm install
+npm run dev
+npm run build
+npm run lint
+npx tsc --noEmit
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Estructura
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```text
+src/
+  components/          Componentes compartidos
+  features/            Módulos de dominio
+  pages/               Páginas enrutables
+  routes/              Router y lazy loading
+  state/               Estado global (AppState)
+  data/                Datos mock y fixtures
+  utils/               Helpers
 ```
+
+## Navegación principal
+
+- **Inicio** — `/`
+- **Categorías** — `/categorias`
+- **Agencias** — `/agencias`
+- **Servicios Directos** — ancla en home
+- **Ofertas Flash** — ancla en home
+- **Dashboard interno** — `/dashboard`
+- **Acceder** — `/login`
+
+## Herramientas
+
+El menú superior **Herramientas** es un acceso directo al portal cliente Command Center 360. Ya no despliega submenú; al hacer clic navega según el estado de sesión.
+
+| Estado | Destino |
+|--------|---------|
+| Visitante no autenticado | `/login?returnTo=/herramientas/auditorias?tab=summary` |
+| Cliente autenticado | `/herramientas/auditorias?tab=summary` |
+| Vendedor / Admin / Otros roles | `/dashboard` |
+
+Una vez dentro del Command Center, las ocho pestañas permiten navegar por las distintas auditorías:
+
+| Pestaña | Ruta |
+|---------|------|
+| Centro de Auditoría 360 | `/herramientas/auditorias?tab=summary` |
+| Cadena de Evidencia | `/herramientas/auditorias?tab=proof` |
+| Rankings y GeoGrid | `/herramientas/auditorias?tab=rankings` |
+| Google Business Profile y Listings | `/herramientas/auditorias?tab=listings` |
+| Reseñas y Reputación | `/herramientas/auditorias?tab=reviews` |
+| SEO Técnico y Autoridad | `/herramientas/auditorias?tab=site` |
+| SEM y Conversiones | `/herramientas/auditorias?tab=ads` |
+| Entregables y Aprobaciones | `/herramientas/auditorias?tab=files` |
+
+### Credenciales de demostración
+
+| Rol | Email | Contraseña |
+|-----|-------|------------|
+| Cliente | `cliente@clinicasonrisa.com` | `Demo1234` |
+| Vendedor | `vendedor@seolocal.com` | `Demo1234` |
+| Admin | `admin@seolocal.com` | `Demo1234` |
+
+## Command Center 360
+
+- Ruta protegida `/herramientas/auditorias`.
+- La pestaña activa se controla con la query `tab`.
+- Sincronización con navegación Back/Forward.
+- Datos demostrativos centralizados en `src/features/tools-audits/data/clientAuditDemoData.ts`.
+- Componentes desacoplados bajo `src/features/tools-audits/components/`.
+
+## Convenciones
+
+- Un componente por archivo para Fast Refresh.
+- Utilidades compartidas en archivos separados (`*Config.ts`, `*Helpers.ts`).
+- Tipado estricto; evitar `any`.
+- Estilos específicos del Command Center en `src/features/tools-audits/styles/command-center-360.css`.
+
+## Estado global
+
+`AppStateProvider` expone catálogo, búsqueda, listas, modales y autenticación básica (`user`, `login`, `logout`).
+
+## Notas
+
+- El backend PostgreSQL autónomo se consume cuando está disponible; de lo contrario se mantiene fallback mock.
+- La fase actual del Command Center usa datos demostrativos; la integración real con APIs externas queda fuera del alcance actual.

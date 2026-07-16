@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import FunctionalCategoryModule from '@/components/services/FunctionalCategoryModule';
 import type { Service } from '@/types';
-import { useAppState } from '@/state/AppStateProvider';
+import { useAppState } from '@/state/useAppState';
 import { useFindAgencies } from '@/routes/navigation';
 
 export interface AuditPlanSelection {
@@ -255,7 +255,7 @@ export default function AuditSeoLocalPage() {
         </div>
 
         <div className="mt-9 grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {auditAreas.map((area, index) => {
+          {auditAreas.map((area) => {
             const Icon = area.icon;
             return (
               <motion.article

@@ -1,6 +1,5 @@
 import { FormEvent, useMemo, useState } from 'react';
 import {
-  ArrowRight,
   BarChart3,
   CheckCircle2,
   ClipboardList,
@@ -8,19 +7,15 @@ import {
   FileText,
   Headphones,
   Loader2,
-  MapPin,
-  MessageCircle,
   Rocket,
   Search,
   ShieldCheck,
   Sparkles,
   Star,
   Target,
-  TrendingUp,
-  Users,
 } from 'lucide-react';
-import { Agency, Service } from '@/types';
-import { useAppState } from '@/state/AppStateProvider';
+import type { Service } from '@/types';
+import { useAppState } from '@/state/useAppState';
 import { useFindAgencies } from '@/routes/navigation';
 import { ConsultingQuoteResponse, FunctionalEvaluationResponse, marketplaceApi } from '@/services/marketplaceApi';
 

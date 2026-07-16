@@ -8,23 +8,20 @@ import {
   CheckCircle2,
   FileText,
   Globe2,
-  Info,
   Link2,
   Loader2,
   MapPin,
   MessageSquare,
-  Newspaper,
   Search,
   ShieldAlert,
   ShieldCheck,
   Sparkles,
   Star,
-  Target,
   TrendingUp,
   Users,
 } from 'lucide-react';
 import { Agency, Service } from '@/types';
-import { useAppState } from '@/state/AppStateProvider';
+import { useAppState } from '@/state/useAppState';
 import { useFindAgencies } from '@/routes/navigation';
 import { FunctionalEvaluationResponse, LinkBuildingQuoteResponse, marketplaceApi } from '@/services/marketplaceApi';
 

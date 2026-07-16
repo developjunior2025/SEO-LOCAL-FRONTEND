@@ -1,6 +1,5 @@
 import { FormEvent, useMemo, useState } from 'react';
 import {
-  ArrowRight,
   BarChart3,
   CheckCircle2,
   Code2,
@@ -14,13 +13,9 @@ import {
   Sparkles,
   Star,
   Store,
-  Target,
-  TrendingUp,
-  Users,
-  Zap,
 } from 'lucide-react';
-import { Agency, Service } from '@/types';
-import { useAppState } from '@/state/AppStateProvider';
+import type { Service } from '@/types';
+import { useAppState } from '@/state/useAppState';
 import { useFindAgencies } from '@/routes/navigation';
 import { EcommerceLocalQuoteResponse, FunctionalEvaluationResponse, marketplaceApi } from '@/services/marketplaceApi';
 
@@ -98,7 +93,7 @@ function SeoLocalEcommercePage() {
   const [conversionRate, setConversionRate] = useState('1.3');
   const [cartAbandonment, setCartAbandonment] = useState('68');
   const [technicalScore, setTechnicalScore] = useState('54');
-  const [gbpProductCoverage, setGbpProductCoverage] = useState('25');
+  const [gbpProductCoverage] = useState('35');
 
   const [selectedModules, setSelectedModules] = useState<Record<ModuleKey, boolean>>({
     localLanding: true,

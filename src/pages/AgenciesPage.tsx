@@ -5,8 +5,6 @@ import {
   ArrowRight,
   BadgeCheck,
   BriefcaseBusiness,
-  Building2,
-  CheckCircle2,
   Clock3,
   Filter,
   GitCompare,
@@ -27,7 +25,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { Agency } from '@/types';
-import { useAppState } from '@/state/AppStateProvider';
+import { useAppState } from '@/state/useAppState';
 
 type DirectoryTab = 'all' | 'featured' | 'recommended' | 'standard';
 

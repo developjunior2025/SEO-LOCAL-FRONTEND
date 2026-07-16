@@ -3,29 +3,23 @@ import {
   AlertCircle,
   ArrowRight,
   BellRing,
-  Check,
   CheckCircle2,
   ClipboardList,
-  Eye,
   Gauge,
   HeartHandshake,
   Loader2,
-  Mail,
   MessageSquare,
   MessageSquareQuote,
   MonitorCheck,
-  PhoneCall,
   Search,
   Send,
   ShieldCheck,
-  Sparkles,
   Star,
-  Target,
   TrendingUp,
   UsersRound,
 } from 'lucide-react';
 import { Agency, Service } from '@/types';
-import { useAppState } from '@/state/AppStateProvider';
+import { useAppState } from '@/state/useAppState';
 import { useFindAgencies } from '@/routes/navigation';
 import { FunctionalEvaluationResponse, marketplaceApi, ReputationQuoteResponse } from '@/services/marketplaceApi';
 

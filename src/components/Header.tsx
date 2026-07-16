@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Heart, MessageSquare, ShoppingCart, User, CheckCircle2 } from 'lucide-react';
-import { useAppState } from '@/state/AppStateProvider';
+import { Menu, X, Heart, MessageSquare, ShoppingCart, User, CheckCircle2, LogOut } from 'lucide-react';
+import { useAppState } from '@/state/useAppState';
 import { useNavigateHomeSection } from '@/routes/navigation';
+import ToolsDropdown from './ToolsDropdown';
 
 const CATEGORY_PATHS_PREFIX = '/categorias';
 const AGENCY_PATHS_PREFIX = '/agencias';
@@ -11,7 +12,7 @@ export default function Header() {
   const location = useLocation();
   const navigate = useNavigate();
   const navigateHome = useNavigateHomeSection();
-  const { favorites, cart, setShowAuthModal, setShowCartDrawer, setShowFavsModal, setShowMessagesModal } = useAppState();
+  const { favorites, cart, user, logout, setShowCartDrawer, setShowFavsModal, setShowMessagesModal } = useAppState();
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -26,10 +27,6 @@ export default function Header() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  useEffect(() => {
-    setMobileMenuOpen(false);
-  }, [location.pathname]);
 
   const navClass = (active = false) =>
     `text-sm font-semibold relative py-1 transition-colors after:content-[''] after:absolute after:h-0.5 after:bottom-0 after:left-0 after:bg-[#D32323] after:transition-all after:duration-300 ${
@@ -65,21 +62,22 @@ export default function Header() {
           <nav className="hidden md:flex items-center gap-8" aria-label="Navegación principal">
             <button
               type="button"
-              onClick={() => navigate(CATEGORY_PATHS_PREFIX)}
+              onClick={() => { setMobileMenuOpen(false); navigate(CATEGORY_PATHS_PREFIX); }}
               className={navClass(isCategoriesActive)}
               aria-current={isCategoriesActive ? 'page' : undefined}
             >
               Categorías
             </button>
-            <button type="button" onClick={() => navigate(AGENCY_PATHS_PREFIX)} className={navClass(isAgenciesActive)} aria-current={isAgenciesActive ? 'page' : undefined}>
+            <button type="button" onClick={() => { setMobileMenuOpen(false); navigate(AGENCY_PATHS_PREFIX); }} className={navClass(isAgenciesActive)} aria-current={isAgenciesActive ? 'page' : undefined}>
               Agencias
             </button>
-            <button type="button" onClick={() => navigateHome('services')} className={navClass(isServiceActive)}>
+            <button type="button" onClick={() => { setMobileMenuOpen(false); navigateHome('services'); }} className={navClass(isServiceActive)}>
               Servicios Directos
             </button>
+            <ToolsDropdown />
             <button
               type="button"
-              onClick={() => navigate('/dashboard')}
+              onClick={() => { setMobileMenuOpen(false); navigate('/dashboard'); }}
               className={navClass(isDashboardActive)}
               aria-current={isDashboardActive ? 'page' : undefined}
             >
@@ -87,7 +85,7 @@ export default function Header() {
             </button>
             <button
               type="button"
-              onClick={() => navigateHome('offers')}
+              onClick={() => { setMobileMenuOpen(false); navigateHome('offers'); }}
               className="text-sm font-bold text-[#D32323] hover:opacity-80 relative py-1 flex items-center gap-1"
             >
               <CheckCircle2 className="w-4 h-4" /> Ofertas Flash
@@ -134,13 +132,27 @@ export default function Header() {
               </button>
             </div>
 
-            <button
-              onClick={() => setShowAuthModal(true)}
-              className="bg-[#D32323] hover:bg-[#b01c1c] text-white font-bold px-5 py-2 rounded-lg text-sm transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer flex items-center gap-2"
-            >
-              <User className="w-4 h-4" />
-              <span className="hidden sm:inline">Conectarse</span>
-            </button>
+            {user ? (
+              <div className="flex items-center gap-2">
+                <span className="hidden lg:inline text-xs font-bold text-gray-600">{user.name}</span>
+                <button
+                  onClick={() => logout()}
+                  className="bg-[#333] hover:bg-[#111] text-white font-bold px-4 py-2 rounded-lg text-sm transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer flex items-center gap-2"
+                  aria-label="Cerrar sesión"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span className="hidden sm:inline">Salir</span>
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => navigate('/login')}
+                className="bg-[#D32323] hover:bg-[#b01c1c] text-white font-bold px-5 py-2 rounded-lg text-sm transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer flex items-center gap-2"
+              >
+                <User className="w-4 h-4" />
+                <span className="hidden sm:inline">Conectarse</span>
+              </button>
+            )}
 
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -188,6 +200,11 @@ export default function Header() {
           >
             Servicios Directos
           </button>
+
+          <div className="px-3 py-2">
+            <ToolsDropdown mobile onClose={() => setMobileMenuOpen(false)} />
+          </div>
+
           <button
             type="button"
             onClick={() => {

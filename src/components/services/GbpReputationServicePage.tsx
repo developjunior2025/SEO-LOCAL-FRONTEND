@@ -4,33 +4,21 @@ import {
   ArrowLeft,
   BarChart3,
   BellRing,
-  Building2,
-  CalendarDays,
   CheckCircle2,
   ChevronRight,
   ClipboardCheck,
-  Clock3,
   Eye,
-  FileText,
   Globe2,
-  LineChart,
-  ListChecks,
-  MapPin,
-  MessageCircle,
   MessageSquareQuote,
   MousePointerClick,
   PackageCheck,
   Reply,
-  SearchCheck,
   Send,
   ShieldAlert,
   ShieldCheck,
   SmilePlus,
-  Sparkles,
   Star,
   Target,
-  ThumbsUp,
-  TrendingDown,
   TrendingUp,
   UsersRound,
   Zap,
@@ -167,10 +155,13 @@ const processSteps = [
 const tools = ['GBP', 'Maps', 'Google Search Console', 'BrightLocal', 'Whitespark', 'Looker Studio', 'WhatsApp', 'Email / SMS'];
 
 function formatBillingPeriod(period?: string) {
-  if (!period || period === 'único') return 'pago único';
-  if (period === 'mes') return '/mes';
-  if (period === 'trimestre') return '/trimestre';
-  return period;
+  if (!period) return '/ mes';
+  const clean = period.trim().toLowerCase();
+  if (clean === 'monthly' || clean === 'mensual' || clean === 'month') return '/ mes';
+  if (clean === 'quarterly' || clean === 'trimestral' || clean === 'quarter') return '/ trimestre';
+  if (clean === 'yearly' || clean === 'anual' || clean === 'annual' || clean === 'year') return '/ año';
+  if (clean === 'one-time' || clean === 'única' || clean === 'unique') return 'pago único';
+  return `/ ${period}`;
 }
 
 function ReputationVisualMockup() {
@@ -423,9 +414,8 @@ function ObservationsCard() {
 }
 
 export default function GbpReputationServicePage({ service, relatedServices, onAddToCart, onBackToServices }: GbpReputationServicePageProps) {
-  const delivery = service.deliveryDays ? `${service.deliveryDays} días` : '30 días';
-  const billing = formatBillingPeriod(service.billingPeriod);
   const servicePrice = service.price || 79;
+  const billing = formatBillingPeriod(service.billingPeriod);
 
   return (
     <div className="bg-white text-[#333]">

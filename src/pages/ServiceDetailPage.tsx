@@ -10,10 +10,10 @@
 // CITACIONES_LOCALES_V5_16_3_ROUTE_MARKER
 // AUDITORIA_SEO_LOCAL_V5_16_3_ROUTE_MARKER
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, BarChart3, CalendarDays, CheckCircle2, Clock3, FileText, Layers3, MessageCircle, PackageCheck, ShieldCheck, ShoppingBag, Sparkles, Star, Target, UsersRound } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BarChart3, CalendarDays, CheckCircle2, Clock3, FileText, Layers3, MessageCircle, PackageCheck, ShieldCheck, ShoppingBag, Sparkles, Target, UsersRound } from 'lucide-react';
 import type { Service } from '@/types';
 import { findServiceBySlug, getServiceRoute } from '@/utils/serviceRoutes';
-import { useAppState } from '@/state/AppStateProvider';
+import { useAppState } from '@/state/useAppState';
 import GbpOptimizationServicePage from '@/components/services/GbpOptimizationServicePage';
 import GbpPostsServicePage from '@/components/services/GbpPostsServicePage';
 import GbpReputationServicePage from '@/components/services/GbpReputationServicePage';

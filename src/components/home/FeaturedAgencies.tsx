@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Agency } from '@/types';
-import { Star, ShieldCheck, Phone, Mail, SlidersHorizontal, MapPin, X, Heart } from 'lucide-react';
+import { Star, ShieldCheck, SlidersHorizontal, MapPin, Heart } from 'lucide-react';
 
 interface FeaturedAgenciesProps {
   agencies: Agency[];
@@ -215,7 +215,7 @@ export default function FeaturedAgencies({
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-8">
-            {filteredAgencies.slice(0, 3).map((agency, ind) => {
+            {filteredAgencies.slice(0, 3).map((agency) => {
               const isHovered = hoveredAgencyId === agency.id;
               const isFavorite = favorites.includes(agency.id);
 

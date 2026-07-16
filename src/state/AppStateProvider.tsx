@@ -1,9 +1,15 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { AGENCIES, MARKETPLACE_CATEGORIES, POPULAR_SERVICES } from '@/data';
-import type { Agency, Service, Offer, SearchState, MarketplaceCategory } from '@/types';
+import type { Agency, Service, Offer, SearchState, MarketplaceCategory, User } from '@/types';
 import { marketplaceApi, type CreateLeadPayload } from '@/services/marketplaceApi';
+import { AUTH_STORAGE_KEY, DEMO_USERS, normalizeEmail } from './authHelpers';
 
-interface AppStateValue {
+export interface AppStateValue {
+  // Auth
+  user: User | null;
+  login: (email: string, password: string) => User | null;
+  logout: () => void;
+
   // Catalog (bootstrapped from the API, falls back to local mock data — see marketplaceApi.getBootstrap()).
   agenciesList: Agency[];
   marketplaceCategories: MarketplaceCategory[];
@@ -56,11 +62,14 @@ interface AppStateValue {
   handleHireAgency: (agency: Agency) => void;
 }
 
-const AppStateContext = createContext<AppStateValue | null>(null);
+import { AppStateContext } from './AppStateContext';
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
   // Filters & searches
-  const [searchState, setSearchState] = useState<SearchState>({ keyword: '', location: '' });
+  const [searchState, setSearchState] = useState<SearchState>(() => {
+    const savedCity = typeof window !== 'undefined' ? window.localStorage.getItem('seoLocalPreferredCity') : null;
+    return { keyword: '', location: savedCity || '' };
+  });
 
   // Hover & selection
   const [hoveredAgencyId, setHoveredAgencyId] = useState<string | null>(null);
@@ -75,6 +84,41 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [marketplaceCategories, setMarketplaceCategories] = useState<MarketplaceCategory[]>(MARKETPLACE_CATEGORIES);
   const [servicesList, setServicesList] = useState<Service[]>(POPULAR_SERVICES);
   const [backendSource, setBackendSource] = useState<'postgresql' | 'mock'>('mock');
+
+  // Auth
+  const [user, setUser] = useState<User | null>(() => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const raw = window.localStorage.getItem(AUTH_STORAGE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as User;
+      if (parsed?.id && parsed?.email && parsed?.role) return parsed;
+      return null;
+    } catch {
+      return null;
+    }
+  });
+
+  useEffect(() => {
+    if (user) {
+      window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
+    } else {
+      window.localStorage.removeItem(AUTH_STORAGE_KEY);
+    }
+  }, [user]);
+
+  const login = (email: string, password: string): User | null => {
+    const normalized = normalizeEmail(email);
+    const found = DEMO_USERS.find((u) => normalizeEmail(u.email) === normalized);
+    if (!found) return null;
+    if (password !== 'Demo1234') return null;
+    setUser(found);
+    return found;
+  };
+
+  const logout = () => {
+    setUser(null);
+  };
 
   // Aux Modals Visibility
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -124,13 +168,6 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       });
 
     return () => controller.abort();
-  }, []);
-
-  useEffect(() => {
-    const savedCity = window.localStorage.getItem('seoLocalPreferredCity');
-    if (savedCity) {
-      setSearchState((prev) => prev.location ? prev : { ...prev, location: savedCity });
-    }
   }, []);
 
   const triggerToast = (msg: string) => {
@@ -218,6 +255,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   // Action callback when adding a fully-real review in detail panel
   const handleAddReview = (agencyId: string, rating: number, text: string, name: string) => {
+    void name;
     setAgenciesList((prev) =>
       prev.map((agency) => {
         if (agency.id === agencyId) {
@@ -248,6 +286,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   };
 
   const value: AppStateValue = {
+    user,
+    login,
+    logout,
     agenciesList,
     marketplaceCategories,
     servicesList,
@@ -290,10 +331,4 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   };
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;
-}
-
-export function useAppState() {
-  const ctx = useContext(AppStateContext);
-  if (!ctx) throw new Error('useAppState must be used within an AppStateProvider');
-  return ctx;
 }

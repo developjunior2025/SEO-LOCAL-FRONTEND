@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { SPECIAL_OFFERS } from '@/data';
 import { Offer } from '@/types';
-import { Percent, Clock, Tag, Compass } from 'lucide-react';
+import { Percent, Clock, Tag } from 'lucide-react';
 
 interface OffersProps {
   onClaimOffer: (offer: Offer) => void;
