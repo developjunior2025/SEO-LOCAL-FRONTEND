@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
   BarChart3,
@@ -250,6 +251,7 @@ function ReadinessCalculator() {
 }
 
 export default function GbpOptimizationServicePage({ service, relatedServices, onAddToCart, onBackToServices }: GbpOptimizationServicePageProps) {
+  const navigate = useNavigate();
   const delivery = service.deliveryDays ? `${service.deliveryDays} días` : '7 a 10 días';
   const billing = formatBillingPeriod(service.billingPeriod);
 
@@ -279,7 +281,7 @@ export default function GbpOptimizationServicePage({ service, relatedServices, o
                 <button type="button" onClick={() => onAddToCart(service)} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#D32323] px-6 py-3 text-sm font-black text-white shadow-lg shadow-red-900/15 hover:bg-[#b01c1c] active:scale-95 transition">
                   <ShoppingBag className="w-4 h-4" /> Solicitar servicio
                 </button>
-                <button type="button" onClick={() => { window.location.hash = '#/categorias/google-business-profile'; }} className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-6 py-3 text-sm font-black text-[#333] hover:border-[#D32323]/40 hover:text-[#D32323] active:scale-95 transition">
+                <button type="button" onClick={() => { navigate('/categorias/google-business-profile'); }} className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-6 py-3 text-sm font-black text-[#333] hover:border-[#D32323]/40 hover:text-[#D32323] active:scale-95 transition">
                   Ver categoría GBP <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
@@ -532,7 +534,7 @@ export default function GbpOptimizationServicePage({ service, relatedServices, o
             </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {relatedServices.slice(0, 4).map((item) => (
-                <button key={item.id} type="button" onClick={() => { window.location.hash = getServiceRoute(item); }} className="text-left rounded-2xl border border-gray-200 bg-white p-5 shadow-sm hover:-translate-y-1 hover:border-[#D32323]/30 hover:shadow-lg transition">
+                <button key={item.id} type="button" onClick={() => { navigate(getServiceRoute(item)); }} className="text-left rounded-2xl border border-gray-200 bg-white p-5 shadow-sm hover:-translate-y-1 hover:border-[#D32323]/30 hover:shadow-lg transition">
                   <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">{item.code}</p>
                   <h3 className="mt-2 text-sm font-black leading-tight text-[#333] line-clamp-2">{item.title}</h3>
                   <p className="mt-3 text-xs leading-relaxed text-gray-500 line-clamp-2">{item.description}</p>

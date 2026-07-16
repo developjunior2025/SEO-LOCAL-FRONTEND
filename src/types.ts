@@ -61,6 +61,11 @@ export interface Service {
   deliveryDays?: number;
   relationType?: 'primary' | 'secondary' | 'related' | 'cross_sell' | string;
   isPrimaryCategory?: boolean;
+  scope?: string;
+  requirements?: string[];
+  deliverables?: string[];
+  kpis?: string[];
+  slaSummary?: string;
 }
 
 
@@ -81,6 +86,7 @@ export interface MarketplaceCategory {
   iconName: string;
   keywords: string[];
   queryName: string;
+  slug?: string;
 }
 
 export interface Offer {

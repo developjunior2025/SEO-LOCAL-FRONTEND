@@ -31,6 +31,9 @@ function formatBillingPeriod(period?: string) {
   return period;
 }
 
+const FALLBACK_DELIVERABLES = ['Diagnóstico inicial del estado actual', 'Ejecución del alcance técnico o comercial definido', 'Reporte de avance con evidencias y resultados', 'Recomendaciones para los próximos pasos'];
+
+/** Fallback used only when a service has no seeded ficha técnica (scope/requirements) yet. */
 function getScopeItems(service?: Service) {
   const title = `${service?.title || ''} ${service?.categoryName || ''}`.toLowerCase();
 
@@ -567,7 +570,8 @@ if (isSpeedOptimizationLocalService) {
     );
   }
 
-  const scopeItems = getScopeItems(service);
+  const scopeItems = service.requirements && service.requirements.length > 0 ? service.requirements : getScopeItems(service);
+  const deliverableItems = service.deliverables && service.deliverables.length > 0 ? service.deliverables : FALLBACK_DELIVERABLES;
   const delivery = service.deliveryDays ? `${service.deliveryDays} días` : 'A coordinar';
   const billing = formatBillingPeriod(service.billingPeriod);
 
@@ -619,7 +623,12 @@ if (isSpeedOptimizationLocalService) {
           <div>
             <p className="text-xs font-black uppercase tracking-wider text-[#D32323]">Alcance del servicio</p>
             <h2 className="mt-2 text-3xl font-black">Qué incluye esta ficha</h2>
-            <p className="mt-3 text-sm leading-relaxed text-gray-600 font-medium">Esta página convierte el servicio FUR en una ficha comercial consultiva: explica el alcance, entregables y criterios básicos para que el comprador pueda evaluar antes de contratar.</p>
+            <p className="mt-3 text-sm leading-relaxed text-gray-600 font-medium">{service.scope || 'Esta página convierte el servicio FUR en una ficha comercial consultiva: explica el alcance, entregables y criterios básicos para que el comprador pueda evaluar antes de contratar.'}</p>
+            {service.slaSummary && (
+              <div className="mt-5 inline-flex items-center gap-2 rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-bold text-gray-600">
+                <Clock3 className="w-4 h-4 text-[#D32323]" /> {service.slaSummary}
+              </div>
+            )}
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
             {scopeItems.map((item, index) => (
@@ -660,13 +669,8 @@ if (isSpeedOptimizationLocalService) {
             <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
               <h2 className="text-2xl font-black">Entregables principales</h2>
               <div className="mt-6 grid sm:grid-cols-2 gap-4">
-                {[
-                  ['Diagnóstico inicial', 'Estado actual, oportunidades y prioridades.'],
-                  ['Ejecución del servicio', 'Aplicación del alcance técnico o comercial definido.'],
-                  ['Reporte de avance', 'Resumen de cambios, evidencias y resultados.'],
-                  ['Recomendaciones', 'Siguientes pasos para continuar creciendo.'],
-                ].map(([title, desc]) => (
-                  <div key={title} className="flex gap-3 rounded-2xl bg-gray-50 border border-gray-100 p-4"><CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" /><div><p className="text-sm font-black">{title}</p><p className="mt-1 text-xs text-gray-500 font-medium">{desc}</p></div></div>
+                {deliverableItems.map((item) => (
+                  <div key={item} className="flex gap-3 rounded-2xl bg-gray-50 border border-gray-100 p-4"><CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" /><p className="text-sm font-black">{item}</p></div>
                 ))}
               </div>
             </div>
@@ -674,6 +678,16 @@ if (isSpeedOptimizationLocalService) {
             <div className="rounded-3xl bg-[#111827] text-white p-6 shadow-xl">
               <div className="flex items-center gap-3"><ShieldCheck className="w-8 h-8 text-emerald-400" /><h2 className="text-2xl font-black">Ficha verificada</h2></div>
               <p className="mt-4 text-sm leading-relaxed text-white/70">Este servicio forma parte del catálogo FUR-Servicios y puede relacionarse con una o varias categorías del marketplace sin duplicarse en la base de datos.</p>
+              {service.kpis && service.kpis.length > 0 && (
+                <div className="mt-5 space-y-2">
+                  <p className="text-xs font-black uppercase tracking-wider text-red-200">KPIs de seguimiento</p>
+                  <div className="flex flex-wrap gap-2">
+                    {service.kpis.map((kpi) => (
+                      <span key={kpi} className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold text-white/90">{kpi}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div className="mt-6 grid grid-cols-2 gap-3 text-center">
                 <div className="rounded-2xl bg-white/8 p-4"><PackageCheck className="mx-auto w-5 h-5 text-red-200" /><p className="mt-2 text-xs font-black">Servicio FUR</p></div>
                 <div className="rounded-2xl bg-white/8 p-4"><Layers3 className="mx-auto w-5 h-5 text-red-200" /><p className="mt-2 text-xs font-black">Categoría conectada</p></div>
@@ -694,7 +708,7 @@ if (isSpeedOptimizationLocalService) {
             </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {relatedServices.slice(0, 4).map((item) => (
-                <button key={item.id} type="button" onClick={() => { window.location.hash = getServiceRoute(item); }} className="text-left rounded-2xl border border-gray-200 bg-white p-5 shadow-sm hover:-translate-y-1 hover:border-[#D32323]/30 hover:shadow-lg transition">
+                <button key={item.id} type="button" onClick={() => { navigate(getServiceRoute(item)); }} className="text-left rounded-2xl border border-gray-200 bg-white p-5 shadow-sm hover:-translate-y-1 hover:border-[#D32323]/30 hover:shadow-lg transition">
                   <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">{item.code}</p>
                   <h3 className="mt-2 text-sm font-black leading-tight text-[#333]">{item.title}</h3>
                   <p className="mt-3 text-xs leading-relaxed text-gray-500 line-clamp-2">{item.description}</p>

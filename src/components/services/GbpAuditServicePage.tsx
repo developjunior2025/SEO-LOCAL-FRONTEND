@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { LucideIcon } from 'lucide-react';
 import {
   ArrowLeft,
@@ -393,6 +394,7 @@ function AuditSimulator() {
 }
 
 export default function GbpAuditServicePage({ service, relatedServices, onAddToCart, onBackToServices }: GbpAuditServicePageProps) {
+  const navigate = useNavigate();
   const billing = formatBillingPeriod(service.billingPeriod);
   const delivery = service.deliveryDays ? `${service.deliveryDays} a ${service.deliveryDays + 2} días` : '3 a 5 días';
 
@@ -683,7 +685,7 @@ export default function GbpAuditServicePage({ service, relatedServices, onAddToC
             </div>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {relatedServices.slice(0, 4).map((item) => (
-                <button key={item.id} type="button" onClick={() => { window.location.hash = getServiceRoute(item); }} className="rounded-3xl border border-gray-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-1 hover:border-[#D32323]/40 hover:shadow-xl">
+                <button key={item.id} type="button" onClick={() => { navigate(getServiceRoute(item)); }} className="rounded-3xl border border-gray-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-1 hover:border-[#D32323]/40 hover:shadow-xl">
                   <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">{item.code}</p>
                   <h3 className="mt-2 min-h-[2.5rem] text-sm font-black leading-tight text-[#333]">{item.title}</h3>
                   <p className="mt-3 text-xs font-medium leading-relaxed text-gray-500 line-clamp-2">{item.description}</p>
