@@ -77,7 +77,7 @@ export default function CitationDirectoryTracker({ draft, onChange, selectedDire
                   }`}
                 >
                   <td className={`px-3 py-2 ${selected ? 'border-l-[3px] border-l-[#D32323]' : ''}`}>
-                    <span className="block text-[10px] font-black text-[#333]">{globalIndex + 1}. {dir.name}</span>
+                    <span className="block text-[10px] font-black text-[#333]">{String(globalIndex + 1).padStart(2, '0')} · {dir.name}</span>
                     <a href={dir.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-0.5 text-[8px] text-[#0074E0] font-bold hover:underline">
                       {dir.url} <ExternalLink className="w-3 h-3" />
                     </a>

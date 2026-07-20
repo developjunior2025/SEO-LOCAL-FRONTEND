@@ -28,6 +28,7 @@ export default function CitationsManagerPage() {
   const [copyPanelOpen, setCopyPanelOpen] = useState(false);
   const saveTimer = useRef<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const copyPanelRef = useRef<HTMLDivElement>(null);
 
   const scheduleSave = useCallback((nextDraft: CitationDraft) => {
     if (saveTimer.current) window.clearTimeout(saveTimer.current);
@@ -85,6 +86,21 @@ export default function CitationsManagerPage() {
   const handleOpenPanel = (index: number) => {
     setSelectedDirectoryIndex(index);
     setCopyPanelOpen(true);
+    window.setTimeout(() => {
+      copyPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 0);
+  };
+
+  const handleToggleCopyPanel = () => {
+    setCopyPanelOpen((open) => {
+      const next = !open;
+      if (next) {
+        window.setTimeout(() => {
+          copyPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 0);
+      }
+      return next;
+    });
   };
 
   return (
@@ -130,11 +146,12 @@ export default function CitationsManagerPage() {
       </div>
 
       <CitationCopyPanel
+        ref={copyPanelRef}
         draft={draft}
         selectedDirectoryIndex={selectedDirectoryIndex}
         onSelectDirectory={setSelectedDirectoryIndex}
-        isOpen={copyPanelOpen}
-        onOpenChange={setCopyPanelOpen}
+        expanded={copyPanelOpen}
+        onToggle={handleToggleCopyPanel}
       />
 
       <div className="text-center mt-4">

@@ -159,7 +159,7 @@ export default function CitationForm({ draft, activeStep, onChange, onStepChange
   const plans = ['Free Trial', 'Starter $0.99', 'Basic $3.00', 'Surge $5.00', 'Bundle $249.00'];
 
   const renderAccount = () => (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
       <Field label="Nombre" required><Input value={draft.profile.firstName} onChange={(v) => onChange(updateProfile(draft, { firstName: v }))} required /></Field>
       <Field label="Apellido" required><Input value={draft.profile.lastName} onChange={(v) => onChange(updateProfile(draft, { lastName: v }))} required /></Field>
       <Field label="Correo para registros" required full><Input type="email" value={draft.profile.accountEmail} onChange={(v) => onChange(updateProfile(draft, { accountEmail: v }))} required /></Field>
@@ -172,7 +172,7 @@ export default function CitationForm({ draft, activeStep, onChange, onStepChange
   );
 
   const renderBusiness = () => (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
       <Field label="Nombre comercial" required full><Input value={draft.business.businessName} onChange={(v) => onChange(updateBusiness(draft, { businessName: v }))} required /></Field>
       <Field label="Razón social"><Input value={draft.business.legalName} onChange={(v) => onChange(updateBusiness(draft, { legalName: v }))} /></Field>
       <Field label="Categoría principal" required><Input value={draft.business.category} onChange={(v) => onChange(updateBusiness(draft, { category: v }))} required /></Field>
@@ -192,7 +192,7 @@ export default function CitationForm({ draft, activeStep, onChange, onStepChange
   );
 
   const renderListing = () => (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
       <Field label="Título de la ficha" required full>
         <Input value={draft.listing.listingTitle} onChange={(v) => onChange(updateListing(draft, { listingTitle: v }))} required maxLength={120} />
         <div className="text-[8px] text-gray-500 text-right mt-1">{draft.listing.listingTitle.length}/120</div>
@@ -257,7 +257,7 @@ export default function CitationForm({ draft, activeStep, onChange, onStepChange
   );
 
   const renderSocial = () => (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
       <Field label="Facebook"><Input type="url" placeholder="https://" value={draft.social.facebook} onChange={(v) => onChange(updateSocial(draft, { facebook: v }))} /></Field>
       <Field label="LinkedIn"><Input type="url" placeholder="https://" value={draft.social.linkedin} onChange={(v) => onChange(updateSocial(draft, { linkedin: v }))} /></Field>
       <Field label="X / Twitter"><Input type="url" placeholder="https://" value={draft.social.twitter} onChange={(v) => onChange(updateSocial(draft, { twitter: v }))} /></Field>
