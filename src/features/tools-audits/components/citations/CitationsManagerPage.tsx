@@ -25,7 +25,8 @@ export default function CitationsManagerPage() {
   const [activeStep, setActiveStep] = useState<CitationStepKey>('account');
   const [lastSaved, setLastSaved] = useState<string | null>(null);
   const [selectedDirectoryIndex, setSelectedDirectoryIndex] = useState(0);
-  const [copyPanelOpen, setCopyPanelOpen] = useState(false);
+  const [formOpen, setFormOpen] = useState(true);
+  const [copyOpen, setCopyOpen] = useState(false);
   const saveTimer = useRef<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const copyPanelRef = useRef<HTMLDivElement>(null);
@@ -85,14 +86,14 @@ export default function CitationsManagerPage() {
 
   const handleOpenPanel = (index: number) => {
     setSelectedDirectoryIndex(index);
-    setCopyPanelOpen(true);
+    setCopyOpen(true);
     window.setTimeout(() => {
       copyPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 0);
   };
 
   const handleToggleCopyPanel = () => {
-    setCopyPanelOpen((open) => {
+    setCopyOpen((open) => {
       const next = !open;
       if (next) {
         window.setTimeout(() => {
@@ -136,7 +137,22 @@ export default function CitationsManagerPage() {
       </div>
 
       <div className="space-y-4">
-        <CitationForm draft={draft} activeStep={activeStep} onChange={handleDraftChange} onStepChange={setActiveStep} />
+        <CitationForm
+          draft={draft}
+          activeStep={activeStep}
+          onChange={handleDraftChange}
+          onStepChange={setActiveStep}
+          expanded={formOpen}
+          onToggle={() => setFormOpen((v) => !v)}
+        />
+        <CitationCopyPanel
+          ref={copyPanelRef}
+          draft={draft}
+          selectedDirectoryIndex={selectedDirectoryIndex}
+          onSelectDirectory={setSelectedDirectoryIndex}
+          expanded={copyOpen}
+          onToggle={handleToggleCopyPanel}
+        />
         <CitationDirectoryTracker
           draft={draft}
           onChange={handleDraftChange}
@@ -144,15 +160,6 @@ export default function CitationsManagerPage() {
           onOpenPanel={handleOpenPanel}
         />
       </div>
-
-      <CitationCopyPanel
-        ref={copyPanelRef}
-        draft={draft}
-        selectedDirectoryIndex={selectedDirectoryIndex}
-        onSelectDirectory={setSelectedDirectoryIndex}
-        expanded={copyPanelOpen}
-        onToggle={handleToggleCopyPanel}
-      />
 
       <div className="text-center mt-4">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-white border border-gray-200 px-3 py-1.5 text-[10px] font-bold text-gray-500">

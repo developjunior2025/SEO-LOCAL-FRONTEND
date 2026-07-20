@@ -1,5 +1,5 @@
-import { forwardRef, useEffect, useRef, useState } from 'react';
-import { ExternalLink } from 'lucide-react';
+import { forwardRef, useState } from 'react';
+import { ChevronDown, ExternalLink } from 'lucide-react';
 import type { CitationDraft, CitationDay } from '../../types/citations';
 import { CITATION_DIRECTORIES } from '../../data/citationDirectories';
 import { CITATION_DAYS, CITATION_STATUS_LABELS } from '../../types/citations';
@@ -20,7 +20,6 @@ interface CopyRow {
 
 function useClipboard() {
   const [message, setMessage] = useState<string | null>(null);
-  const timerRef = useRef<number | null>(null);
 
   const copy = async (text: string) => {
     try {
@@ -40,8 +39,7 @@ function useClipboard() {
     } catch {
       setMessage('No se pudo copiar');
     }
-    if (timerRef.current) window.clearTimeout(timerRef.current);
-    timerRef.current = window.setTimeout(() => setMessage(null), 1800);
+    window.setTimeout(() => setMessage(null), 1800);
   };
 
   return { copy, message };
@@ -113,7 +111,6 @@ const CitationCopyPanel = forwardRef<HTMLDivElement, CitationCopyPanelProps>(
   ) {
     const [showPassword, setShowPassword] = useState(false);
     const { copy, message } = useClipboard();
-    const messageTimerRef = useRef<number | null>(null);
 
     const safeIndex = Math.min(
       Math.max(0, selectedDirectoryIndex),
@@ -227,213 +224,188 @@ const CitationCopyPanel = forwardRef<HTMLDivElement, CitationCopyPanelProps>(
       );
     };
 
-    useEffect(() => {
-      if (!message) return;
-      if (messageTimerRef.current) window.clearTimeout(messageTimerRef.current);
-      messageTimerRef.current = window.setTimeout(() => {}, 0);
-    }, [message]);
-
     return (
       <div ref={ref} className="space-y-0">
-        <section className="grid grid-cols-[auto_minmax(0,1fr)_auto] gap-3 items-center p-3 mb-4 border border-[#D9E5EE] rounded-[15px] bg-gradient-to-r from-blue-50/50 to-white shadow-sm">
-          <div className="w-10 h-10 rounded-xl bg-[#EDF6FF] text-[#0074E0] grid place-items-center text-lg font-black shrink-0">
-            ⧉
-          </div>
-          <div>
-            <b className="block text-[11px] text-[#333]">Información preparada para copiar</b>
-            <small className="block text-[8px] text-gray-500 mt-0.5">
-              Despliega un panel dentro de la página, organizado en cuatro columnas y sin ocultar la lista de los 20 directorios.
-            </small>
-          </div>
+        <section className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
           <button
             type="button"
             onClick={onToggle}
-            className="bg-[#0074E0] border border-[#0074E0] text-white rounded-lg px-3 py-2 text-[9px] font-black hover:bg-blue-700 min-w-[165px]"
+            aria-expanded={expanded}
+            className="w-full flex items-center justify-between gap-3 p-4 text-left hover:bg-gray-50/50 transition-colors"
           >
-            {expanded ? 'Ocultar datos para copiar' : 'Mostrar datos para copiar'}
-          </button>
-        </section>
-
-        {expanded && (
-          <section
-            id="citation-inline-copy-panel"
-            className="bg-white border border-gray-200 rounded-[18px] shadow-md overflow-hidden scroll-mt-24"
-          >
-            <div className="flex items-start justify-between gap-3 p-4 border-b border-gray-200">
-              <div>
-                <h3 className="text-base font-black text-[#333]">Datos listos para copiar</h3>
-                <p className="text-[9px] text-gray-500 mt-1 leading-relaxed">
-                  Todos los campos quedan disponibles en una sola vista compacta, con copiado individual, por grupo y completo.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={onToggle}
-                className="border border-gray-200 bg-[#F8FAFB] rounded-lg px-3 py-2 text-[9px] font-black text-[#333] hover:border-gray-300"
-              >
-                Ocultar panel
-              </button>
-            </div>
-
-            <div className="grid grid-cols-[minmax(260px,1.35fr)_minmax(125px,.48fr)_minmax(125px,.48fr)_auto_auto_auto] gap-2 items-end p-3 border-b border-gray-200 bg-[#F7F9FB] max-lg:grid-cols-3 max-md:grid-cols-2">
-              <div className="flex flex-col gap-1 max-lg:col-span-full">
-                <label
-                  htmlFor="copy-site-selector"
-                  className="text-[7px] font-black uppercase tracking-wider text-gray-500"
-                >
-                  Directorio seleccionado
-                </label>
-                <select
-                  id="copy-site-selector"
-                  value={safeIndex}
-                  onChange={(e) => onSelectDirectory(Number(e.target.value))}
-                  className="w-full h-[34px] border border-gray-200 rounded-lg bg-white px-2.5 text-[9px] font-semibold"
-                >
-                  {CITATION_DIRECTORIES.map((site, i) => (
-                    <option key={site.id} value={i}>
-                      {String(i + 1).padStart(2, '0')} · {site.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-[7px] font-black uppercase tracking-wider text-gray-500">
-                  Plan
-                </span>
-                <div className="h-[34px] border border-gray-200 rounded-lg bg-white flex items-center px-2.5 text-[8px] font-black text-gray-600 truncate">
-                  {selectedSite.plan}
-                </div>
-              </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-[7px] font-black uppercase tracking-wider text-gray-500">
-                  Estado
-                </span>
-                <div className="h-[34px] border border-gray-200 rounded-lg bg-white flex items-center px-2.5 text-[8px] font-black text-gray-600 truncate">
-                  {CITATION_STATUS_LABELS[currentStatus]}
-                </div>
-              </div>
-              <a
-                href={selectedSite.url}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center justify-center gap-1 h-[34px] border border-gray-200 bg-white rounded-lg px-3 text-[8px] font-black text-[#333] hover:border-gray-300 whitespace-nowrap"
-              >
-                <ExternalLink className="w-3 h-3" /> Abrir sitio
-              </a>
-              <button
-                type="button"
-                onClick={() => setShowPassword((v) => !v)}
-                className="h-[34px] border border-gray-200 bg-white rounded-lg px-3 text-[8px] font-black text-[#333] hover:border-gray-300 whitespace-nowrap"
-              >
-                {showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-              </button>
-              <button
-                type="button"
-                onClick={copyAll}
-                className="h-[34px] bg-[#D32323] text-white rounded-lg px-3 text-[8px] font-black hover:bg-[#b01c1c] whitespace-nowrap"
-              >
-                Copiar todo
-              </button>
-            </div>
-
-            {selectedSite.note && (
-              <div className="flex items-center gap-2 px-3 py-2 border-b border-amber-200 bg-[#FFF8E8] text-amber-800 text-[8px] font-bold">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-                {selectedSite.note}
-              </div>
-            )}
-
-            {message && (
-              <p className="py-1 text-[9px] text-center font-black text-emerald-600 bg-white border-b border-gray-200">
-                {message}
+            <div>
+              <h2 className="text-base font-black text-[#333]">Información preparada para copiar</h2>
+              <p className="text-[10px] text-gray-500 mt-1">
+                Despliega un panel dentro de la página, organizado en cuatro columnas y sin ocultar la lista de los 20 directorios.
               </p>
-            )}
+            </div>
+            <span className={`text-gray-400 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}>
+              <ChevronDown className="w-5 h-5" />
+            </span>
+          </button>
 
-            <div className="grid grid-cols-4 gap-2 p-2 bg-[#F2F5F7] max-xl:grid-cols-2 max-md:grid-cols-1">
-              <div className="flex flex-col gap-2">
-                <GroupCard
-                  title="Cuenta"
-                  rows={accountRows}
-                  showPassword={showPassword}
-                  onCopyGroup={copyGroup}
-                  onCopyValue={copy}
-                />
-                <GroupCard
-                  title="Horarios"
-                  rows={hoursRows}
-                  showPassword={showPassword}
-                  onCopyGroup={copyGroup}
-                  onCopyValue={copy}
-                />
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <GroupCard
-                  title="Negocio y NAP"
-                  rows={businessRows}
-                  showPassword={showPassword}
-                  onCopyGroup={copyGroup}
-                  onCopyValue={copy}
-                />
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <GroupCard
-                  title="Ficha pública"
-                  rows={listingRows}
-                  showPassword={showPassword}
-                  onCopyGroup={copyGroup}
-                  onCopyValue={copy}
-                />
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <GroupCard
-                  title="Redes y archivos"
-                  rows={socialRows}
-                  showPassword={showPassword}
-                  onCopyGroup={copyGroup}
-                  onCopyValue={copy}
-                />
-                <div className="border border-gray-200 rounded-xl bg-white overflow-hidden shadow-sm flex-1">
-                  <div className="h-9 flex items-center px-2.5 bg-gray-50 border-b border-gray-200">
-                    <b className="text-[8px] uppercase tracking-wider text-gray-600">Acciones rápidas</b>
+          <div className={`grid transition-all duration-200 ease-out ${expanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
+            <div className="overflow-hidden">
+              <div className="grid grid-cols-[minmax(260px,1.35fr)_minmax(125px,.48fr)_minmax(125px,.48fr)_auto_auto_auto] gap-2 items-end p-3 border-t border-b border-gray-200 bg-[#F7F9FB] max-lg:grid-cols-3 max-md:grid-cols-2">
+                <div className="flex flex-col gap-1 max-lg:col-span-full">
+                  <label
+                    htmlFor="copy-site-selector"
+                    className="text-[7px] font-black uppercase tracking-wider text-gray-500"
+                  >
+                    Directorio seleccionado
+                  </label>
+                  <select
+                    id="copy-site-selector"
+                    value={safeIndex}
+                    onChange={(e) => onSelectDirectory(Number(e.target.value))}
+                    className="w-full h-[34px] border border-gray-200 rounded-lg bg-white px-2.5 text-[9px] font-semibold"
+                  >
+                    {CITATION_DIRECTORIES.map((site, i) => (
+                      <option key={site.id} value={i}>
+                        {String(i + 1).padStart(2, '0')} · {site.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-[7px] font-black uppercase tracking-wider text-gray-500">
+                    Plan
+                  </span>
+                  <div className="h-[34px] border border-gray-200 rounded-lg bg-white flex items-center px-2.5 text-[8px] font-black text-gray-600 truncate">
+                    {selectedSite.plan}
                   </div>
-                  <div className="p-2 grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={copyNap}
-                      className="bg-[#0074E0] text-white rounded-lg px-2 py-2 text-[8px] font-black hover:bg-blue-700"
-                    >
-                      Copiar NAP
-                    </button>
-                    <button
-                      type="button"
-                      onClick={copyCredentials}
-                      className="border border-gray-200 bg-white rounded-lg px-2 py-2 text-[8px] font-black text-[#333] hover:border-gray-300"
-                    >
-                      Credenciales
-                    </button>
-                    <button
-                      type="button"
-                      onClick={copyHours}
-                      className="border border-gray-200 bg-white rounded-lg px-2 py-2 text-[8px] font-black text-[#333] hover:border-gray-300"
-                    >
-                      Horarios
-                    </button>
-                    <button
-                      type="button"
-                      onClick={copyAll}
-                      className="bg-[#D32323] text-white rounded-lg px-2 py-2 text-[8px] font-black hover:bg-[#b01c1c]"
-                    >
-                      Copiar todo
-                    </button>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-[7px] font-black uppercase tracking-wider text-gray-500">
+                    Estado
+                  </span>
+                  <div className="h-[34px] border border-gray-200 rounded-lg bg-white flex items-center px-2.5 text-[8px] font-black text-gray-600 truncate">
+                    {CITATION_STATUS_LABELS[currentStatus]}
+                  </div>
+                </div>
+                <a
+                  href={selectedSite.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center gap-1 h-[34px] border border-gray-200 bg-white rounded-lg px-3 text-[8px] font-black text-[#333] hover:border-gray-300 whitespace-nowrap"
+                >
+                  <ExternalLink className="w-3 h-3" /> Abrir sitio
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="h-[34px] border border-gray-200 bg-white rounded-lg px-3 text-[8px] font-black text-[#333] hover:border-gray-300 whitespace-nowrap"
+                >
+                  {showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                </button>
+                <button
+                  type="button"
+                  onClick={copyAll}
+                  className="h-[34px] bg-[#D32323] text-white rounded-lg px-3 text-[8px] font-black hover:bg-[#b01c1c] whitespace-nowrap"
+                >
+                  Copiar todo
+                </button>
+              </div>
+
+              {selectedSite.note && (
+                <div className="flex items-center gap-2 px-3 py-2 border-b border-amber-200 bg-[#FFF8E8] text-amber-800 text-[8px] font-bold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                  {selectedSite.note}
+                </div>
+              )}
+
+              {message && (
+                <p className="py-1 text-[9px] text-center font-black text-emerald-600 bg-white border-b border-gray-200">
+                  {message}
+                </p>
+              )}
+
+              <div className="grid grid-cols-4 gap-2 p-2 bg-[#F2F5F7] max-xl:grid-cols-2 max-md:grid-cols-1">
+                <div className="flex flex-col gap-2">
+                  <GroupCard
+                    title="Cuenta"
+                    rows={accountRows}
+                    showPassword={showPassword}
+                    onCopyGroup={copyGroup}
+                    onCopyValue={copy}
+                  />
+                  <GroupCard
+                    title="Horarios"
+                    rows={hoursRows}
+                    showPassword={showPassword}
+                    onCopyGroup={copyGroup}
+                    onCopyValue={copy}
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <GroupCard
+                    title="Negocio y NAP"
+                    rows={businessRows}
+                    showPassword={showPassword}
+                    onCopyGroup={copyGroup}
+                    onCopyValue={copy}
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <GroupCard
+                    title="Ficha pública"
+                    rows={listingRows}
+                    showPassword={showPassword}
+                    onCopyGroup={copyGroup}
+                    onCopyValue={copy}
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <GroupCard
+                    title="Redes y archivos"
+                    rows={socialRows}
+                    showPassword={showPassword}
+                    onCopyGroup={copyGroup}
+                    onCopyValue={copy}
+                  />
+                  <div className="border border-gray-200 rounded-xl bg-white overflow-hidden shadow-sm flex-1">
+                    <div className="h-9 flex items-center px-2.5 bg-gray-50 border-b border-gray-200">
+                      <b className="text-[8px] uppercase tracking-wider text-gray-600">Acciones rápidas</b>
+                    </div>
+                    <div className="p-2 grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={copyNap}
+                        className="bg-[#0074E0] text-white rounded-lg px-2 py-2 text-[8px] font-black hover:bg-blue-700"
+                      >
+                        Copiar NAP
+                      </button>
+                      <button
+                        type="button"
+                        onClick={copyCredentials}
+                        className="border border-gray-200 bg-white rounded-lg px-2 py-2 text-[8px] font-black text-[#333] hover:border-gray-300"
+                      >
+                        Credenciales
+                      </button>
+                      <button
+                        type="button"
+                        onClick={copyHours}
+                        className="border border-gray-200 bg-white rounded-lg px-2 py-2 text-[8px] font-black text-[#333] hover:border-gray-300"
+                      >
+                        Horarios
+                      </button>
+                      <button
+                        type="button"
+                        onClick={copyAll}
+                        className="bg-[#D32323] text-white rounded-lg px-2 py-2 text-[8px] font-black hover:bg-[#b01c1c]"
+                      >
+                        Copiar todo
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </section>
-        )}
+          </div>
+        </section>
       </div>
     );
   }

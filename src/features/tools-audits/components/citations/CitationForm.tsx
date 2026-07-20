@@ -1,3 +1,4 @@
+import { ChevronDown } from 'lucide-react';
 import type { CitationDraft, CitationDay, CitationStepKey } from '../../types/citations';
 import { CITATION_FORM_STEPS, CITATION_DAYS } from '../../types/citations';
 
@@ -6,6 +7,8 @@ interface CitationFormProps {
   activeStep: CitationStepKey;
   onChange: (draft: CitationDraft) => void;
   onStepChange: (step: CitationStepKey) => void;
+  expanded: boolean;
+  onToggle: () => void;
 }
 
 function updateProfile(draft: CitationDraft, patch: Partial<CitationDraft['profile']>): CitationDraft {
@@ -155,7 +158,7 @@ function Check({
   );
 }
 
-export default function CitationForm({ draft, activeStep, onChange, onStepChange }: CitationFormProps) {
+export default function CitationForm({ draft, activeStep, onChange, onStepChange, expanded, onToggle }: CitationFormProps) {
   const plans = ['Free Trial', 'Starter $0.99', 'Basic $3.00', 'Surge $5.00', 'Bundle $249.00'];
 
   const renderAccount = () => (
@@ -308,31 +311,43 @@ export default function CitationForm({ draft, activeStep, onChange, onStepChange
 
   return (
     <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-      <div className="flex items-start justify-between gap-4 p-4 border-b border-gray-200">
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={expanded}
+        className="w-full flex items-center justify-between gap-3 p-4 text-left hover:bg-gray-50/50 transition-colors"
+      >
         <div>
           <h2 className="text-base font-black text-[#333]">Registro general de citaciones</h2>
           <p className="text-[10px] text-gray-500 mt-1">Los datos se guardan en este navegador. No se realizan solicitudes de red ni automatizaciones.</p>
         </div>
-      </div>
+        <span className={`text-gray-400 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}>
+          <ChevronDown className="w-5 h-5" />
+        </span>
+      </button>
 
-      <div className="flex gap-1.5 p-3 border-b border-gray-200 overflow-auto">
-        {CITATION_FORM_STEPS.map((step) => (
-          <button
-            key={step.key}
-            type="button"
-            onClick={() => onStepChange(step.key)}
-            className={`whitespace-nowrap border rounded-full px-3 py-2 text-[9px] font-black transition-colors ${
-              activeStep === step.key
-                ? 'bg-[#D32323] border-[#D32323] text-white'
-                : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
-            }`}
-          >
-            {step.label}
-          </button>
-        ))}
-      </div>
+      <div className={`grid transition-all duration-200 ease-out ${expanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
+        <div className="overflow-hidden">
+          <div className="flex gap-1.5 p-3 border-t border-b border-gray-200 overflow-auto">
+            {CITATION_FORM_STEPS.map((step) => (
+              <button
+                key={step.key}
+                type="button"
+                onClick={() => onStepChange(step.key)}
+                className={`whitespace-nowrap border rounded-full px-3 py-2 text-[9px] font-black transition-colors ${
+                  activeStep === step.key
+                    ? 'bg-[#D32323] border-[#D32323] text-white'
+                    : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
+                }`}
+              >
+                {step.label}
+              </button>
+            ))}
+          </div>
 
-      <div className="p-4">{panels[activeStep]}</div>
+          <div className="p-4">{panels[activeStep]}</div>
+        </div>
+      </div>
     </div>
   );
 }
