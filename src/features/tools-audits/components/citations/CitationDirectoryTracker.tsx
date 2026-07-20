@@ -7,10 +7,11 @@ import { CITATION_STATUS_LABELS } from '../../types/citations';
 interface CitationDirectoryTrackerProps {
   draft: CitationDraft;
   onChange: (draft: CitationDraft) => void;
-  onSelectDirectory?: (index: number) => void;
+  selectedDirectoryIndex: number;
+  onOpenPanel: (index: number) => void;
 }
 
-export default function CitationDirectoryTracker({ draft, onChange, onSelectDirectory }: CitationDirectoryTrackerProps) {
+export default function CitationDirectoryTracker({ draft, onChange, selectedDirectoryIndex, onOpenPanel }: CitationDirectoryTrackerProps) {
   const [search, setSearch] = useState('');
 
   const filtered = CITATION_DIRECTORIES.filter((dir) => dir.name.toLowerCase().includes(search.toLowerCase()));
@@ -64,12 +65,19 @@ export default function CitationDirectoryTracker({ draft, onChange, onSelectDire
             </tr>
           </thead>
           <tbody>
-            {filtered.map((dir, index) => {
+            {filtered.map((dir) => {
+              const globalIndex = CITATION_DIRECTORIES.findIndex((d) => d.id === dir.id);
               const status = draft.statuses[dir.id] || 'pending';
+              const selected = globalIndex === selectedDirectoryIndex;
               return (
-                <tr key={dir.id} className="border-b border-gray-100 last:border-0">
-                  <td className="px-3 py-2">
-                    <span className="block text-[10px] font-black text-[#333]">{index + 1}. {dir.name}</span>
+                <tr
+                  key={dir.id}
+                  className={`border-b border-gray-100 last:border-0 transition-colors hover:bg-gray-50/60 ${
+                    selected ? 'bg-red-50' : ''
+                  }`}
+                >
+                  <td className={`px-3 py-2 ${selected ? 'border-l-[3px] border-l-[#D32323]' : ''}`}>
+                    <span className="block text-[10px] font-black text-[#333]">{globalIndex + 1}. {dir.name}</span>
                     <a href={dir.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-0.5 text-[8px] text-[#0074E0] font-bold hover:underline">
                       {dir.url} <ExternalLink className="w-3 h-3" />
                     </a>
@@ -94,10 +102,14 @@ export default function CitationDirectoryTracker({ draft, onChange, onSelectDire
                   <td className="px-3 py-2">
                     <button
                       type="button"
-                      onClick={() => onSelectDirectory?.(CITATION_DIRECTORIES.findIndex((d) => d.id === dir.id))}
-                      className="border border-gray-200 bg-white rounded-lg px-2 py-1.5 text-[9px] font-black text-[#333] hover:border-gray-300"
+                      onClick={() => onOpenPanel(globalIndex)}
+                      className={`rounded-lg px-2 py-1.5 text-[9px] font-black border transition-colors ${
+                        selected
+                          ? 'bg-[#D32323] border-[#D32323] text-white hover:bg-[#b01c1c]'
+                          : 'border-gray-200 bg-white text-[#333] hover:border-gray-300'
+                      }`}
                     >
-                      Usar panel
+                      {selected ? 'En el panel' : 'Usar panel'}
                     </button>
                   </td>
                 </tr>

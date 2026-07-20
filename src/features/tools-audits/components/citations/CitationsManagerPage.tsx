@@ -24,6 +24,8 @@ export default function CitationsManagerPage() {
   const [draft, setDraft] = useState<CitationDraft>(() => loadCitationDraft());
   const [activeStep, setActiveStep] = useState<CitationStepKey>('account');
   const [lastSaved, setLastSaved] = useState<string | null>(null);
+  const [selectedDirectoryIndex, setSelectedDirectoryIndex] = useState(0);
+  const [copyPanelOpen, setCopyPanelOpen] = useState(false);
   const saveTimer = useRef<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -80,6 +82,11 @@ export default function CitationsManagerPage() {
     triggerToast('Datos eliminados');
   };
 
+  const handleOpenPanel = (index: number) => {
+    setSelectedDirectoryIndex(index);
+    setCopyPanelOpen(true);
+  };
+
   return (
     <AuditShell
       title="Gestor manual de citaciones"
@@ -112,18 +119,23 @@ export default function CitationsManagerPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-[1fr_440px] gap-4 items-start">
-        <div className="space-y-4">
-          <CitationForm draft={draft} activeStep={activeStep} onChange={handleDraftChange} onStepChange={setActiveStep} />
-          <CitationDirectoryTracker
-            draft={draft}
-            onChange={handleDraftChange}
-          />
-        </div>
-        <div>
-          <CitationCopyPanel draft={draft} />
-        </div>
+      <div className="space-y-4">
+        <CitationForm draft={draft} activeStep={activeStep} onChange={handleDraftChange} onStepChange={setActiveStep} />
+        <CitationDirectoryTracker
+          draft={draft}
+          onChange={handleDraftChange}
+          selectedDirectoryIndex={selectedDirectoryIndex}
+          onOpenPanel={handleOpenPanel}
+        />
       </div>
+
+      <CitationCopyPanel
+        draft={draft}
+        selectedDirectoryIndex={selectedDirectoryIndex}
+        onSelectDirectory={setSelectedDirectoryIndex}
+        isOpen={copyPanelOpen}
+        onOpenChange={setCopyPanelOpen}
+      />
 
       <div className="text-center mt-4">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-white border border-gray-200 px-3 py-1.5 text-[10px] font-bold text-gray-500">
