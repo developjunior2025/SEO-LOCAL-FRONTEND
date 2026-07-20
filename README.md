@@ -66,6 +66,7 @@ Una vez dentro del Command Center, las ocho pestañas permiten navegar por las d
 | SEO Técnico y Autoridad | `/herramientas/auditorias?tab=site` |
 | SEM y Conversiones | `/herramientas/auditorias?tab=ads` |
 | Entregables y Aprobaciones | `/herramientas/auditorias?tab=files` |
+| Citaciones (Etapa 1 manual) | `/herramientas/citaciones` |
 
 ### Credenciales de demostración
 
@@ -98,3 +99,4 @@ Una vez dentro del Command Center, las ocho pestañas permiten navegar por las d
 
 - El backend PostgreSQL autónomo se consume cuando está disponible; de lo contrario se mantiene fallback mock.
 - La fase actual del Command Center usa datos demostrativos; la integración real con APIs externas queda fuera del alcance actual.
+- **Citaciones:** Etapa 1 implementada como gestor manual de copiado y seguimiento en 20 directorios. La Etapa 2 (automatización de formularios, bots, scraping o navegación remota) no está implementada.

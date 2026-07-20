@@ -22,6 +22,7 @@ import {
   DashboardPage,
   LoginPage,
   ClientAuditCommandCenterPage,
+  CitationsManagerPage,
 } from './lazyPages';
 import { createBrowserRouter } from 'react-router-dom';
 import ProtectedClientRoute from '@/components/ProtectedClientRoute';
@@ -62,6 +63,15 @@ export const router = createBrowserRouter([
           </ProtectedClientRoute>
         ),
         handle: { title: `Command Center 360${TITLE_SUFFIX}` },
+      },
+      {
+        path: 'herramientas/citaciones',
+        element: (
+          <ProtectedClientRoute>
+            <CitationsManagerPage />
+          </ProtectedClientRoute>
+        ),
+        handle: { title: `Gestor manual de citaciones${TITLE_SUFFIX}` },
       },
     ],
   },

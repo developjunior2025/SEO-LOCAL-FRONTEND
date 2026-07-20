@@ -22,3 +22,4 @@ export const ConsultoriaEstrategiaPage = lazy(() => import('@/pages/ConsultoriaE
 export const DashboardPage = lazy(() => import('@/pages/DashboardPage'));
 export const LoginPage = lazy(() => import('@/pages/LoginPage'));
 export const ClientAuditCommandCenterPage = lazy(() => import('@/pages/ClientAuditCommandCenterPage'));
+export const CitationsManagerPage = lazy(() => import('@/pages/CitationsManagerPage'));
