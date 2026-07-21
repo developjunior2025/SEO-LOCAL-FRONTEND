@@ -37,19 +37,19 @@ export default function ClientAuditCommandCenterPage() {
       description="Historia, salud, evidencia, rankings, GBP, reputación, SEO técnico y SEM en una experiencia visual de alto nivel."
       activeTab={activeTab}
     >
-      <section className="cc360-hero mb-3">
-        <div className="grid lg:grid-cols-[1.2fr_0.8fr] gap-4 relative z-[2]">
-          <div className="cc360-command">
-            <AuditStoryPanel stories={data.stories} />
-            <AuditOrbitCockpit summary={data.summary} dimensions={data.dimensions} onOpenDetail={setDrawerKey} />
-          </div>
-          <AuditExecutiveSummary summary={data.summary} compareRows={data.compareRows} sources={data.sources} />
-        </div>
-      </section>
-
       <section className="pb-8">
         {activeTab === 'summary' && (
           <div className="space-y-3">
+            <section className="cc360-hero mb-3">
+              <div className="grid lg:grid-cols-[1.2fr_0.8fr] gap-4 relative z-[2]">
+                <div className="cc360-command">
+                  <AuditStoryPanel stories={data.stories} />
+                  <AuditOrbitCockpit summary={data.summary} dimensions={data.dimensions} onOpenDetail={setDrawerKey} />
+                </div>
+                <AuditExecutiveSummary summary={data.summary} compareRows={data.compareRows} sources={data.sources} />
+              </div>
+            </section>
+
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
               <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm">
                 <small className="block text-[8px] text-gray-500 font-black uppercase">Trabajo verificado</small>
