@@ -18,6 +18,24 @@ import { useAppState } from '@/state/useAppState';
 
 const SAVE_DELAY = 400;
 
+function isMasterRecordComplete(draft: CitationDraft): boolean {
+  const required = [
+    draft.profile.firstName,
+    draft.profile.lastName,
+    draft.profile.accountEmail,
+    draft.profile.username,
+    draft.profile.password,
+    draft.business.businessName,
+    draft.business.address1,
+    draft.business.phone,
+    draft.business.publicEmail,
+    draft.business.website,
+    draft.listing.listingTitle,
+    draft.listing.description,
+  ];
+  return required.every(Boolean);
+}
+
 export default function CitationsManagerPage() {
   const navigate = useNavigate();
   const { triggerToast } = useAppState();
@@ -25,7 +43,7 @@ export default function CitationsManagerPage() {
   const [activeStep, setActiveStep] = useState<CitationStepKey>('account');
   const [lastSaved, setLastSaved] = useState<string | null>(null);
   const [selectedDirectoryIndex, setSelectedDirectoryIndex] = useState(0);
-  const [formOpen, setFormOpen] = useState(true);
+  const [formOpen, setFormOpen] = useState(() => !isMasterRecordComplete(draft));
   const [copyOpen, setCopyOpen] = useState(false);
   const saveTimer = useRef<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -69,6 +87,8 @@ export default function CitationsManagerPage() {
       if (imported) {
         setDraft(imported);
         saveCitationDraft(imported);
+        setFormOpen(!isMasterRecordComplete(imported));
+        setCopyOpen(false);
         triggerToast('Datos importados');
       } else {
         triggerToast('JSON no válido');
@@ -80,7 +100,10 @@ export default function CitationsManagerPage() {
   const handleClear = () => {
     if (!window.confirm('¿Limpiar todos los datos del gestor manual?')) return;
     clearCitationDraft();
-    setDraft(createEmptyCitationDraft());
+    const empty = createEmptyCitationDraft();
+    setDraft(empty);
+    setFormOpen(true);
+    setCopyOpen(false);
     triggerToast('Datos eliminados');
   };
 
