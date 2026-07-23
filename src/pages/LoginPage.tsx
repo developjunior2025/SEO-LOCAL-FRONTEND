@@ -7,7 +7,7 @@ import { redirectAfterLogin } from '@/components/toolsDropdownConfig';
 export default function LoginPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, login } = useAppState();
+  const { user, login, loginWithBackend } = useAppState();
   const returnTo = useMemo(() => searchParams.get('returnTo'), [searchParams]);
 
   const [email, setEmail] = useState('');
@@ -21,11 +21,16 @@ export default function LoginPage() {
     }
   }, [user, returnTo, navigate]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
     try {
+      const backendResult = await loginWithBackend(email, password);
+      if (backendResult) {
+        // Redirección se maneja en el effect cuando user cambia.
+        return;
+      }
       const result = login(email, password);
       if (!result) {
         setError('Credenciales incorrectas. Usa las credenciales de demostración.');
@@ -112,7 +117,8 @@ export default function LoginPage() {
           <ul className="space-y-1">
             <li><strong>Cliente:</strong> cliente@clinicasonrisa.com / Demo1234</li>
             <li><strong>Vendedor:</strong> vendedor@seolocal.com / Demo1234</li>
-            <li><strong>Admin:</strong> admin@seolocal.com / Demo1234</li>
+            <li><strong>Admin local:</strong> admin@seolocal.com / Demo1234</li>
+            <li><strong>Admin backend:</strong> admin@seolocalmarketplace.com / AdminSEOlocal2026!</li>
           </ul>
         </div>
       </div>

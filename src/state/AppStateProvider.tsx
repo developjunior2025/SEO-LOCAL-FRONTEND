@@ -2,12 +2,14 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { AGENCIES, MARKETPLACE_CATEGORIES, POPULAR_SERVICES } from '@/data';
 import type { Agency, Service, Offer, SearchState, MarketplaceCategory, User } from '@/types';
 import { marketplaceApi, type CreateLeadPayload } from '@/services/marketplaceApi';
+import { adminApi } from '@/services/adminApi';
 import { AUTH_STORAGE_KEY, DEMO_USERS, normalizeEmail } from './authHelpers';
 
 export interface AppStateValue {
   // Auth
   user: User | null;
   login: (email: string, password: string) => User | null;
+  loginWithBackend: (email: string, password: string) => Promise<User | null>;
   logout: () => void;
 
   // Catalog (bootstrapped from the API, falls back to local mock data — see marketplaceApi.getBootstrap()).
@@ -114,6 +116,24 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     if (password !== 'Demo1234') return null;
     setUser(found);
     return found;
+  };
+
+  const loginWithBackend = async (email: string, password: string): Promise<User | null> => {
+    try {
+      const session = await adminApi.login(email, password);
+      const backendUser: User = {
+        id: String(session.user.id),
+        email: session.user.login || email,
+        name: session.user.name || session.user.login || email,
+        role: 'admin',
+        avatar: undefined,
+      };
+      setUser(backendUser);
+      window.dispatchEvent(new CustomEvent('seo-dashboard-login', { detail: session }));
+      return backendUser;
+    } catch {
+      return null;
+    }
   };
 
   const logout = () => {
@@ -288,6 +308,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const value: AppStateValue = {
     user,
     login,
+    loginWithBackend,
     logout,
     agenciesList,
     marketplaceCategories,
