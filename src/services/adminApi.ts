@@ -1,6 +1,6 @@
-import { apiFetch, clearApiSession } from '@/lib/apiConfig';
+import { apiFetch, clearApiSession, DASHBOARD_TOKEN_KEY } from '@/lib/apiConfig';
 
-const TOKEN_KEY = 'seo_local_dashboard_token';
+const TOKEN_KEY = DASHBOARD_TOKEN_KEY;
 
 export type DashboardUser = {
   id: number;
@@ -62,7 +62,15 @@ export const adminApi = {
     return payload;
   },
   me: () => request<DashboardSession>('/admin/auth/me'),
-  logout: () => clearAdminToken(),
+  logout: async () => {
+    try {
+      await request('/admin/auth/logout', { method: 'POST' });
+    } catch {
+      // Even if remote logout fails, clean local session.
+    } finally {
+      clearAdminToken();
+    }
+  },
 
   summary: () => request<Record<string, unknown>>('/admin/dashboard/summary'),
   reports: () => request<Record<string, unknown>>('/admin/reports/operational'),

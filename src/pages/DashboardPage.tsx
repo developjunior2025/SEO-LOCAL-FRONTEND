@@ -381,7 +381,7 @@ function LoginCard() {
         <div className="px-10 py-9 space-y-5">
           <label className="block">
             <span className="text-xs font-black uppercase text-gray-500">Usuario</span>
-            <input value={login} onChange={(e) => setLogin(e.target.value)} placeholder="admin@seolocalmarketplace.com" className="mt-2 w-full rounded-2xl border border-gray-200 px-5 py-4 outline-none focus:border-[#D32323]" />
+            <input value={login} onChange={(e) => setLogin(e.target.value)} placeholder="usuario@empresa.com" className="mt-2 w-full rounded-2xl border border-gray-200 px-5 py-4 outline-none focus:border-[#D32323]" />
           </label>
           <label className="block">
             <span className="text-xs font-black uppercase text-gray-500">Contraseña</span>

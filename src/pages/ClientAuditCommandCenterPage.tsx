@@ -116,39 +116,46 @@ export default function ClientAuditCommandCenterPage() {
               <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm">
                 <small className="block text-[8px] text-gray-500 font-black uppercase">ROI atribuible</small>
                 <strong className="block text-2xl font-black text-[#333] my-1">{data.summary.roi}×</strong>
-                <span className="text-[10px] font-black text-emerald-600">€12.840 atribuidos</span>
+                <span className="text-[10px] font-black text-emerald-600">{data.summary.roiLabel || 'Atribuido'}</span>
               </div>
             </div>
             <div className="grid lg:grid-cols-[1.25fr_0.75fr] gap-3">
               <AuditTimeline snapshots={data.timeline.snapshots} />
-              <div className="bg-white border border-gray-200 rounded-2xl shadow-sm">
-                <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100">
-                  <h3 className="text-xs font-black text-[#333]">Responsabilidades y próximos pasos</h3>
-                  <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider border bg-red-50 text-red-700 border-red-100">
-                    3 acciones
-                  </span>
+              {(data.actions && data.actions.length > 0) && (
+                <div className="bg-white border border-gray-200 rounded-2xl shadow-sm">
+                  <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100">
+                    <h3 className="text-xs font-black text-[#333]">Responsabilidades y próximos pasos</h3>
+                    <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider border bg-red-50 text-red-700 border-red-100">
+                      {data.actions.length} accione{data.actions.length === 1 ? '' : 's'}
+                    </span>
+                  </div>
+                  <div className="p-4">
+                    <table className="w-full text-[10px]">
+                      <tbody className="divide-y divide-gray-100">
+                        {data.actions.map((action) => (
+                          <tr key={action.key}>
+                            <td className="py-2">
+                              <b className="block text-[#333]">{action.title}</b>
+                              {action.subtitle && <span className="text-[8px] text-gray-500">{action.subtitle}</span>}
+                            </td>
+                            <td className="py-2 text-right">
+                              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider border ${
+                                action.status === 'Bloqueo'
+                                  ? 'bg-red-50 text-red-700 border-red-100'
+                                  : action.status === 'Pendiente'
+                                    ? 'bg-amber-50 text-amber-700 border-amber-100'
+                                    : 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                              }`}>
+                                {action.status}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-                <div className="p-4">
-                  <table className="w-full text-[10px]">
-                    <tbody className="divide-y divide-gray-100">
-                      <tr>
-                        <td className="py-2">
-                          <b className="block text-[#333]">Aprobar auditoría v2.1</b>
-                          <span className="text-[8px] text-gray-500">Cliente · vence 17 jul</span>
-                        </td>
-                        <td className="py-2 text-right"><span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider border bg-amber-50 text-amber-700 border-amber-100">Pendiente</span></td>
-                      </tr>
-                      <tr>
-                        <td className="py-2">
-                          <b className="block text-[#333]">Confirmar acceso GBP</b>
-                          <span className="text-[8px] text-gray-500">Cliente · bloquea 2 tareas</span>
-                        </td>
-                        <td className="py-2 text-right"><span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider border bg-red-50 text-red-700 border-red-100">Bloqueo</span></td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+              )}
             </div>
           </div>
         )}

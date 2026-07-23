@@ -28,16 +28,19 @@ npx tsc --noEmit
 Copia `.env.example` a `.env` y ajusta:
 
 ```env
-# URL base del backend NestJS/PostgreSQL
-VITE_API_BASE_URL=http://localhost:4001/api/v1
+# URL base de la API (obligatoria en producción; en desarrollo fallback a localhost:4001)
+VITE_API_URL=http://localhost:4001/api/v1
 
-# Timeout por defecto para llamadas API (ms)
-VITE_API_TIMEOUT=30000
+# Timeout por defecto para llamadas API en milisegundos (fallback: 15000)
+VITE_API_TIMEOUT=15000
 
-# Modo desarrollo: autenticación demo por fallback
+# Modo desarrollo: autenticación demo por fallback (solo funciona en DEV)
 VITE_ENABLE_DEMO_AUTH=false
 
-# Modo desarrollo: datos demo por fallback
+# Contraseña compartida para usuarios demo en desarrollo
+VITE_DEMO_AUTH_PASSWORD=dev-demo-password
+
+# Modo desarrollo: datos demo por fallback (solo funciona en DEV)
 VITE_ENABLE_DEMO_DATA=false
 ```
 
@@ -62,11 +65,10 @@ src/
 
 La central `src/lib/apiConfig.ts` gestiona:
 
-- URL base, timeout y cabeceras JSON.
-- Prefijo automático `/api/v1` si no está presente.
+- URL base y timeout (`VITE_API_URL`, `VITE_API_TIMEOUT`).
+- Bearer token leído automáticamente desde `localStorage.getItem('seo_local_dashboard_token')`.
 - Manejo de errores tipados (`ApiError`): `network`, `timeout`, `unauthorized`, `forbidden`, `server`, `credentials`, `client`, `unknown`.
-- Cierre de sesión automático al recibir `401`.
-- Hook personalizado `useApi` para cancelación con `AbortController`.
+- Cierre de sesión automático al recibir `401`/`403`: limpia token, usuario cacheado y emite `seo-dashboard-logout`.
 
 ## Navegación principal
 
@@ -121,15 +123,9 @@ El frontend ahora consume el backend real siempre que esté disponible. Los endp
 
 Si el backend devuelve un error de red, timeout o credenciales, el sistema muestra mensajes específicos. Solo cuando `VITE_ENABLE_DEMO_AUTH=true` o `VITE_ENABLE_DEMO_DATA=true` se activan los datos de demostración como fallback.
 
-### Credenciales de demostración
+### Credenciales
 
-| Rol | Email | Contraseña |
-|-----|-------|------------|
-| Cliente | `cliente@clinicasonrisa.com` | `Demo1234` |
-| Vendedor | `vendedor@seolocal.com` | `Demo1234` |
-| Admin | `admin@seolocalmarketplace.com` | `AdminSEOlocal2026!` |
-
-> El login del administrador en el backend usa `admin@seolocalmarketplace.com`. El login por demo (cuando `VITE_ENABLE_DEMO_AUTH=true`) sigue permitiendo `admin@seolocal.com` / `Demo1234` como conveniencia local.
+No se incluyen credenciales reales en el código frontend. Solicita o crea usuarios desde el backend/administración. En modo desarrollo con `VITE_ENABLE_DEMO_AUTH=true`, los usuarios demo están definidos en `src/state/authHelpers.ts`.
 
 ## Command Center 360
 
@@ -144,6 +140,7 @@ Si el backend devuelve un error de red, timeout o credenciales, el sistema muest
 - Ruta `/herramientas/citaciones`.
 - Etapa 1: gestor manual de copiado y seguimiento en 20 directorios.
 - Estado persistente en backend vía `GET`/`PUT /client/citations/draft`.
+- localStorage se usa solo como caché local y migración de datos antiguos.
 - Etapa 2 (automatización de formularios, bots, scraping o navegación remota) no está implementada.
 
 ## Convenciones
@@ -159,8 +156,9 @@ Si el backend devuelve un error de red, timeout o credenciales, el sistema muest
 
 - `user`, `authLoading`, `authError`
 - `login(email, password)` — intenta backend; fallback demo solo con `VITE_ENABLE_DEMO_AUTH=true`
-- `logout()` — llama al backend y limpia estado/localStorage
+- `logout()` — llama a `POST /admin/auth/logout`, limpia token y estado
 - `restoreSession()` — valida token vía `GET /admin/auth/me` al montar
+- `catalogLoading`, `catalogError`, `backendSource` — estado de carga del catálogo
 
 ## Tests
 
@@ -172,8 +170,10 @@ npm test
 
 Tests actuales:
 
-- `src/lib/apiConfig.test.ts` — URL base, normalización de endpoint y creación de errores.
-- `src/lib/authHelpers.test.ts` — validación de email/password y credenciales demo.
+- `src/lib/apiConfig.test.ts` — URL base, normalización de endpoint, token Bearer y errores 401.
+- `src/state/authHelpers.test.ts` — validación de email/password y credenciales demo.
+- `src/features/tools-audits/hooks/useClientAudit.test.ts` — carga de auditoría.
+- `src/features/tools-audits/hooks/useCitationDraft.test.ts` — autosave, importación y limpieza.
 
 ## Notas
 

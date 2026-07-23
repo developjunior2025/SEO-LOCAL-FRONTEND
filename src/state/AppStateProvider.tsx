@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { AGENCIES, MARKETPLACE_CATEGORIES, POPULAR_SERVICES } from '@/data';
 import type { Agency, Service, Offer, SearchState, MarketplaceCategory, User } from '@/types';
-import { ApiError } from '@/lib/apiConfig';
+import { ApiError, isDemoDataEnabled } from '@/lib/apiConfig';
 import { marketplaceApi, type CreateLeadPayload } from '@/services/marketplaceApi';
 import { adminApi, clearAdminToken, type DashboardSession } from '@/services/adminApi';
 import {
@@ -20,11 +20,13 @@ export interface AppStateValue {
   logout: () => void;
   clearAuthError: () => void;
 
-  // Catalog (bootstrapped from the API, falls back to local mock data — see marketplaceApi.getBootstrap()).
+  // Catalog (bootstrapped from the API; mock data only when VITE_ENABLE_DEMO_DATA=true).
   agenciesList: Agency[];
   marketplaceCategories: MarketplaceCategory[];
   servicesList: Service[];
   backendSource: 'postgresql' | 'mock';
+  catalogLoading: boolean;
+  catalogError: string | null;
 
   // Search
   searchState: SearchState;
@@ -90,10 +92,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [favorites, setFavorites] = useState<string[]>([]);
   const [cart, setCart] = useState<Service[]>([]);
   const [compareServices, setCompareServices] = useState<Service[]>([]);
-  const [agenciesList, setAgenciesList] = useState<Agency[]>(AGENCIES);
-  const [marketplaceCategories, setMarketplaceCategories] = useState<MarketplaceCategory[]>(MARKETPLACE_CATEGORIES);
-  const [servicesList, setServicesList] = useState<Service[]>(POPULAR_SERVICES);
-  const [backendSource, setBackendSource] = useState<'postgresql' | 'mock'>('mock');
+  const [agenciesList, setAgenciesList] = useState<Agency[]>(() => (isDemoDataEnabled() ? AGENCIES : []));
+  const [marketplaceCategories, setMarketplaceCategories] = useState<MarketplaceCategory[]>(() => (isDemoDataEnabled() ? MARKETPLACE_CATEGORIES : []));
+  const [servicesList, setServicesList] = useState<Service[]>(() => (isDemoDataEnabled() ? POPULAR_SERVICES : []));
+  const [backendSource, setBackendSource] = useState<'postgresql' | 'mock'>(() => (isDemoDataEnabled() ? 'mock' : 'postgresql'));
+  const [catalogError, setCatalogError] = useState<string | null>(() => (isDemoDataEnabled() ? null : null));
+  const [catalogLoading, setCatalogLoading] = useState(() => !isDemoDataEnabled());
 
   // Auth
   const [user, setUser] = useState<User | null>(null);
@@ -231,9 +235,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     }
   }, [mapSessionToUser, handleAuthError, persistUser]);
 
-  const logout = useCallback(() => {
-    finalizeLogout();
-  }, [finalizeLogout]);
+  const logout = useCallback(async () => {
+    await adminApi.logout();
+  }, []);
 
   // Aux Modals Visibility
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -249,6 +253,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
 
     async function loadCatalog() {
+      if (isDemoDataEnabled()) {
+        if (!cancelled) setCatalogLoading(false);
+        return;
+      }
+      setCatalogLoading(true);
+      setCatalogError(null);
       try {
         const payload = await marketplaceApi.getBootstrap(controller.signal);
         const furServicesResponse = await marketplaceApi.getServices({ furOnly: true }, controller.signal);
@@ -271,7 +281,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         } else if (bootstrapFurServices.length >= 8) {
           setServicesList(bootstrapFurServices);
         } else {
-          console.warn(`[SEO Local] Catálogo FUR incompleto en API (${furServices.length || bootstrapFurServices.length}); se mantiene fallback local con 45 FUR-Servicios.`);
+          console.warn(`[SEO Local] Catálogo FUR incompleto en API (${furServices.length || bootstrapFurServices.length}).`);
         }
 
         setBackendSource('postgresql');
@@ -279,8 +289,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       } catch (error: unknown) {
         if (error instanceof DOMException && error.name === 'AbortError') return;
         if (cancelled) return;
-        setBackendSource('mock');
-        console.warn('[SEO Local] La API PostgreSQL no está disponible; se mantienen los datos mock.', error);
+        setBackendSource('postgresql');
+        setCatalogError('No se pudo cargar el catálogo. Verifica que el backend esté disponible.');
+        console.warn('[SEO Local] La API PostgreSQL no está disponible; catálogo vacío hasta que se recupere.', error);
+      } finally {
+        if (!cancelled) setCatalogLoading(false);
       }
     }
 
@@ -418,6 +431,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     marketplaceCategories,
     servicesList,
     backendSource,
+    catalogLoading,
+    catalogError,
     searchState,
     setSearchState,
     hoveredAgencyId,

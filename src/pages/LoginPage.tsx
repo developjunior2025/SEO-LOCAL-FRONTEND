@@ -105,12 +105,8 @@ export default function LoginPage() {
 
         {import.meta.env.DEV && import.meta.env.VITE_ENABLE_DEMO_AUTH === 'true' && (
           <div className="mt-6 rounded-xl bg-gray-50 border border-gray-200 p-4 text-[10px] text-gray-500 leading-relaxed">
-            <p className="font-bold text-gray-700 mb-1">Credenciales de demostración</p>
-            <ul className="space-y-1">
-              <li><strong>Cliente:</strong> cliente@clinicasonrisa.com / Demo1234</li>
-              <li><strong>Vendedor:</strong> vendedor@seolocal.com / Demo1234</li>
-              <li><strong>Admin:</strong> admin@seolocalmarketplace.com / AdminSEOlocal2026!</li>
-            </ul>
+            <p className="font-bold text-gray-700 mb-1">Modo demostración activo</p>
+            <p>Usa los usuarios de prueba configurados en tu entorno de desarrollo. Las credenciales reales no se muestran por seguridad.</p>
           </div>
         )}
       </div>

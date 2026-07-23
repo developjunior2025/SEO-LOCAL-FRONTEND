@@ -1,5 +1,16 @@
 const DEFAULT_DEV_API_URL = 'http://localhost:4001/api/v1';
-export const API_TIMEOUT = 15000;
+
+export const DASHBOARD_TOKEN_KEY = 'seo_local_dashboard_token';
+export const AUTH_STORAGE_KEY = 'seolocal_user_v1';
+
+export function getApiTimeout(): number {
+  const configured = import.meta.env.VITE_API_TIMEOUT;
+  if (configured) {
+    const parsed = Number(configured);
+    if (!Number.isNaN(parsed) && parsed > 0) return parsed;
+  }
+  return 15000;
+}
 
 export type ApiErrorCode =
   | 'network'
@@ -43,10 +54,25 @@ export function isDemoDataEnabled(): boolean {
   return Boolean(import.meta.env.DEV && import.meta.env.VITE_ENABLE_DEMO_DATA === 'true');
 }
 
-export function clearApiSession(): void {
+function readStoredToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return window.localStorage.getItem(DASHBOARD_TOKEN_KEY);
+}
+
+function clearStoredAuth(): void {
   if (typeof window === 'undefined') return;
-  localStorage.removeItem('seo_local_dashboard_token');
-  localStorage.removeItem('seo_local_dashboard_api_base');
+  window.localStorage.removeItem(DASHBOARD_TOKEN_KEY);
+  window.localStorage.removeItem(AUTH_STORAGE_KEY);
+}
+
+function emitLogoutEvent(): void {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent('seo-dashboard-logout'));
+}
+
+export function clearApiSession(): void {
+  clearStoredAuth();
+  emitLogoutEvent();
 }
 
 function classifyError(error: unknown, status?: number): ApiErrorCode {
@@ -68,16 +94,19 @@ export async function apiFetch<T>(
 ): Promise<T> {
   const base = getApiBaseUrl();
   const url = `${base}${path}`;
+  const timeout = getApiTimeout();
 
   const headers = new Headers(init.headers || {});
   if (!headers.has('Accept')) headers.set('Accept', 'application/json');
   if (init.body && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json');
   }
-  if (options.token) headers.set('Authorization', `Bearer ${options.token}`);
+
+  const token = options.token ?? readStoredToken();
+  if (token) headers.set('Authorization', `Bearer ${token}`);
 
   const controller = new AbortController();
-  const timeoutId = window.setTimeout(() => controller.abort(), API_TIMEOUT);
+  const timeoutId = window.setTimeout(() => controller.abort(), timeout);
 
   const externalSignals: AbortSignal[] = [controller.signal];
   if (options.signal) externalSignals.push(options.signal);
@@ -116,7 +145,8 @@ export async function apiFetch<T>(
           : null) || `HTTP ${response.status}`;
       const code = classifyError(new Error(message), response.status);
       if (code === 'unauthorized' || code === 'forbidden') {
-        clearApiSession();
+        clearStoredAuth();
+        emitLogoutEvent();
       }
       throw new ApiError(message, code, response.status, payload);
     }

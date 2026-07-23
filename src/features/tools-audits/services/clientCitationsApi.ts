@@ -18,12 +18,13 @@ export async function fetchCitationDraft(signal?: AbortSignal): Promise<Citation
   return 'draft' in response ? response.draft : response;
 }
 
-export async function saveCitationDraft(draft: CitationDraft): Promise<void> {
+export async function saveCitationDraft(draft: CitationDraft): Promise<CitationDraft> {
   if (isDemoDataEnabled()) {
-    return;
+    return draft;
   }
-  await apiFetch('/client/citations/draft', {
+  const response = await apiFetch<CitationDraftResponse | CitationDraft>('/client/citations/draft', {
     method: 'PUT',
     body: JSON.stringify(draft),
   });
+  return 'draft' in response ? response.draft : response;
 }

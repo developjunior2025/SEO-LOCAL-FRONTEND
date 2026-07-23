@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AlertCircle, ArrowLeft, Loader2, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import AuditShell from '../AuditShell';
@@ -10,31 +10,12 @@ import {
   createEmptyCitationDraft,
   exportCitationDraft,
   importCitationDraft,
-  saveCitationDraft as saveLocalCitationDraft,
 } from '../../services/citationStorage';
-import { useCitationDraft } from '../../hooks/useCitationDraft';
+import { useCitationDraft, isMasterRecordComplete } from '../../hooks/useCitationDraft';
 import type { CitationDraft, CitationStepKey } from '../../types/citations';
 import { useAppState } from '@/state/useAppState';
 
 const SAVE_DELAY = 400;
-
-function isMasterRecordComplete(draft: CitationDraft): boolean {
-  const required = [
-    draft.profile.firstName,
-    draft.profile.lastName,
-    draft.profile.accountEmail,
-    draft.profile.username,
-    draft.profile.password,
-    draft.business.businessName,
-    draft.business.address1,
-    draft.business.phone,
-    draft.business.publicEmail,
-    draft.business.website,
-    draft.listing.listingTitle,
-    draft.listing.description,
-  ];
-  return required.every(Boolean);
-}
 
 function CitationsSkeleton() {
   return (
@@ -71,21 +52,44 @@ export default function CitationsManagerPage() {
   const [activeStep, setActiveStep] = useState<CitationStepKey>('account');
   const [lastSaved, setLastSaved] = useState<string | null>(null);
   const [selectedDirectoryIndex, setSelectedDirectoryIndex] = useState(0);
-  const [formOpen, setFormOpen] = useState(() => !draft || !isMasterRecordComplete(draft));
+  const [formOpenOverride, setFormOpenOverride] = useState<boolean | null>(null);
   const [copyOpen, setCopyOpen] = useState(false);
   const saveTimer = useRef<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const copyPanelRef = useRef<HTMLDivElement>(null);
+  const mounted = useRef(true);
+
+  const formOpen = formOpenOverride ?? (!draft || !isMasterRecordComplete(draft));
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      if (saveTimer.current) {
+        window.clearTimeout(saveTimer.current);
+        saveTimer.current = null;
+      }
+    };
+  }, []);
+
+  const cancelScheduledSave = useCallback(() => {
+    if (saveTimer.current) {
+      window.clearTimeout(saveTimer.current);
+      saveTimer.current = null;
+    }
+  }, []);
 
   const scheduleSave = useCallback((nextDraft: CitationDraft) => {
-    if (saveTimer.current) window.clearTimeout(saveTimer.current);
+    cancelScheduledSave();
     saveTimer.current = window.setTimeout(async () => {
-      saveLocalCitationDraft(nextDraft);
-      await saveDraft();
-      const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      setLastSaved(`Guardado: ${time}`);
+      saveTimer.current = null;
+      const ok = await saveDraft(nextDraft);
+      if (ok && mounted.current) {
+        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        setLastSaved(`Guardado: ${time}`);
+      }
     }, SAVE_DELAY);
-  }, [saveDraft]);
+  }, [cancelScheduledSave, saveDraft]);
 
   const handleDraftChange = useCallback((nextDraft: CitationDraft) => {
     setDraft(nextDraft);
@@ -93,12 +97,15 @@ export default function CitationsManagerPage() {
   }, [setDraft, scheduleSave]);
 
   const handleManualSave = async () => {
-    if (!draft) return;
-    saveLocalCitationDraft(draft);
-    await saveDraft();
-    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    setLastSaved(`Guardado: ${time}`);
-    triggerToast('Borrador guardado');
+    cancelScheduledSave();
+    const current = draft;
+    if (!current) return;
+    const ok = await saveDraft(current);
+    if (ok && mounted.current) {
+      const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      setLastSaved(`Guardado: ${time}`);
+      triggerToast('Borrador guardado');
+    }
   };
 
   const handleExport = () => {
@@ -112,31 +119,42 @@ export default function CitationsManagerPage() {
     URL.revokeObjectURL(url);
   };
 
-  const handleImport = (file: File) => {
+  const handleImport = async (file: File) => {
+    cancelScheduledSave();
     const reader = new FileReader();
-    reader.onload = () => {
+    reader.onload = async () => {
       const imported = importCitationDraft(String(reader.result));
-      if (imported) {
-        setDraft(imported);
-        saveLocalCitationDraft(imported);
-        setFormOpen(!isMasterRecordComplete(imported));
-        setCopyOpen(false);
-        triggerToast('Datos importados');
-      } else {
+      if (!imported) {
         triggerToast('JSON no válido');
+        return;
+      }
+      setDraft(imported);
+        setFormOpenOverride(!isMasterRecordComplete(imported));
+      setCopyOpen(false);
+      const ok = await saveDraft(imported);
+      if (ok && mounted.current) {
+        triggerToast('Datos importados y guardados');
+      } else if (mounted.current) {
+        triggerToast('Importado localmente; error al guardar en servidor');
       }
     };
     reader.readAsText(file);
   };
 
-  const handleClear = () => {
+  const handleClear = async () => {
     if (!window.confirm('¿Limpiar todos los datos del gestor manual?')) return;
+    cancelScheduledSave();
     clearCitationDraft();
     const empty = createEmptyCitationDraft();
     setDraft(empty);
-    setFormOpen(true);
+    setFormOpenOverride(true);
     setCopyOpen(false);
-    triggerToast('Datos eliminados');
+    const ok = await saveDraft(empty);
+    if (ok && mounted.current) {
+      triggerToast('Datos eliminados');
+    } else if (mounted.current) {
+      triggerToast('Borrados localmente; error al guardar en servidor');
+    }
   };
 
   const handleOpenPanel = (index: number) => {
@@ -237,7 +255,7 @@ export default function CitationsManagerPage() {
           onChange={handleDraftChange}
           onStepChange={setActiveStep}
           expanded={formOpen}
-          onToggle={() => setFormOpen((v) => !v)}
+          onToggle={() => setFormOpenOverride((v) => !(v ?? !isMasterRecordComplete(draft)))}
         />
         <CitationCopyPanel
           ref={copyPanelRef}

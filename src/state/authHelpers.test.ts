@@ -4,10 +4,12 @@ import {
   normalizeEmail,
   tryDemoLogin,
   getDashboardPathForRole,
+  getDemoPassword,
 } from '@/state/authHelpers';
 
 beforeEach(() => {
   vi.stubEnv('VITE_ENABLE_DEMO_AUTH', 'true');
+  vi.stubEnv('VITE_DEMO_AUTH_PASSWORD', 'dev-demo-password');
 });
 
 afterEach(() => {
@@ -28,14 +30,15 @@ describe('authHelpers', () => {
   });
 
   it('permite login demo solo cuando el flag está activo', () => {
-    expect(tryDemoLogin('cliente@clinicasonrisa.com', 'Demo1234')).toBeTruthy();
-    expect(tryDemoLogin('cliente@clinicasonrisa.com', 'wrong')).toBeNull();
-    expect(tryDemoLogin('unknown@example.com', 'Demo1234')).toBeNull();
+    const password = getDemoPassword();
+    expect(tryDemoLogin('cliente-demo@local.dev', password)).toBeTruthy();
+    expect(tryDemoLogin('cliente-demo@local.dev', 'wrong')).toBeNull();
+    expect(tryDemoLogin('unknown@example.com', password)).toBeNull();
   });
 
   it('bloquea login demo cuando el flag está desactivado', () => {
     vi.stubEnv('VITE_ENABLE_DEMO_AUTH', 'false');
-    expect(tryDemoLogin('cliente@clinicasonrisa.com', 'Demo1234')).toBeNull();
+    expect(tryDemoLogin('cliente-demo@local.dev', getDemoPassword())).toBeNull();
   });
 
   it('deriva dashboard path por rol', () => {
