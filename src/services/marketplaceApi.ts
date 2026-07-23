@@ -1,5 +1,5 @@
 import { apiFetch } from '@/lib/apiConfig';
-import { Agency, AgencyProfilePayload, MarketplaceCategory, Service } from '../types';
+import { Agency, AgencyProfilePayload, MarketplaceCategory, Offer, Service } from '../types';
 
 export interface MarketplaceBootstrapPayload {
   meta: {
@@ -11,6 +11,7 @@ export interface MarketplaceBootstrapPayload {
   categories: MarketplaceCategory[];
   agencies: Agency[];
   services: Service[];
+  offers?: Offer[];
 }
 
 
@@ -769,5 +770,23 @@ export const marketplaceApi = {
     if (params?.moduleCode) query.set('moduleCode', params.moduleCode);
     const suffix = query.toString() ? `?${query.toString()}` : '';
     return requestJson<{ items: unknown[] }>(`/tools/assessments${suffix}`, { signal });
+  },
+
+  getActiveOffers(signal?: AbortSignal) {
+    return requestJson<{ items: Offer[] }>('/offers/active', { signal });
+  },
+
+  claimOffer(offerId: string, payload: { email: string; name?: string; phone?: string }) {
+    return requestJson<{ ok: boolean; reference: string }>(`/offers/${offerId}/claim`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  hireAgency(agencyIdentifier: string, payload: { name: string; email: string; phone?: string; company?: string; description?: string }) {
+    return requestJson<{ ok: boolean; reference: string }>(`/agencies/${encodeURIComponent(agencyIdentifier)}/hire`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
   },
 };

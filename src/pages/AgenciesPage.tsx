@@ -41,9 +41,9 @@ const currency = new Intl.NumberFormat('es-CO', {
 
 const normalize = (value?: string) => (value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
-const getAgencyModes = (agency: Agency) => agency.workModes?.length ? agency.workModes : ['Remota'];
+const getAgencyModes = (agency: Agency) => agency.workModes?.length ? agency.workModes : ['No informado'];
 
-const getCertification = (agency: Agency) => agency.certificationLevel || (agency.isTopRated ? 'Destacada' : agency.recommended ? 'Recomendada' : 'Estándar');
+const getCertification = (agency: Agency) => agency.certificationLevel || 'No informado';
 
 const getBadgeClasses = (certification: string) => {
   if (certification === 'Destacada') return 'bg-[#D32323] text-white';
@@ -63,7 +63,7 @@ const starRow = (rating: number) => (
 
 export default function AgenciesDirectoryPage() {
   const navigate = useNavigate();
-  const { agenciesList: agencies, favorites, handleToggleFavorite, handleHireAgency, setShowProjectModal } = useAppState();
+  const { agenciesList: agencies, favorites, handleToggleFavorite, handleHireAgency, setShowProjectModal, catalogLoading, catalogError } = useAppState();
 
   const onToggleFavorite = handleToggleFavorite;
   const onSelectProfile = (agency: Agency) => navigate(`/agencias/${agency.slug || agency.id}`);
@@ -85,11 +85,11 @@ export default function AgenciesDirectoryPage() {
 
   const cities = useMemo(() => ['Todas las ciudades', ...Array.from(new Set(agencies.map(getCity))).sort()], [agencies]);
   const services = useMemo(() => ['Todos los servicios', ...Array.from(new Set(agencies.flatMap((agency) => agency.services).filter((service) => !workModeOptions.includes(service as WorkMode)))).sort()], [agencies]);
-  const languages = useMemo(() => ['Cualquier idioma', ...Array.from(new Set(agencies.flatMap((agency) => agency.languages || ['Español']))).sort()], [agencies]);
+  const languages = useMemo(() => ['Cualquier idioma', ...Array.from(new Set(agencies.flatMap((agency) => agency.languages?.length ? agency.languages : ['No informado']))).sort()], [agencies]);
 
   const directoryStats = useMemo(() => {
-    const totalReviews = agencies.reduce((sum, agency) => sum + agency.reviewsCount, 0);
-    const totalProjects = agencies.reduce((sum, agency) => sum + (agency.qualifiedProjects || Math.round(agency.reviewsCount * 0.4)), 0);
+    const totalReviews = agencies.reduce((sum, agency) => sum + (agency.reviewsCount || 0), 0);
+    const totalProjects = agencies.reduce((sum, agency) => sum + (agency.qualifiedProjects || 0), 0);
     const citiesCount = new Set(agencies.map(getCity)).size;
     return {
       agencies: agencies.length,
@@ -120,7 +120,7 @@ export default function AgenciesDirectoryPage() {
           || (experience === '5+ años' && (agency.experienceYears || 0) >= 5)
           || (experience === '7+ años' && (agency.experienceYears || 0) >= 7);
         const matchesRating = !minRating || agency.rating >= minRating;
-        const matchesBudget = Number(agency.budgetMin || agency.startingPrice) <= budget;
+        const matchesBudget = agency.budgetMin != null ? agency.budgetMin <= budget : agency.startingPrice != null ? agency.startingPrice <= budget : true;
         const matchesVerified = !onlyVerified || agency.isVerified;
         const matchesMode = selectedModes.length === workModeOptions.length || getAgencyModes(agency).some((mode) => selectedModes.includes(mode as WorkMode));
         const matchesTab = tab === 'all'
@@ -184,6 +184,16 @@ export default function AgenciesDirectoryPage() {
 
   return (
     <section className="bg-[#f5f5f5] min-h-screen pb-20 overflow-x-hidden">
+      {catalogLoading && (
+        <div className="flex items-center justify-center py-12">
+          <div className="w-10 h-10 rounded-full border-4 border-[#D32323]/20 border-t-[#D32323] animate-spin" />
+        </div>
+      )}
+      {catalogError && !catalogLoading && (
+        <div className="mx-4 sm:mx-8 lg:mx-12 my-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-bold text-[#D32323]">
+          {catalogError}
+        </div>
+      )}
       <div className="w-full mx-0 px-0 pt-0">
         <div className="relative overflow-hidden rounded-none bg-gradient-to-br from-[#071A2F] via-[#0D1E3A] to-[#231A36] shadow-xl border-y border-white/10 px-5 sm:px-8 lg:px-12 xl:px-16 py-10 lg:py-14">
           <div className="absolute -right-16 -top-20 w-72 h-72 rounded-full bg-[#D32323]/25 blur-3xl" />
@@ -203,10 +213,10 @@ export default function AgenciesDirectoryPage() {
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
-                { label: 'Agencias', value: `${directoryStats.agencies}+`, tone: 'text-white' },
-                { label: 'Reseñas', value: `${(directoryStats.reviews / 1000).toFixed(1)}k+`, tone: 'text-emerald-300' },
-                { label: 'Ciudades', value: `${directoryStats.cities}+`, tone: 'text-yellow-300' },
-                { label: 'Proyectos', value: `${directoryStats.projects}+`, tone: 'text-blue-300' },
+                { label: 'Agencias', value: String(directoryStats.agencies), tone: 'text-white' },
+                { label: 'Reseñas', value: String(directoryStats.reviews), tone: 'text-emerald-300' },
+                { label: 'Ciudades', value: String(directoryStats.cities), tone: 'text-yellow-300' },
+                { label: 'Proyectos', value: String(directoryStats.projects), tone: 'text-blue-300' },
               ].map((stat) => (
                 <div key={stat.label} className="rounded-2xl bg-white/8 border border-white/10 p-4 text-center shadow-inner">
                   <strong className={`block text-2xl sm:text-3xl font-black ${stat.tone}`}>{stat.value}</strong>
@@ -382,7 +392,9 @@ export default function AgenciesDirectoryPage() {
                         <span className={`absolute top-3 right-3 rounded-full px-3 py-1.5 text-[9px] font-black uppercase tracking-wider ${getBadgeClasses(cert)}`}>
                           {agency.badgeLabel || cert}
                         </span>
-                        <span className="absolute right-3 bottom-3 rounded-full bg-[#333]/90 text-white px-2.5 py-1 text-[9px] font-black">{agency.distance.toFixed(1)} km cerca</span>
+                        {typeof agency.distance === 'number' && (
+                          <span className="absolute right-3 bottom-3 rounded-full bg-[#333]/90 text-white px-2.5 py-1 text-[9px] font-black">{agency.distance.toFixed(1)} km cerca</span>
+                        )}
                         <div className={`absolute left-3 bottom-3 w-11 h-11 rounded-xl ${agency.logoBgColor} text-white flex items-center justify-center text-lg font-black shadow-lg ring-4 ring-white/80`}>
                           {agency.logoLetter}
                         </div>
@@ -400,18 +412,18 @@ export default function AgenciesDirectoryPage() {
                           </div>
                           <div className="text-right">
                             <span className="block text-[10px] uppercase font-black text-gray-400">Trust</span>
-                            <strong className="text-[#D32323] font-black">{agency.trustScore || Math.round(agency.rating * 19)}%</strong>
+                            <strong className="text-[#D32323] font-black">{agency.trustScore != null ? `${agency.trustScore}%` : 'No informado'}</strong>
                           </div>
                         </div>
 
                         <div className="mt-3 grid grid-cols-2 gap-2 rounded-xl bg-gray-50 border border-gray-100 p-3 text-[10px] font-bold text-gray-500">
-                          <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" /> {agency.location}</span>
-                          <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" /> {agency.employeesRange || 'Equipo certificado'}</span>
-                          <span className="flex items-center gap-1"><Clock3 className="w-3.5 h-3.5" /> {agency.experienceYears || 3} años exp.</span>
-                          <span className="flex items-center gap-1"><Globe2 className="w-3.5 h-3.5" /> {(agency.languages || ['Español']).join(', ')}</span>
+                          <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" /> {agency.location || 'No informado'}</span>
+                          <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" /> {agency.employeesRange || 'No informado'}</span>
+                          <span className="flex items-center gap-1"><Clock3 className="w-3.5 h-3.5" /> {agency.experienceYears ? `${agency.experienceYears} años exp.` : 'No informado'}</span>
+                          <span className="flex items-center gap-1"><Globe2 className="w-3.5 h-3.5" /> {(agency.languages?.length ? agency.languages : ['No informado']).join(', ')}</span>
                         </div>
 
-                        <p className="mt-3 text-xs text-gray-500 font-semibold leading-relaxed italic min-h-[48px]">“{agency.highlightReview}”</p>
+                        <p className="mt-3 text-xs text-gray-500 font-semibold leading-relaxed italic min-h-[48px]">“{agency.highlightReview || 'Sin reseña destacada.'}”</p>
 
                         <div className="mt-3 flex flex-wrap gap-1.5">
                           {agency.services.slice(0, 4).map((service) => (
@@ -427,7 +439,7 @@ export default function AgenciesDirectoryPage() {
                             <strong className="text-xl font-black text-[#D32323]">{currency.format(agency.startingPrice)}</strong>
                             <span className="text-[10px] font-bold text-gray-400"> /mes</span>
                           </div>
-                          <span className="text-[10px] font-black text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full">{agency.responseTimeHours || 24}h respuesta</span>
+                          <span className="text-[10px] font-black text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full">{agency.responseTimeHours ? `${agency.responseTimeHours}h respuesta` : 'Tiempo no informado'}</span>
                         </div>
 
                         <div className="mt-4 grid grid-cols-2 gap-2">

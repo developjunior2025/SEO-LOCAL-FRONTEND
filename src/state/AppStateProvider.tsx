@@ -24,7 +24,7 @@ export interface AppStateValue {
   agenciesList: Agency[];
   marketplaceCategories: MarketplaceCategory[];
   servicesList: Service[];
-  backendSource: 'postgresql' | 'mock';
+  backendSource: 'postgresql' | 'demo' | 'unavailable';
   catalogLoading: boolean;
   catalogError: string | null;
 
@@ -69,9 +69,9 @@ export interface AppStateValue {
   handleToggleCompareService: (srv: Service) => void;
   handleRemoveCompareService: (srvId: string) => void;
   handleClearCompareServices: () => void;
-  handleClaimOffer: (offer: Offer) => void;
-  handleAddReview: (agencyId: string, rating: number, text: string, name: string) => void;
-  handleHireAgency: (agency: Agency) => void;
+  handleClaimOffer: (offer: Offer, payload?: { email: string; name?: string; phone?: string }) => Promise<void>;
+  handleAddReview: (agencyId: string, rating: number, text: string, name: string, agencyIdentifier?: string) => Promise<void>;
+  handleHireAgency: (agency: Agency, payload?: { name: string; email: string; phone?: string; company?: string; description?: string }) => Promise<void>;
 }
 
 import { AppStateContext } from './AppStateContext';
@@ -95,7 +95,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [agenciesList, setAgenciesList] = useState<Agency[]>(() => (isDemoDataEnabled() ? AGENCIES : []));
   const [marketplaceCategories, setMarketplaceCategories] = useState<MarketplaceCategory[]>(() => (isDemoDataEnabled() ? MARKETPLACE_CATEGORIES : []));
   const [servicesList, setServicesList] = useState<Service[]>(() => (isDemoDataEnabled() ? POPULAR_SERVICES : []));
-  const [backendSource, setBackendSource] = useState<'postgresql' | 'mock'>(() => (isDemoDataEnabled() ? 'mock' : 'postgresql'));
+  const [backendSource, setBackendSource] = useState<'postgresql' | 'demo' | 'unavailable'>(() => (isDemoDataEnabled() ? 'demo' : 'postgresql'));
   const [catalogError, setCatalogError] = useState<string | null>(() => (isDemoDataEnabled() ? null : null));
   const [catalogLoading, setCatalogLoading] = useState(() => !isDemoDataEnabled());
 
@@ -194,11 +194,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   }, [restoreSession]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  useEffect(() => {
-    const handler = () => finalizeLogout();
-    window.addEventListener('seo-dashboard-logout', handler);
-    return () => window.removeEventListener('seo-dashboard-logout', handler);
-  }, [finalizeLogout]);
+  // Note: `seo-dashboard-logout` is emitted by clearApiSession/adminApi.logout; other components may listen, but this provider does not re-trigger logout to avoid recursion.
 
   const login = useCallback(async (email: string, password: string): Promise<User | null> => {
     setAuthLoading(true);
@@ -289,7 +285,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       } catch (error: unknown) {
         if (error instanceof DOMException && error.name === 'AbortError') return;
         if (cancelled) return;
-        setBackendSource('postgresql');
+        setBackendSource('unavailable');
+        setAgenciesList([]);
+        setMarketplaceCategories([]);
+        setServicesList([]);
         setCatalogError('No se pudo cargar el catálogo. Verifica que el backend esté disponible.');
         console.warn('[SEO Local] La API PostgreSQL no está disponible; catálogo vacío hasta que se recupere.', error);
       } finally {
@@ -384,40 +383,48 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   };
 
   // Claim a promotional special offer
-  const handleClaimOffer = (offer: Offer) => {
-    setSelectedPurchaseItem(offer);
+  const handleClaimOffer = async (offer: Offer, payload?: { email: string; name?: string; phone?: string }) => {
+    if (!payload?.email) {
+      triggerToast('Completa tu email para reclamar la oferta.');
+      return;
+    }
+    try {
+      const result = await marketplaceApi.claimOffer(offer.id, payload);
+      triggerToast(`Oferta reclamada: ${result.reference}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'No se pudo reclamar la oferta.';
+      triggerToast(message);
+    }
   };
 
-  // Action callback when adding a fully-real review in detail panel
-  const handleAddReview = (agencyId: string, rating: number, text: string, name: string) => {
-    void name;
-    setAgenciesList((prev) =>
-      prev.map((agency) => {
-        if (agency.id === agencyId) {
-          const newReviewsCount = agency.reviewsCount + 1;
-          const newRating = (agency.rating * agency.reviewsCount + rating) / newReviewsCount;
-          return {
-            ...agency,
-            rating: Math.min(newRating, 5.0),
-            reviewsCount: newReviewsCount,
-            highlightReview: text,
-          };
-        }
-        return agency;
-      })
-    );
-    triggerToast('¡Gracias por tu reseña! Se ha incorporado al perfil.');
+  // Action callback when adding a review in detail panel
+  const handleAddReview = async (agencyId: string, rating: number, text: string, name: string, agencyIdentifier?: string) => {
+    try {
+      await marketplaceApi.createAgencyReview(agencyIdentifier || agencyId, {
+        authorName: name || 'Cliente verificado',
+        rating,
+        body: text,
+        title: 'Valoración desde perfil de agencia',
+      });
+      triggerToast('Reseña enviada para moderación.');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'No se pudo enviar la reseña.';
+      triggerToast(message);
+    }
   };
 
-  const handleHireAgency = (agency: Agency) => {
-    const mockService: Service = {
-      id: `plan-${agency.id}`,
-      title: `Plan SEO Local Mensual - ${agency.name}`,
-      description: `Estrategia integral SEO Local, gestión continuada de GBP y auditorías para mejorar tus rankings locales directos.`,
-      price: agency.startingPrice,
-      iconName: 'trending_up',
-    };
-    setSelectedPurchaseItem(mockService);
+  const handleHireAgency = async (agency: Agency, payload?: { name: string; email: string; phone?: string; company?: string; description?: string }) => {
+    if (!payload?.email) {
+      triggerToast('Completa tus datos para solicitar cotización.');
+      return;
+    }
+    try {
+      const result = await marketplaceApi.hireAgency(agency.slug || agency.id, payload);
+      triggerToast(`Solicitud enviada: ${result.reference}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'No se pudo enviar la solicitud.';
+      triggerToast(message);
+    }
   };
 
   const value: AppStateValue = {

@@ -24,7 +24,7 @@ import {
 import { useNavigate, useParams } from 'react-router-dom';
 import type { Agency, AgencyProfilePayload, AgencyProfileService, AgencyReview, AgencyTeamMember, Service } from '@/types';
 import { marketplaceApi } from '@/services/marketplaceApi';
-import { POPULAR_SERVICES } from '@/data';
+import { isDemoDataEnabled } from '@/lib/apiConfig';
 import { findServiceBySlug, normalizeServiceSlug, getServiceRoute, getServiceSlug } from '@/utils/serviceRoutes';
 import { useAppState } from '@/state/useAppState';
 import TeamMemberModal from '@/components/modals/TeamMemberModal';
@@ -35,7 +35,7 @@ const money = new Intl.NumberFormat('es-CO', {
   maximumFractionDigits: 0,
 });
 
-const fallbackAvatar = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=320';
+const fallbackAvatar = '/assets/fallback-avatar.svg';
 
 const WORK_MODES = ['Presencial', 'Remota', 'Híbrida'];
 
@@ -119,8 +119,8 @@ const buildProfileServices = (agency: Agency, catalog: Service[]): AgencyProfile
   }));
 };
 
-const defaultProfile = (agency?: Agency, servicesCatalog: Service[] = POPULAR_SERVICES): AgencyProfilePayload | null => {
-  if (!agency) return null;
+const defaultProfile = (agency?: Agency, servicesCatalog: Service[] = []): AgencyProfilePayload | null => {
+  if (!isDemoDataEnabled() || !agency) return null;
   const services = buildProfileServices(agency, servicesCatalog);
 
   return {
@@ -244,8 +244,9 @@ export default function AgencyProfilePage() {
   const onOpenService = (service: Service) => navigate(getServiceRoute(service));
   const onAddReview = handleAddReview;
 
-  const [payload, setPayload] = useState<AgencyProfilePayload | null>(() => defaultProfile(agency, POPULAR_SERVICES));
-  const [loading, setLoading] = useState(!defaultProfile(agency, POPULAR_SERVICES));
+  const [payload, setPayload] = useState<AgencyProfilePayload | null>(() => defaultProfile(agency));
+  const [loading, setLoading] = useState(!defaultProfile(agency));
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [expandedServices, setExpandedServices] = useState(false);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewName, setReviewName] = useState('');
@@ -258,6 +259,7 @@ export default function AgencyProfilePage() {
   useEffect(() => {
     const controller = new AbortController();
     setLoading(true);
+    setLoadError(null);
 
     marketplaceApi.getAgencyProfile(profileIdentifier, controller.signal)
       .then((result) => {
@@ -266,8 +268,10 @@ export default function AgencyProfilePage() {
       })
       .catch((error) => {
         if (error instanceof DOMException && error.name === 'AbortError') return;
-        const fallback = defaultProfile(agency, servicesCatalog);
-        setPayload(fallback);
+        setLoadError('No se pudo cargar el perfil. Intenta de nuevo más tarde.');
+        if (isDemoDataEnabled()) {
+          setPayload(defaultProfile(agency, servicesCatalog));
+        }
         setLoading(false);
       });
 
@@ -283,16 +287,13 @@ export default function AgencyProfilePage() {
   }, [payload, expandedServices]);
 
   const ratingBreakdown = useMemo(() => {
-    const reviews = payload?.reviews || [];
-    const source: AgencyReview[] = reviews.length ? reviews : [];
-    const total = Math.max(source.length, currentAgency?.reviewsCount || 1);
+    const source = payload?.reviews || [];
+    const total = source.length || 1;
     return [5, 4, 3, 2, 1].map((rating) => {
-      const localCount = source.filter((review) => Math.round(review.rating) === rating).length;
-      const estimated = rating === 5 ? Math.round(total * 0.67) : rating === 4 ? Math.round(total * 0.31) : rating === 3 ? Math.round(total * 0.01) : rating === 2 ? Math.round(total * 0.01) : 0;
-      const count = localCount || estimated;
+      const count = source.filter((review) => Math.round(review.rating) === rating).length;
       return { rating, percent: Math.min(100, Math.round((count / total) * 100)) };
     });
-  }, [payload?.reviews, currentAgency?.reviewsCount]);
+  }, [payload?.reviews]);
 
   const resolveCatalogService = (profileService: AgencyProfilePayload['services'][number]) => {
     const candidates = [
@@ -333,6 +334,20 @@ export default function AgencyProfilePage() {
     );
   }
 
+  if (loadError) {
+    return (
+      <section className="min-h-screen bg-[#f5f5f5] px-4 py-20">
+        <div className="max-w-4xl mx-auto bg-white rounded-3xl border border-red-200 p-10 text-center shadow-sm">
+          <h1 className="text-2xl font-black text-[#333]">Error al cargar el perfil</h1>
+          <p className="mt-3 text-sm font-semibold text-gray-500">{loadError}</p>
+          <button type="button" onClick={() => window.location.reload()} className="mt-6 rounded-xl bg-[#D32323] text-white px-5 py-3 text-xs font-black uppercase tracking-wider">
+            Reintentar
+          </button>
+        </div>
+      </section>
+    );
+  }
+
   if (!currentAgency || !payload) {
     return (
       <section className="min-h-screen bg-[#f5f5f5] px-4 py-20">
@@ -353,6 +368,7 @@ export default function AgencyProfilePage() {
     const cleanText = reviewText.trim();
     if (!cleanText) return;
 
+    const previousReviews = payload?.reviews || [];
     const optimisticReview: AgencyReview = {
       id: `local-${Date.now()}`,
       author: cleanName,
@@ -364,29 +380,26 @@ export default function AgencyProfilePage() {
     };
 
     setPayload((prev) => prev ? { ...prev, reviews: [optimisticReview, ...prev.reviews] } : prev);
-    onAddReview(currentAgency.id, reviewRating, cleanText, cleanName);
+    setIsReviewModalOpen(false);
     setReviewText('');
     setReviewName('');
     setReviewRating(5);
-    setReviewNotice('Reseña publicada en la ficha y enviada al módulo de reputación.');
-    setIsReviewModalOpen(false);
 
-    marketplaceApi.createAgencyReview(profileIdentifier, {
-      authorName: cleanName,
-      rating: reviewRating,
-      body: cleanText,
-      title: 'Valoración desde perfil de agencia',
-    }).catch(() => {
-      setReviewNotice('Reseña visible localmente. La API no respondió, se reintentará al sincronizar.');
-    });
+    try {
+      await onAddReview(currentAgency.id, reviewRating, cleanText, cleanName, profileIdentifier);
+      setReviewNotice('Reseña enviada para moderación.');
+    } catch {
+      setPayload((prev) => prev ? { ...prev, reviews: previousReviews } : prev);
+      setReviewNotice('No se pudo enviar la reseña. Inténtalo de nuevo.');
+    }
   };
 
   const profile = payload.profile;
   const stats = [
-    { label: 'Proyectos', value: `${currentAgency.qualifiedProjects || Math.round(currentAgency.reviewsCount * 0.35)}+`, icon: <BriefcaseBusiness className="w-4 h-4" /> },
-    { label: 'Rating', value: currentAgency.rating.toFixed(1), icon: <Star className="w-4 h-4 fill-amber-400" /> },
-    { label: 'Reseñas', value: currentAgency.reviewsCount.toString(), icon: <MessageSquareText className="w-4 h-4" /> },
-    { label: 'Cobertura', value: '25+ Ciudades', icon: <MapPin className="w-4 h-4" /> },
+    { label: 'Proyectos', value: currentAgency.qualifiedProjects != null ? String(currentAgency.qualifiedProjects) : 'No informado', icon: <BriefcaseBusiness className="w-4 h-4" /> },
+    { label: 'Rating', value: currentAgency.rating?.toFixed(1) ?? 'No informado', icon: <Star className="w-4 h-4 fill-amber-400" /> },
+    { label: 'Reseñas', value: currentAgency.reviewsCount?.toString() ?? 'No informado', icon: <MessageSquareText className="w-4 h-4" /> },
+    { label: 'Cobertura', value: currentAgency.coverageCities?.toString() || 'No informado', icon: <MapPin className="w-4 h-4" /> },
   ];
 
   const navItems = [
@@ -403,20 +416,16 @@ export default function AgencyProfilePage() {
   const businessName = currentAgency.name;
   const businessLocation = [currentAgency.location, currentAgency.city, currentAgency.country].filter(Boolean).join(' • ');
   const websiteChannel = payload.channels.find((channel) => channel.type === 'website');
-  const websiteHref = websiteChannel?.url && websiteChannel.url !== '#'
-    ? websiteChannel.url
-    : `https://www.${(currentAgency.slug || currentAgency.name).toLowerCase().replace(/[^a-z0-9]+/g, '')}.com`;
+  const websiteHref = websiteChannel?.url && websiteChannel.url !== '#' ? websiteChannel.url : undefined;
   const websiteLabel = websiteChannel?.value && websiteChannel.value !== 'Sitio web validado'
     ? websiteChannel.value
-    : websiteHref.replace(/^https?:\/\//, '').replace(/\/$/, '');
+    : (websiteHref ? websiteHref.replace(/^https?:\/\//, '').replace(/\/$/, '') : undefined);
   const phoneChannel = payload.channels.find((channel) => channel.type === 'phone');
   const linkedinChannel = payload.channels.find((channel) => channel.type === 'linkedin');
-  const linkedinHref = linkedinChannel?.url && linkedinChannel.url !== '#'
-    ? linkedinChannel.url
-    : `https://www.linkedin.com/company/${(currentAgency.slug || currentAgency.name).toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+  const linkedinHref = linkedinChannel?.url && linkedinChannel.url !== '#' ? linkedinChannel.url : undefined;
   const linkedinLabel = linkedinChannel?.value && linkedinChannel.value !== 'Perfil externo'
     ? linkedinChannel.value
-    : `/company/${(currentAgency.slug || currentAgency.name).toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+    : linkedinHref;
   return (
     <section className="bg-[#f5f5f5] min-h-screen pb-28">
       <div className="w-full mx-0 px-0 pt-0">
@@ -452,9 +461,13 @@ export default function AgencyProfilePage() {
                   <h1 className="text-4xl sm:text-5xl lg:text-[56px] leading-[0.95] font-black tracking-tight max-w-3xl">{currentAgency.name}</h1>
                   <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm font-bold text-white/85">
                     <span className="inline-flex items-center gap-1.5">{starRow(currentAgency.rating)} <strong className="text-white">{currentAgency.rating.toFixed(1)}</strong></span>
-                    <span>({currentAgency.reviewsCount} reseñas verificadas)</span>
-                    <span className="hidden sm:inline">•</span>
-                    <span>Miembro desde 2018</span>
+                    <span>({currentAgency.reviewsCount ?? 0} reseñas verificadas)</span>
+                    {currentAgency.memberSince && (
+                      <>
+                        <span className="hidden sm:inline">•</span>
+                        <span>Miembro desde {currentAgency.memberSince}</span>
+                      </>
+                    )}
                   </div>
                   <div className="mt-4 flex flex-wrap gap-2">
                     {(profile.identityTags || []).slice(0, 5).map((tag) => (
@@ -527,27 +540,47 @@ export default function AgencyProfilePage() {
                 </div>
               </a>
 
-              <a href={websiteHref} target="_blank" rel="noreferrer" className="rounded-[24px] border border-gray-200 bg-white px-6 py-5 shadow-sm flex flex-col items-center justify-center text-center gap-3 hover:border-blue-300 transition-colors min-w-0 min-h-[116px]">
-                <span className="w-14 h-14 rounded-2xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm"><Globe2 className="w-6 h-6" /></span>
-                <div className="min-w-0 w-full">
-                  <div className="flex items-center justify-center gap-2 flex-wrap">
+              {websiteHref ? (
+                <a href={websiteHref} target="_blank" rel="noreferrer" className="rounded-[24px] border border-gray-200 bg-white px-6 py-5 shadow-sm flex flex-col items-center justify-center text-center gap-3 hover:border-blue-300 transition-colors min-w-0 min-h-[116px]">
+                  <span className="w-14 h-14 rounded-2xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm"><Globe2 className="w-6 h-6" /></span>
+                  <div className="min-w-0 w-full">
+                    <div className="flex items-center justify-center gap-2 flex-wrap">
+                      <p className="text-base font-black text-[#333]">Sitio web</p>
+                      <span className="rounded-full bg-emerald-50 text-emerald-700 px-2.5 py-1 text-[10px] font-black">Verificado</span>
+                    </div>
+                    <p className="mt-1 text-sm font-semibold text-gray-500 break-all">{websiteLabel}</p>
+                  </div>
+                </a>
+              ) : (
+                <div className="rounded-[24px] border border-gray-200 bg-gray-50 px-6 py-5 shadow-sm flex flex-col items-center justify-center text-center gap-3 min-w-0 min-h-[116px]">
+                  <span className="w-14 h-14 rounded-2xl bg-gray-300 text-white flex items-center justify-center shrink-0 shadow-sm"><Globe2 className="w-6 h-6" /></span>
+                  <div className="min-w-0 w-full">
                     <p className="text-base font-black text-[#333]">Sitio web</p>
-                    <span className="rounded-full bg-emerald-50 text-emerald-700 px-2.5 py-1 text-[10px] font-black">Verificado</span>
+                    <p className="mt-1 text-sm font-semibold text-gray-500">No informado</p>
                   </div>
-                  <p className="mt-1 text-sm font-semibold text-gray-500 break-all">{websiteLabel}</p>
                 </div>
-              </a>
+              )}
 
-              <a href={linkedinHref} target="_blank" rel="noreferrer" className="rounded-[24px] border border-gray-200 bg-white px-6 py-5 shadow-sm flex flex-col items-center justify-center text-center gap-3 hover:border-sky-300 transition-colors min-w-0 min-h-[116px]">
-                <span className="w-14 h-14 rounded-2xl bg-sky-600 text-white flex items-center justify-center shrink-0 shadow-sm"><Link2 className="w-6 h-6" /></span>
-                <div className="min-w-0 w-full">
-                  <div className="flex items-center justify-center gap-2 flex-wrap">
-                    <p className="text-base font-black text-[#333]">LinkedIn</p>
-                    <span className="rounded-full bg-emerald-50 text-emerald-700 px-2.5 py-1 text-[10px] font-black">Verificado</span>
+              {linkedinHref ? (
+                <a href={linkedinHref} target="_blank" rel="noreferrer" className="rounded-[24px] border border-gray-200 bg-white px-6 py-5 shadow-sm flex flex-col items-center justify-center text-center gap-3 hover:border-sky-300 transition-colors min-w-0 min-h-[116px]">
+                  <span className="w-14 h-14 rounded-2xl bg-sky-600 text-white flex items-center justify-center shrink-0 shadow-sm"><Link2 className="w-6 h-6" /></span>
+                  <div className="min-w-0 w-full">
+                    <div className="flex items-center justify-center gap-2 flex-wrap">
+                      <p className="text-base font-black text-[#333]">LinkedIn</p>
+                      <span className="rounded-full bg-emerald-50 text-emerald-700 px-2.5 py-1 text-[10px] font-black">Verificado</span>
+                    </div>
+                    <p className="mt-1 text-sm font-semibold text-gray-500 break-all">{linkedinLabel}</p>
                   </div>
-                  <p className="mt-1 text-sm font-semibold text-gray-500 break-all">{linkedinLabel}</p>
+                </a>
+              ) : (
+                <div className="rounded-[24px] border border-gray-200 bg-gray-50 px-6 py-5 shadow-sm flex flex-col items-center justify-center text-center gap-3 min-w-0 min-h-[116px]">
+                  <span className="w-14 h-14 rounded-2xl bg-gray-300 text-white flex items-center justify-center shrink-0 shadow-sm"><Link2 className="w-6 h-6" /></span>
+                  <div className="min-w-0 w-full">
+                    <p className="text-base font-black text-[#333]">LinkedIn</p>
+                    <p className="mt-1 text-sm font-semibold text-gray-500">No informado</p>
+                  </div>
                 </div>
-              </a>
+              )}
             </div>
           </div>
         </article>
@@ -574,25 +607,25 @@ export default function AgencyProfilePage() {
               <div className="mt-6 rounded-2xl border border-gray-200 bg-gray-50 p-5 sm:p-6">
                 <p className="text-lg font-black text-[#333] leading-snug">{profile.promiseHeadline || 'Perfil operativo verificado para contratación local.'}</p>
                 <p className="mt-4 text-sm sm:text-[15px] font-semibold text-gray-600 leading-8">
-                  {currentAgency.name} es una agencia especializada en posicionamiento local, gestión de Google Business Profile, reputación online y crecimiento orgánico por ubicación. Su operación combina auditoría técnica, contenido georreferenciado, mejora de señales NAP, optimización de fichas locales y seguimiento comercial para negocios que necesitan convertir búsquedas cercanas en llamadas, visitas, solicitudes y oportunidades reales.
+                  {profile.focus || 'Enfoque comercial no informado.'}
                 </p>
                 <p className="mt-4 text-sm sm:text-[15px] font-semibold text-gray-600 leading-8">
-                  Trabaja con un enfoque práctico: diagnóstico inicial, priorización de acciones, implementación por sprint, medición de resultados y reportes claros para tomar decisiones. El perfil permite evaluar capacidades, cobertura, servicios, certificaciones y reputación antes de solicitar una cotización.
+                  {profile.methodology || 'Metodología no informada.'}
                 </p>
               </div>
 
               <div className="mt-5 grid grid-cols-1 gap-4">
                 <div className="rounded-2xl border border-red-100 bg-red-50/50 p-5 min-h-[92px] flex flex-col justify-center">
                   <span className="text-[10px] font-black uppercase tracking-wider text-[#D32323]">Enfoque</span>
-                  <p className="mt-2 text-sm sm:text-[15px] font-black text-[#333] leading-relaxed">{profile.focus}</p>
+                  <p className="mt-2 text-sm sm:text-[15px] font-black text-[#333] leading-relaxed">{profile.focus || 'No informado'}</p>
                 </div>
                 <div className="rounded-2xl border border-blue-100 bg-blue-50/50 p-5 min-h-[92px] flex flex-col justify-center">
                   <span className="text-[10px] font-black uppercase tracking-wider text-[#0074E0]">Industrias</span>
-                  <p className="mt-2 text-sm sm:text-[15px] font-black text-[#333] leading-relaxed">{profile.industries.join(', ')}</p>
+                  <p className="mt-2 text-sm sm:text-[15px] font-black text-[#333] leading-relaxed">{profile.industries?.length ? profile.industries.join(', ') : 'No informado'}</p>
                 </div>
                 <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-5 min-h-[92px] flex flex-col justify-center">
                   <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700">Cliente ideal</span>
-                  <p className="mt-2 text-sm sm:text-[15px] font-black text-[#333] leading-relaxed">{profile.clientProfile}</p>
+                  <p className="mt-2 text-sm sm:text-[15px] font-black text-[#333] leading-relaxed">{profile.clientProfile || 'No informado'}</p>
                 </div>
               </div>
             </section>
@@ -608,7 +641,9 @@ export default function AgencyProfilePage() {
                     <p className="text-[10px] uppercase tracking-wider font-black text-gray-400">Ficha local portable y verificada</p>
                   </div>
                 </div>
-                <span className="inline-flex items-center gap-1 self-start rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-1 text-[10px] font-black uppercase"><BadgeCheck className="w-3.5 h-3.5" /> Verificado</span>
+                {currentAgency.isVerified && (
+                  <span className="inline-flex items-center gap-1 self-start rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-1 text-[10px] font-black uppercase"><BadgeCheck className="w-3.5 h-3.5" /> Verificado</span>
+                )}
               </div>
 
               <div className="rounded-3xl border border-gray-200 bg-gray-50 p-5">
@@ -627,16 +662,16 @@ export default function AgencyProfilePage() {
                     </div>
 
                     <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm font-semibold text-gray-600">
-                      <div className="flex items-center gap-2"><MapPin className="w-4 h-4 text-[#0074E0]" /> <span className="line-clamp-2">{businessLocation}</span></div>
-                      <div className="flex items-center gap-2"><Clock3 className="w-4 h-4 text-emerald-500" /> <span><strong className="text-emerald-600">Abierto</strong> · Cierra 18:00</span></div>
-                      <div className="flex items-center gap-2"><Phone className="w-4 h-4 text-gray-500" /> {currentAgency.phone}</div>
-                      <div className="flex items-center gap-2 min-w-0"><Globe2 className="w-4 h-4 text-gray-500 shrink-0" /> <span className="truncate">{websiteLabel}</span></div>
+                      <div className="flex items-center gap-2"><MapPin className="w-4 h-4 text-[#0074E0]" /> <span className="line-clamp-2">{businessLocation || 'No informado'}</span></div>
+                      <div className="flex items-center gap-2"><Clock3 className="w-4 h-4 text-emerald-500" /> <span>{payload.hours?.length ? 'Horario disponible' : 'Horario no informado'}</span></div>
+                      <div className="flex items-center gap-2"><Phone className="w-4 h-4 text-gray-500" /> {currentAgency.phone || 'No informado'}</div>
+                      <div className="flex items-center gap-2 min-w-0"><Globe2 className="w-4 h-4 text-gray-500 shrink-0" /> <span className="truncate">{websiteLabel || 'No informado'}</span></div>
                     </div>
 
                     <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-2">
                       <a href={`tel:${currentAgency.phone}`} className="rounded-xl border border-[#0074E0]/20 bg-blue-50 px-3 py-3 text-center text-xs font-black text-[#0074E0] hover:bg-blue-100">Llamar</a>
-                      <button type="button" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(businessLocation)}`, '_blank', 'noopener,noreferrer')} className="rounded-xl border border-gray-200 bg-white px-3 py-3 text-center text-xs font-black text-[#333] hover:border-[#0074E0]/40">Cómo llegar</button>
-                      <button type="button" onClick={() => window.open(websiteHref, '_blank', 'noopener,noreferrer')} className="rounded-xl border border-gray-200 bg-white px-3 py-3 text-center text-xs font-black text-[#333] hover:border-[#0074E0]/40">Sitio web</button>
+                      <button type="button" onClick={() => businessLocation && window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(businessLocation)}`, '_blank', 'noopener,noreferrer')} className="rounded-xl border border-gray-200 bg-white px-3 py-3 text-center text-xs font-black text-[#333] hover:border-[#0074E0]/40 disabled:opacity-50" disabled={!businessLocation}>Cómo llegar</button>
+                      <button type="button" onClick={() => websiteHref && window.open(websiteHref, '_blank', 'noopener,noreferrer')} disabled={!websiteHref} className="rounded-xl border border-gray-200 bg-white px-3 py-3 text-center text-xs font-black text-[#333] hover:border-[#0074E0]/40 disabled:opacity-50">Sitio web</button>
                       <button type="button" onClick={() => onRequestQuote(currentAgency)} className="rounded-xl bg-[#0074E0] hover:bg-[#005fc0] px-3 py-3 text-center text-xs font-black text-white">Cotizar</button>
                     </div>
                   </div>

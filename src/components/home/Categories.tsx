@@ -1,13 +1,18 @@
 import { motion } from 'motion/react';
-import { CATEGORIES } from '@/data';
+import type { MarketplaceCategory } from '@/types';
 import { Layers } from 'lucide-react';
 
 interface CategoriesProps {
+  categories: MarketplaceCategory[];
   onSelectCategory: (serviceName: string) => void;
   activeCategory: string | null;
 }
 
-export default function Categories({ onSelectCategory, activeCategory }: CategoriesProps) {
+function getCategoryImage(category: MarketplaceCategory): string {
+  return category.imageUrl || `https://source.boringavatars.com/marble/600/${encodeURIComponent(category.name)}?colors=D32323,0074E0,0B1F3A,F5F5F5,333333`;
+}
+
+export default function Categories({ categories, onSelectCategory, activeCategory }: CategoriesProps) {
   return (
     <section id="categories" className="py-20 bg-white border-t border-b border-gray-150 scroll-mt-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -34,8 +39,13 @@ export default function Categories({ onSelectCategory, activeCategory }: Categor
           )}
         </div>
 
+        {categories.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
+            <p className="text-sm font-black text-gray-500">No hay categorías disponibles en este momento.</p>
+          </div>
+        ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {CATEGORIES.map((cat) => {
+          {categories.map((cat) => {
             const isSelected = activeCategory === cat.name;
 
             return (
@@ -52,7 +62,8 @@ export default function Categories({ onSelectCategory, activeCategory }: Categor
                 <img 
                   alt={cat.name} 
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 filter brightness-90 group-hover:brightness-95 select-none"
-                  src={cat.image}
+                  src={getCategoryImage(cat)}
+                  onError={(e) => { e.currentTarget.src = '/assets/fallback-category.svg'; }}
                   referrerPolicy="no-referrer"
                 />
 
@@ -72,7 +83,7 @@ export default function Categories({ onSelectCategory, activeCategory }: Categor
                     </div>
                     
                     <span className="shrink-0 bg-white text-[#D32323] px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-wider shadow-md opacity-95 group-hover:bg-[#D32323] group-hover:text-white transition-all duration-300">
-                      {cat.agenciesCount} agencias
+                      {cat.agenciesCount ?? 0} agencias
                     </span>
                   </div>
                 </div>
@@ -80,6 +91,7 @@ export default function Categories({ onSelectCategory, activeCategory }: Categor
             );
           })}
         </div>
+        )}
       </div>
     </section>
   );

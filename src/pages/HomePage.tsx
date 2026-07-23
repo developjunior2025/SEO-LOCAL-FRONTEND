@@ -16,6 +16,7 @@ export default function HomePage() {
   const handleHeroSearch = useHeroSearch();
   const {
     agenciesList,
+    marketplaceCategories,
     servicesList,
     searchState,
     setSearchState,
@@ -79,6 +80,7 @@ export default function HomePage() {
 
       {/* 3. Category Grid Component */}
       <Categories
+        categories={marketplaceCategories}
         onSelectCategory={handleCategorySelect}
         activeCategory={searchState.keyword}
       />
