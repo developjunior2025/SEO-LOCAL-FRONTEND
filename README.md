@@ -10,6 +10,7 @@ Frontend React + TypeScript + Vite del marketplace SEOLOCAL.
 - React Router (BrowserRouter)
 - Tailwind CSS
 - Lucide React
+- Vitest (tests unitarios)
 
 ## Scripts
 
@@ -18,8 +19,29 @@ npm install
 npm run dev
 npm run build
 npm run lint
+npm test
 npx tsc --noEmit
 ```
+
+## Variables de entorno
+
+Copia `.env.example` a `.env` y ajusta:
+
+```env
+# URL base del backend NestJS/PostgreSQL
+VITE_API_BASE_URL=http://localhost:4001/api/v1
+
+# Timeout por defecto para llamadas API (ms)
+VITE_API_TIMEOUT=30000
+
+# Modo desarrollo: autenticación demo por fallback
+VITE_ENABLE_DEMO_AUTH=false
+
+# Modo desarrollo: datos demo por fallback
+VITE_ENABLE_DEMO_DATA=false
+```
+
+> **Importante:** `VITE_ENABLE_DEMO_AUTH` y `VITE_ENABLE_DEMO_DATA` solo deben estar en `true` durante desarrollo local. En producción deben estar en `false` para forzar autenticación y datos reales.
 
 ## Estructura
 
@@ -30,9 +52,21 @@ src/
   pages/               Páginas enrutables
   routes/              Router y lazy loading
   state/               Estado global (AppState)
+  lib/                 Configuración de API, helpers y utilidades
+  services/            Clientes HTTP por dominio (admin, marketplace)
   data/                Datos mock y fixtures
   utils/               Helpers
 ```
+
+## Configuración de API
+
+La central `src/lib/apiConfig.ts` gestiona:
+
+- URL base, timeout y cabeceras JSON.
+- Prefijo automático `/api/v1` si no está presente.
+- Manejo de errores tipados (`ApiError`): `network`, `timeout`, `unauthorized`, `forbidden`, `server`, `credentials`, `client`, `unknown`.
+- Cierre de sesión automático al recibir `401`.
+- Hook personalizado `useApi` para cancelación con `AbortController`.
 
 ## Navegación principal
 
@@ -68,21 +102,49 @@ Una vez dentro del Command Center, las ocho pestañas permiten navegar por las d
 | Entregables y Aprobaciones | `/herramientas/auditorias?tab=files` |
 | Citaciones (Etapa 1 manual) | `/herramientas/citaciones` |
 
+### Integración con backend
+
+El frontend ahora consume el backend real siempre que esté disponible. Los endpoints principales conectados son:
+
+- Autenticación
+  - `POST /admin/auth/login`
+  - `GET /admin/auth/me`
+  - `POST /admin/auth/logout`
+- Dashboard administrativo
+  - `GET /admin/dashboard/summary`
+  - `GET /admin/agencies`
+  - `GET /admin/services`
+- Cliente (Command Center)
+  - `GET /client/audits/current`
+  - `GET /client/citations/draft`
+  - `PUT /client/citations/draft`
+
+Si el backend devuelve un error de red, timeout o credenciales, el sistema muestra mensajes específicos. Solo cuando `VITE_ENABLE_DEMO_AUTH=true` o `VITE_ENABLE_DEMO_DATA=true` se activan los datos de demostración como fallback.
+
 ### Credenciales de demostración
 
 | Rol | Email | Contraseña |
 |-----|-------|------------|
 | Cliente | `cliente@clinicasonrisa.com` | `Demo1234` |
 | Vendedor | `vendedor@seolocal.com` | `Demo1234` |
-| Admin | `admin@seolocal.com` | `Demo1234` |
+| Admin | `admin@seolocalmarketplace.com` | `AdminSEOlocal2026!` |
+
+> El login del administrador en el backend usa `admin@seolocalmarketplace.com`. El login por demo (cuando `VITE_ENABLE_DEMO_AUTH=true`) sigue permitiendo `admin@seolocal.com` / `Demo1234` como conveniencia local.
 
 ## Command Center 360
 
 - Ruta protegida `/herramientas/auditorias`.
 - La pestaña activa se controla con la query `tab`.
 - Sincronización con navegación Back/Forward.
-- Datos demostrativos centralizados en `src/features/tools-audits/data/clientAuditDemoData.ts`.
+- Datos cargados desde `GET /client/audits/current`.
 - Componentes desacoplados bajo `src/features/tools-audits/components/`.
+
+### Citaciones
+
+- Ruta `/herramientas/citaciones`.
+- Etapa 1: gestor manual de copiado y seguimiento en 20 directorios.
+- Estado persistente en backend vía `GET`/`PUT /client/citations/draft`.
+- Etapa 2 (automatización de formularios, bots, scraping o navegación remota) no está implementada.
 
 ## Convenciones
 
@@ -93,10 +155,28 @@ Una vez dentro del Command Center, las ocho pestañas permiten navegar por las d
 
 ## Estado global
 
-`AppStateProvider` expone catálogo, búsqueda, listas, modales y autenticación básica (`user`, `login`, `logout`).
+`AppStateProvider` expone:
+
+- `user`, `authLoading`, `authError`
+- `login(email, password)` — intenta backend; fallback demo solo con `VITE_ENABLE_DEMO_AUTH=true`
+- `logout()` — llama al backend y limpia estado/localStorage
+- `restoreSession()` — valida token vía `GET /admin/auth/me` al montar
+
+## Tests
+
+Vitest ejecuta tests unitarios para helpers críticos:
+
+```bash
+npm test
+```
+
+Tests actuales:
+
+- `src/lib/apiConfig.test.ts` — URL base, normalización de endpoint y creación de errores.
+- `src/lib/authHelpers.test.ts` — validación de email/password y credenciales demo.
 
 ## Notas
 
-- El backend PostgreSQL autónomo se consume cuando está disponible; de lo contrario se mantiene fallback mock.
-- La fase actual del Command Center usa datos demostrativos; la integración real con APIs externas queda fuera del alcance actual.
-- **Citaciones:** Etapa 1 implementada como gestor manual de copiado y seguimiento en 20 directorios. La Etapa 2 (automatización de formularios, bots, scraping o navegación remota) no está implementada.
+- El backend PostgreSQL autónomo se consume cuando está disponible; de lo contrario se mantiene fallback mock solo si las flags demo están activas.
+- La integración real de autenticación y de las secciones de auditoría/citaciones ya está operativa; los datos se persisten en el backend.
+- **Citaciones:** Etapa 1 implementada como gestor manual de copiado y seguimiento en 20 directorios. La Etapa 2 no está implementada.

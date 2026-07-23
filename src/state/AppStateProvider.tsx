@@ -1,16 +1,24 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { AGENCIES, MARKETPLACE_CATEGORIES, POPULAR_SERVICES } from '@/data';
 import type { Agency, Service, Offer, SearchState, MarketplaceCategory, User } from '@/types';
+import { ApiError } from '@/lib/apiConfig';
 import { marketplaceApi, type CreateLeadPayload } from '@/services/marketplaceApi';
-import { adminApi } from '@/services/adminApi';
-import { AUTH_STORAGE_KEY, DEMO_USERS, normalizeEmail } from './authHelpers';
+import { adminApi, clearAdminToken, type DashboardSession } from '@/services/adminApi';
+import {
+  AUTH_STORAGE_KEY,
+  mapBackendRoleToFrontend,
+  normalizeEmail,
+  tryDemoLogin,
+} from './authHelpers';
 
 export interface AppStateValue {
   // Auth
   user: User | null;
-  login: (email: string, password: string) => User | null;
-  loginWithBackend: (email: string, password: string) => Promise<User | null>;
+  authLoading: boolean;
+  authError: string | null;
+  login: (email: string, password: string) => Promise<User | null>;
   logout: () => void;
+  clearAuthError: () => void;
 
   // Catalog (bootstrapped from the API, falls back to local mock data — see marketplaceApi.getBootstrap()).
   agenciesList: Agency[];
@@ -88,57 +96,144 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [backendSource, setBackendSource] = useState<'postgresql' | 'mock'>('mock');
 
   // Auth
-  const [user, setUser] = useState<User | null>(() => {
-    if (typeof window === 'undefined') return null;
-    try {
-      const raw = window.localStorage.getItem(AUTH_STORAGE_KEY);
-      if (!raw) return null;
-      const parsed = JSON.parse(raw) as User;
-      if (parsed?.id && parsed?.email && parsed?.role) return parsed;
-      return null;
-    } catch {
-      return null;
-    }
-  });
+  const [user, setUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (user) {
-      window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
+  const clearAuthError = useCallback(() => setAuthError(null), []);
+
+  const persistUser = useCallback((nextUser: User | null) => {
+    setUser(nextUser);
+    if (typeof window === 'undefined') return;
+    if (nextUser) {
+      window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(nextUser));
     } else {
       window.localStorage.removeItem(AUTH_STORAGE_KEY);
     }
-  }, [user]);
+  }, []);
 
-  const login = (email: string, password: string): User | null => {
-    const normalized = normalizeEmail(email);
-    const found = DEMO_USERS.find((u) => normalizeEmail(u.email) === normalized);
-    if (!found) return null;
-    if (password !== 'Demo1234') return null;
-    setUser(found);
-    return found;
-  };
+  const mapSessionToUser = useCallback((session: DashboardSession): User => {
+    const backend = session.user;
+    return {
+      id: String(backend.id),
+      email: backend.login || '',
+      name: backend.name || backend.login || '',
+      role: mapBackendRoleToFrontend(backend.baseRole || backend.roleCode),
+      avatar: undefined,
+      roleCode: backend.roleCode,
+      roleName: backend.roleName,
+      permissions: backend.permissions,
+      agencyPartnerId: backend.agencyPartnerId,
+    };
+  }, []);
 
-  const loginWithBackend = async (email: string, password: string): Promise<User | null> => {
-    try {
-      const session = await adminApi.login(email, password);
-      const backendUser: User = {
-        id: String(session.user.id),
-        email: session.user.login || email,
-        name: session.user.name || session.user.login || email,
-        role: 'admin',
-        avatar: undefined,
-      };
-      setUser(backendUser);
-      window.dispatchEvent(new CustomEvent('seo-dashboard-login', { detail: session }));
-      return backendUser;
-    } catch {
-      return null;
+  const finalizeLogout = useCallback(() => {
+    persistUser(null);
+    setAuthError(null);
+    clearAdminToken();
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('seo-dashboard-logout'));
     }
-  };
+  }, [persistUser]);
 
-  const logout = () => {
-    setUser(null);
-  };
+  const handleAuthError = useCallback((error: unknown): string => {
+    if (error instanceof ApiError) {
+      if (error.code === 'unauthorized' || error.code === 'forbidden') {
+        finalizeLogout();
+        return 'Sesión inválida o expirada. Vuelve a iniciar sesión.';
+      }
+      if (error.code === 'network' || error.code === 'timeout') {
+        return 'No se pudo conectar con el servidor. Revisa tu conexión.';
+      }
+      if (error.code === 'server') {
+        return 'Error del servidor. Intenta de nuevo en unos minutos.';
+      }
+      if (error.code === 'credentials') {
+        return 'Credenciales incorrectas.';
+      }
+      return error.message || 'Error desconocido';
+    }
+    return error instanceof Error ? error.message : 'Error desconocido';
+  }, [finalizeLogout]);
+
+  const restoreSession = useCallback(async () => {
+    if (typeof window === 'undefined') {
+      setAuthLoading(false);
+      return;
+    }
+
+    const token = adminApi.token;
+    const cachedUserRaw = window.localStorage.getItem(AUTH_STORAGE_KEY);
+
+    if (!token) {
+      if (cachedUserRaw) window.localStorage.removeItem(AUTH_STORAGE_KEY);
+      setAuthLoading(false);
+      return;
+    }
+
+    try {
+      const session = await adminApi.me();
+      persistUser(mapSessionToUser(session));
+    } catch (error: unknown) {
+      finalizeLogout();
+      if (error instanceof ApiError) {
+        setAuthError(handleAuthError(error));
+      }
+    } finally {
+      setAuthLoading(false);
+    }
+  }, [mapSessionToUser, handleAuthError, persistUser, finalizeLogout]);
+
+  /* eslint-disable react-hooks/set-state-in-effect -- Restauración de sesión al montar; necesaria hasta migrar a React Query. */
+  useEffect(() => {
+    restoreSession();
+  }, [restoreSession]);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
+  useEffect(() => {
+    const handler = () => finalizeLogout();
+    window.addEventListener('seo-dashboard-logout', handler);
+    return () => window.removeEventListener('seo-dashboard-logout', handler);
+  }, [finalizeLogout]);
+
+  const login = useCallback(async (email: string, password: string): Promise<User | null> => {
+    setAuthLoading(true);
+    setAuthError(null);
+    try {
+      const normalized = normalizeEmail(email);
+      if (!normalized || !password) {
+        setAuthError('Ingresa email y contraseña.');
+        setAuthLoading(false);
+        return null;
+      }
+
+      try {
+        const session = await adminApi.login(email, password);
+        const nextUser = mapSessionToUser(session);
+        persistUser(nextUser);
+        window.dispatchEvent(new CustomEvent('seo-dashboard-login', { detail: session }));
+        return nextUser;
+      } catch (backendError: unknown) {
+        if (backendError instanceof ApiError && backendError.code !== 'network' && backendError.code !== 'timeout') {
+          const demoUser = tryDemoLogin(email, password);
+          if (demoUser) {
+            persistUser(demoUser);
+            return demoUser;
+          }
+        }
+        throw backendError;
+      }
+    } catch (error: unknown) {
+      setAuthError(handleAuthError(error));
+      return null;
+    } finally {
+      setAuthLoading(false);
+    }
+  }, [mapSessionToUser, handleAuthError, persistUser]);
+
+  const logout = useCallback(() => {
+    finalizeLogout();
+  }, [finalizeLogout]);
 
   // Aux Modals Visibility
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -151,13 +246,18 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const controller = new AbortController();
+    let cancelled = false;
 
-    marketplaceApi.getBootstrap(controller.signal)
-      .then(async (payload) => {
+    async function loadCatalog() {
+      try {
+        const payload = await marketplaceApi.getBootstrap(controller.signal);
+        const furServicesResponse = await marketplaceApi.getServices({ furOnly: true }, controller.signal);
+
+        if (cancelled) return;
+
         if (payload.categories?.length) setMarketplaceCategories(payload.categories);
         if (payload.agencies?.length) setAgenciesList(payload.agencies);
 
-        const furServicesResponse = await marketplaceApi.getServices({ furOnly: true }, controller.signal);
         const furServices = (furServicesResponse.items || [])
           .slice()
           .sort((a, b) => (a.furNumber || 9999) - (b.furNumber || 9999));
@@ -166,10 +266,6 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
           .slice()
           .sort((a, b) => (a.furNumber || 9999) - (b.furNumber || 9999));
 
-        // El home debe mostrar 8 tarjetas iniciales y permitir desplegar el catálogo completo.
-        // Si la API todavía devuelve solo los 4 servicios mock antiguos, no reemplazamos
-        // el fallback local de 45 FUR-Servicios. La migración 014 repara la BD, pero este
-        // guard evita que el home vuelva a quedar limitado a 4 tarjetas.
         if (furServices.length >= 8) {
           setServicesList(furServices);
         } else if (bootstrapFurServices.length >= 8) {
@@ -180,14 +276,20 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
         setBackendSource('postgresql');
         console.info(`[SEO Local] Datos conectados a PostgreSQL autónomo: ${payload.meta.database}`);
-      })
-      .catch((error) => {
+      } catch (error: unknown) {
         if (error instanceof DOMException && error.name === 'AbortError') return;
+        if (cancelled) return;
         setBackendSource('mock');
         console.warn('[SEO Local] La API PostgreSQL no está disponible; se mantienen los datos mock.', error);
-      });
+      }
+    }
 
-    return () => controller.abort();
+    loadCatalog();
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
   }, []);
 
   const triggerToast = (msg: string) => {
@@ -307,9 +409,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   const value: AppStateValue = {
     user,
+    authLoading,
+    authError,
     login,
-    loginWithBackend,
     logout,
+    clearAuthError,
     agenciesList,
     marketplaceCategories,
     servicesList,

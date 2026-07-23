@@ -1,6 +1,5 @@
+import { apiFetch } from '@/lib/apiConfig';
 import { Agency, AgencyProfilePayload, MarketplaceCategory, Service } from '../types';
-
-const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:4000/api/v1').replace(/\/$/, '');
 
 export interface MarketplaceBootstrapPayload {
   meta: {
@@ -619,22 +618,8 @@ export type FunctionalModuleCode = 'audit-seo-local' | 'google-business-profile'
 
 export type FunctionalEvaluationPayload = Record<string, string | number | boolean | undefined | null>;
 
-async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_BASE}${path}`, {
-    ...init,
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      ...(init?.headers || {}),
-    },
-  });
-
-  const payload = await response.json().catch(() => null);
-  if (!response.ok) {
-    const detail = payload?.error || payload?.message || `HTTP ${response.status}`;
-    throw new Error(`API del marketplace: ${detail}`);
-  }
-  return payload as T;
+async function requestJson<T>(path: string, init?: RequestInit, signal?: AbortSignal): Promise<T> {
+  return apiFetch<T>(path, init, { signal });
 }
 
 const toolPathByModule: Record<FunctionalModuleCode, string> = {
@@ -654,10 +639,8 @@ const toolPathByModule: Record<FunctionalModuleCode, string> = {
 };
 
 export const marketplaceApi = {
-  baseUrl: API_BASE,
-
   getBootstrap(signal?: AbortSignal) {
-    return requestJson<MarketplaceBootstrapPayload>('/bootstrap', { signal });
+    return requestJson<MarketplaceBootstrapPayload>('/bootstrap', {}, signal);
   },
 
   getHealth(signal?: AbortSignal) {

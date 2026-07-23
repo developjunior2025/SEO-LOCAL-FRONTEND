@@ -6,6 +6,7 @@ import {
   DashboardSession,
   DashboardUser,
 } from '@/services/adminApi';
+import { ApiError } from '@/lib/apiConfig';
 import type { LucideIcon } from 'lucide-react';
 import {
   Activity,
@@ -340,20 +341,28 @@ function coerceValue(field: FieldDef, value: unknown) {
 }
 
 function LoginCard() {
-  const [login, setLogin] = useState('admin@seolocalmarketplace.com');
-  const [password, setPassword] = useState('AdminSEOlocal2026!');
+  const [login, setLogin] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
     setError('');
+    if (!login.trim() || !password.trim()) {
+      setError('Ingresa usuario y contraseña.');
+      return;
+    }
     setLoading(true);
     try {
       const session = await adminApi.login(login, password);
       window.dispatchEvent(new CustomEvent('seo-dashboard-login', { detail: session }));
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'No se pudo iniciar sesión.');
+      if (err instanceof Error && err.message.includes('No se pudo conectar')) {
+        setError('No se pudo conectar con el servidor. Verifica que el backend esté corriendo.');
+      } else {
+        setError(err instanceof Error ? err.message : 'No se pudo iniciar sesión.');
+      }
     } finally {
       setLoading(false);
     }
@@ -372,19 +381,19 @@ function LoginCard() {
         <div className="px-10 py-9 space-y-5">
           <label className="block">
             <span className="text-xs font-black uppercase text-gray-500">Usuario</span>
-            <input value={login} onChange={(e) => setLogin(e.target.value)} className="mt-2 w-full rounded-2xl border border-gray-200 px-5 py-4 outline-none focus:border-[#D32323]" />
+            <input value={login} onChange={(e) => setLogin(e.target.value)} placeholder="admin@seolocalmarketplace.com" className="mt-2 w-full rounded-2xl border border-gray-200 px-5 py-4 outline-none focus:border-[#D32323]" />
           </label>
           <label className="block">
             <span className="text-xs font-black uppercase text-gray-500">Contraseña</span>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="mt-2 w-full rounded-2xl border border-gray-200 px-5 py-4 outline-none focus:border-[#D32323]" />
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="mt-2 w-full rounded-2xl border border-gray-200 px-5 py-4 outline-none focus:border-[#D32323]" />
           </label>
           {error && <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-bold text-[#D32323]">{error}</div>}
           <button disabled={loading} className="w-full rounded-2xl bg-[#D32323] px-5 py-4 text-white font-black shadow-lg hover:bg-[#b51d1d] disabled:opacity-60">
             {loading ? 'Validando...' : 'Entrar al dashboard'}
           </button>
           <div className="rounded-2xl bg-gray-50 border border-gray-200 p-4 text-xs text-gray-600">
-            <p className="font-black text-[#333] mb-2">Usuarios creados por rol:</p>
-            <p>superadmin@ / admin@seolocalmarketplace.com · Owner · Agencia · Soporte · Ventas · Contenido · Analyst.</p>
+            <p className="font-black text-[#333] mb-2">Roles disponibles:</p>
+            <p>Superadmin · Owner · Agencia · Soporte · Ventas · Contenido · Analyst.</p>
           </div>
         </div>
       </form>
@@ -1077,8 +1086,11 @@ export default function DashboardPage() {
       if (!adminApi.token) return;
       const me = await adminApi.me();
       setSession(me);
-    } catch {
+    } catch (error: unknown) {
       clearAdminToken();
+      if (error instanceof ApiError && (error.code === 'unauthorized' || error.code === 'forbidden')) {
+        window.dispatchEvent(new CustomEvent('seo-dashboard-logout'));
+      }
     } finally {
       setChecking(false);
     }
@@ -1121,7 +1133,7 @@ export default function DashboardPage() {
               <p className="text-xs font-semibold text-gray-500">{user?.login} · {user?.roleName} · Agencia asignada: {user?.agencyPartnerId || 'No aplica'}</p>
             </div>
           </div>
-          <button onClick={() => { clearAdminToken(); setSession(null); }} className="rounded-2xl border border-gray-200 px-4 py-3 text-sm font-black text-[#333] hover:bg-gray-50 inline-flex items-center gap-2"><LogOut className="w-4 h-4" /> Cerrar sesión</button>
+          <button onClick={() => { clearAdminToken(); setSession(null); window.dispatchEvent(new CustomEvent('seo-dashboard-logout')); }} className="rounded-2xl border border-gray-200 px-4 py-3 text-sm font-black text-[#333] hover:bg-gray-50 inline-flex items-center gap-2"><LogOut className="w-4 h-4" /> Cerrar sesión</button>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-[310px_1fr] gap-6">

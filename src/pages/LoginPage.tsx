@@ -7,42 +7,31 @@ import { redirectAfterLogin } from '@/components/toolsDropdownConfig';
 export default function LoginPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, login, loginWithBackend } = useAppState();
+  const { user, authLoading, authError, login, clearAuthError } = useAppState();
   const returnTo = useMemo(() => searchParams.get('returnTo'), [searchParams]);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (user) {
+    if (user && !authLoading) {
       navigate(redirectAfterLogin(user.role, returnTo));
     }
-  }, [user, returnTo, navigate]);
+  }, [user, authLoading, returnTo, navigate]);
+
+  useEffect(() => {
+    clearAuthError();
+  }, [clearAuthError]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setLoading(true);
-    try {
-      const backendResult = await loginWithBackend(email, password);
-      if (backendResult) {
-        // Redirección se maneja en el effect cuando user cambia.
-        return;
-      }
-      const result = login(email, password);
-      if (!result) {
-        setError('Credenciales incorrectas. Usa las credenciales de demostración.');
-        setLoading(false);
-        return;
-      }
-      // Redirección se maneja en el effect cuando user cambia.
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo iniciar sesión.');
-      setLoading(false);
-    }
+    setSubmitting(true);
+    await login(email, password);
+    setSubmitting(false);
   };
+
+  const loading = authLoading || submitting;
 
   return (
     <section className="min-h-[calc(100vh-80px)] flex items-center justify-center bg-[#f5f5f5] px-4 py-12">
@@ -73,9 +62,10 @@ export default function LoginPage() {
               <input
                 required
                 type="email"
+                autoComplete="username"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="cliente@clinicasonrisa.com"
+                placeholder="tu@empresa.com"
                 className="w-full bg-white border border-gray-200 py-3 pl-10 pr-4 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-[#D32323]"
               />
             </div>
@@ -88,6 +78,7 @@ export default function LoginPage() {
               <input
                 required
                 type="password"
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
@@ -96,9 +87,9 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {error && (
+          {authError && (
             <div className="rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-xs font-bold text-[#D32323]">
-              {error}
+              {authError}
             </div>
           )}
 
@@ -112,15 +103,16 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="mt-6 rounded-xl bg-gray-50 border border-gray-200 p-4 text-[10px] text-gray-500 leading-relaxed">
-          <p className="font-bold text-gray-700 mb-1">Credenciales de demostración</p>
-          <ul className="space-y-1">
-            <li><strong>Cliente:</strong> cliente@clinicasonrisa.com / Demo1234</li>
-            <li><strong>Vendedor:</strong> vendedor@seolocal.com / Demo1234</li>
-            <li><strong>Admin local:</strong> admin@seolocal.com / Demo1234</li>
-            <li><strong>Admin backend:</strong> admin@seolocalmarketplace.com / AdminSEOlocal2026!</li>
-          </ul>
-        </div>
+        {import.meta.env.DEV && import.meta.env.VITE_ENABLE_DEMO_AUTH === 'true' && (
+          <div className="mt-6 rounded-xl bg-gray-50 border border-gray-200 p-4 text-[10px] text-gray-500 leading-relaxed">
+            <p className="font-bold text-gray-700 mb-1">Credenciales de demostración</p>
+            <ul className="space-y-1">
+              <li><strong>Cliente:</strong> cliente@clinicasonrisa.com / Demo1234</li>
+              <li><strong>Vendedor:</strong> vendedor@seolocal.com / Demo1234</li>
+              <li><strong>Admin:</strong> admin@seolocalmarketplace.com / AdminSEOlocal2026!</li>
+            </ul>
+          </div>
+        )}
       </div>
     </section>
   );

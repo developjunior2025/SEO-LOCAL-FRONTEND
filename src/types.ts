@@ -213,4 +213,8 @@ export interface User {
   name: string;
   role: UserRole;
   avatar?: string;
+  roleCode?: string;
+  roleName?: string;
+  permissions?: string[];
+  agencyPartnerId?: number | null;
 }

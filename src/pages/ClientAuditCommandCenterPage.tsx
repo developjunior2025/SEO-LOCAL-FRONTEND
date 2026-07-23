@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { AlertCircle, RefreshCw } from 'lucide-react';
 import { isValidAuditTab, type AuditTabKey } from '@/components/toolsDropdownConfig';
-import { clientAuditDemoData as data } from '@/features/tools-audits/data/clientAuditDemoData';
+import { useClientAudit } from '@/features/tools-audits/hooks/useClientAudit';
 import AuditShell from '@/features/tools-audits/components/AuditShell';
 import AuditStoryPanel from '@/features/tools-audits/components/AuditStoryPanel';
 import AuditOrbitCockpit from '@/features/tools-audits/components/AuditOrbitCockpit';
@@ -17,9 +18,44 @@ import AuditSemPanel from '@/features/tools-audits/components/AuditSemPanel';
 import AuditDeliverablesPanel from '@/features/tools-audits/components/AuditDeliverablesPanel';
 import '@/features/tools-audits/styles/command-center-360.css';
 
+function AuditSkeleton() {
+  return (
+    <div className="space-y-4 animate-pulse">
+      <div className="grid lg:grid-cols-[1.2fr_0.8fr] gap-4">
+        <div className="h-48 bg-gray-200 rounded-2xl" />
+        <div className="h-48 bg-gray-200 rounded-2xl" />
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="h-24 bg-gray-200 rounded-xl" />
+        ))}
+      </div>
+      <div className="h-40 bg-gray-200 rounded-2xl" />
+    </div>
+  );
+}
+
+function AuditError({ message, onRetry }: { message: string; onRetry: () => void }) {
+  return (
+    <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center">
+      <AlertCircle className="w-8 h-8 text-[#D32323] mx-auto mb-3" />
+      <p className="text-sm font-black text-[#333] mb-2">No se pudo cargar la auditoría</p>
+      <p className="text-xs text-gray-600 mb-4">{message}</p>
+      <button
+        type="button"
+        onClick={onRetry}
+        className="inline-flex items-center gap-2 rounded-xl bg-[#D32323] text-white px-4 py-2 text-xs font-black hover:bg-[#b01c1c]"
+      >
+        <RefreshCw className="w-4 h-4" /> Reintentar
+      </button>
+    </div>
+  );
+}
+
 export default function ClientAuditCommandCenterPage() {
   const [searchParams] = useSearchParams();
   const [drawerKey, setDrawerKey] = useState<string | null>(null);
+  const { data, loading, error, retry } = useClientAudit();
 
   const activeTab: AuditTabKey = useMemo(() => {
     const raw = searchParams.get('tab');
@@ -27,8 +63,8 @@ export default function ClientAuditCommandCenterPage() {
   }, [searchParams]);
 
   const drawerDimension = useMemo(
-    () => data.dimensions.find((d) => d.key === drawerKey) || null,
-    [drawerKey]
+    () => data?.dimensions.find((d) => d.key === drawerKey) || null,
+    [data?.dimensions, drawerKey]
   );
 
   return (
@@ -38,7 +74,18 @@ export default function ClientAuditCommandCenterPage() {
       activeTab={activeTab}
     >
       <section className="pb-8">
-        {activeTab === 'summary' && (
+        {loading && <AuditSkeleton />}
+
+        {!loading && error && <AuditError message={error} onRetry={retry} />}
+
+        {!loading && !error && !data && (
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center">
+            <p className="text-sm font-black text-amber-900">No hay auditoría configurada</p>
+            <p className="text-xs text-amber-700 mt-1">Tu cuenta aún no tiene un proyecto de auditoría activo.</p>
+          </div>
+        )}
+
+        {data && activeTab === 'summary' && (
           <div className="space-y-3">
             <section className="cc360-hero mb-3">
               <div className="grid lg:grid-cols-[1.2fr_0.8fr] gap-4 relative z-[2]">
@@ -106,11 +153,11 @@ export default function ClientAuditCommandCenterPage() {
           </div>
         )}
 
-        {activeTab === 'proof' && (
+        {data && activeTab === 'proof' && (
           <AuditEvidenceChain chain={data.evidence.chain} ledger={data.evidence.ledger} />
         )}
 
-        {activeTab === 'rankings' && (
+        {data && activeTab === 'rankings' && (
           <AuditRankingsPanel
             kpis={data.rankings.kpis}
             geoKeyword={data.rankings.geoKeyword}
@@ -120,32 +167,26 @@ export default function ClientAuditCommandCenterPage() {
           />
         )}
 
-        {activeTab === 'listings' && (
+        {data && activeTab === 'listings' && (
           <AuditListingsPanel kpis={data.listings.kpis} directories={data.listings.directories} />
         )}
 
-        {activeTab === 'reviews' && (
+        {data && activeTab === 'reviews' && (
           <AuditReputationPanel kpis={data.reviews.kpis} topics={data.reviews.topics} queue={data.reviews.queue} />
         )}
 
-        {activeTab === 'site' && (
+        {data && activeTab === 'site' && (
           <AuditTechnicalSeoPanel kpis={data.site.kpis} issues={data.site.issues} />
         )}
 
-        {activeTab === 'ads' && (
+        {data && activeTab === 'ads' && (
           <AuditSemPanel kpis={data.ads.kpis} funnel={data.ads.funnel} campaigns={data.ads.campaigns} />
         )}
 
-        {activeTab === 'files' && (
+        {data && activeTab === 'files' && (
           <AuditDeliverablesPanel deliverables={data.files.deliverables} approvals={data.files.approvals} />
         )}
       </section>
-
-      <div className="text-center">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-white border border-gray-200 px-3 py-1.5 text-[10px] font-bold text-gray-500">
-          Datos demostrativos · sincronización real en próxima fase
-        </span>
-      </div>
 
       <AuditDetailDrawer
         dimension={drawerDimension}

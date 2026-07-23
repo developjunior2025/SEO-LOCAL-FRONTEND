@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Loader2, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import AuditShell from '../AuditShell';
 import CitationForm from './CitationForm';
@@ -10,9 +10,9 @@ import {
   createEmptyCitationDraft,
   exportCitationDraft,
   importCitationDraft,
-  loadCitationDraft,
-  saveCitationDraft,
+  saveCitationDraft as saveLocalCitationDraft,
 } from '../../services/citationStorage';
+import { useCitationDraft } from '../../hooks/useCitationDraft';
 import type { CitationDraft, CitationStepKey } from '../../types/citations';
 import { useAppState } from '@/state/useAppState';
 
@@ -36,14 +36,42 @@ function isMasterRecordComplete(draft: CitationDraft): boolean {
   return required.every(Boolean);
 }
 
+function CitationsSkeleton() {
+  return (
+    <div className="space-y-4 animate-pulse">
+      <div className="h-32 bg-gray-200 rounded-2xl" />
+      <div className="h-48 bg-gray-200 rounded-2xl" />
+      <div className="h-64 bg-gray-200 rounded-2xl" />
+    </div>
+  );
+}
+
+function CitationsError({ message, onRetry }: { message: string; onRetry: () => void }) {
+  return (
+    <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center">
+      <AlertCircle className="w-8 h-8 text-[#D32323] mx-auto mb-3" />
+      <p className="text-sm font-black text-[#333] mb-2">No se pudo cargar el borrador</p>
+      <p className="text-xs text-gray-600 mb-4">{message}</p>
+      <button
+        type="button"
+        onClick={onRetry}
+        className="inline-flex items-center gap-2 rounded-xl bg-[#D32323] text-white px-4 py-2 text-xs font-black hover:bg-[#b01c1c]"
+      >
+        <RefreshCw className="w-4 h-4" /> Reintentar
+      </button>
+    </div>
+  );
+}
+
 export default function CitationsManagerPage() {
   const navigate = useNavigate();
   const { triggerToast } = useAppState();
-  const [draft, setDraft] = useState<CitationDraft>(() => loadCitationDraft());
+  const { draft, loading, saving, error, setDraft, saveDraft, retry } = useCitationDraft();
+
   const [activeStep, setActiveStep] = useState<CitationStepKey>('account');
   const [lastSaved, setLastSaved] = useState<string | null>(null);
   const [selectedDirectoryIndex, setSelectedDirectoryIndex] = useState(0);
-  const [formOpen, setFormOpen] = useState(() => !isMasterRecordComplete(draft));
+  const [formOpen, setFormOpen] = useState(() => !draft || !isMasterRecordComplete(draft));
   const [copyOpen, setCopyOpen] = useState(false);
   const saveTimer = useRef<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -51,26 +79,30 @@ export default function CitationsManagerPage() {
 
   const scheduleSave = useCallback((nextDraft: CitationDraft) => {
     if (saveTimer.current) window.clearTimeout(saveTimer.current);
-    saveTimer.current = window.setTimeout(() => {
-      saveCitationDraft(nextDraft);
+    saveTimer.current = window.setTimeout(async () => {
+      saveLocalCitationDraft(nextDraft);
+      await saveDraft();
       const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      setLastSaved(`Guardado local: ${time}`);
+      setLastSaved(`Guardado: ${time}`);
     }, SAVE_DELAY);
-  }, []);
+  }, [saveDraft]);
 
   const handleDraftChange = useCallback((nextDraft: CitationDraft) => {
     setDraft(nextDraft);
     scheduleSave(nextDraft);
-  }, [scheduleSave]);
+  }, [setDraft, scheduleSave]);
 
-  const handleManualSave = () => {
-    saveCitationDraft(draft);
+  const handleManualSave = async () => {
+    if (!draft) return;
+    saveLocalCitationDraft(draft);
+    await saveDraft();
     const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    setLastSaved(`Guardado local: ${time}`);
+    setLastSaved(`Guardado: ${time}`);
     triggerToast('Borrador guardado');
   };
 
   const handleExport = () => {
+    if (!draft) return;
     const blob = new Blob([exportCitationDraft(draft)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -86,7 +118,7 @@ export default function CitationsManagerPage() {
       const imported = importCitationDraft(String(reader.result));
       if (imported) {
         setDraft(imported);
-        saveCitationDraft(imported);
+        saveLocalCitationDraft(imported);
         setFormOpen(!isMasterRecordComplete(imported));
         setCopyOpen(false);
         triggerToast('Datos importados');
@@ -127,6 +159,44 @@ export default function CitationsManagerPage() {
     });
   };
 
+  if (loading) {
+    return (
+      <AuditShell
+        title="Gestor manual de citaciones"
+        description="Registra una sola vez la información del negocio y copia cada campo en los 20 directorios incluidos."
+        activeTab="citations"
+      >
+        <CitationsSkeleton />
+      </AuditShell>
+    );
+  }
+
+  if (error) {
+    return (
+      <AuditShell
+        title="Gestor manual de citaciones"
+        description="Registra una sola vez la información del negocio y copia cada campo en los 20 directorios incluidos."
+        activeTab="citations"
+      >
+        <CitationsError message={error} onRetry={retry} />
+      </AuditShell>
+    );
+  }
+
+  if (!draft) {
+    return (
+      <AuditShell
+        title="Gestor manual de citaciones"
+        description="Registra una sola vez la información del negocio y copia cada campo en los 20 directorios incluidos."
+        activeTab="citations"
+      >
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center">
+          <p className="text-sm font-black text-amber-900">No se pudo inicializar el borrador</p>
+        </div>
+      </AuditShell>
+    );
+  }
+
   return (
     <AuditShell
       title="Gestor manual de citaciones"
@@ -142,6 +212,7 @@ export default function CitationsManagerPage() {
           <ArrowLeft className="w-3.5 h-3.5" /> Centro 360
         </button>
         <div className="flex items-center gap-2 flex-wrap justify-end">
+          {saving && <Loader2 className="w-3.5 h-3.5 animate-spin text-gray-400" />}
           <span className="text-[9px] text-gray-500 font-semibold">{lastSaved || 'Los cambios se guardan automáticamente.'}</span>
           <button type="button" onClick={handleClear} className="border border-gray-200 bg-white rounded-lg px-3 py-2 text-[9px] font-black text-[#333] hover:border-gray-300">Limpiar</button>
           <button type="button" onClick={handleExport} className="border border-gray-200 bg-white rounded-lg px-3 py-2 text-[9px] font-black text-[#333] hover:border-gray-300">Exportar JSON</button>
@@ -155,7 +226,7 @@ export default function CitationsManagerPage() {
               onChange={(e) => e.target.files?.[0] && handleImport(e.target.files[0])}
             />
           </label>
-          <button type="button" onClick={handleManualSave} className="bg-[#D32323] text-white rounded-lg px-3 py-2 text-[9px] font-black hover:bg-[#b01c1c]">Guardar borrador</button>
+          <button type="button" onClick={handleManualSave} disabled={saving} className="bg-[#D32323] text-white rounded-lg px-3 py-2 text-[9px] font-black hover:bg-[#b01c1c] disabled:opacity-60">Guardar borrador</button>
         </div>
       </div>
 
