@@ -1,6 +1,7 @@
 import { motion } from 'motion/react';
 import type { MarketplaceCategory } from '@/types';
 import { Layers } from 'lucide-react';
+import SafeImage from '@/components/SafeImage';
 
 interface CategoriesProps {
   categories: MarketplaceCategory[];
@@ -59,11 +60,10 @@ export default function Categories({ categories, onSelectCategory, activeCategor
                 }`}
               >
                 {/* Background Image */}
-                <img 
-                  alt={cat.name} 
+                <SafeImage
+                  alt={cat.name}
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 filter brightness-90 group-hover:brightness-95 select-none"
                   src={getCategoryImage(cat)}
-                  onError={(e) => { e.currentTarget.src = '/assets/fallback-category.svg'; }}
                   referrerPolicy="no-referrer"
                 />
 

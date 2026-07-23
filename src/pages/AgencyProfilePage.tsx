@@ -28,6 +28,7 @@ import { isDemoDataEnabled } from '@/lib/apiConfig';
 import { findServiceBySlug, normalizeServiceSlug, getServiceRoute, getServiceSlug } from '@/utils/serviceRoutes';
 import { useAppState } from '@/state/useAppState';
 import TeamMemberModal from '@/components/modals/TeamMemberModal';
+import SafeImage from '@/components/SafeImage';
 
 const money = new Intl.NumberFormat('es-CO', {
   style: 'currency',
@@ -439,7 +440,7 @@ export default function AgencyProfilePage() {
         <article id="profile-overview" className="space-y-5 overflow-visible">
           <div className="relative overflow-hidden rounded-none border-y border-gray-200 bg-[#071A2F] shadow-sm">
             <div className="absolute inset-0 bg-[#071A2F]" />
-            <img src={currentAgency.image} alt={currentAgency.name} className="absolute inset-0 w-full h-full object-cover opacity-35" />
+            <SafeImage src={currentAgency.image} alt={currentAgency.name} className="absolute inset-0 w-full h-full object-cover opacity-35" />
             <div className="absolute inset-0 bg-gradient-to-r from-[#071A2F] via-[#071A2F]/92 to-[#071A2F]/60" />
             <div className="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-[#071A2F] to-transparent" />
 
@@ -648,7 +649,7 @@ export default function AgencyProfilePage() {
 
               <div className="rounded-3xl border border-gray-200 bg-gray-50 p-5">
                 <div className="grid grid-cols-1 lg:grid-cols-[180px_1fr] gap-5">
-                  <img src={currentAgency.image} alt={businessName} className="h-40 lg:h-full min-h-[160px] w-full rounded-2xl object-cover border border-gray-200" />
+                  <SafeImage src={currentAgency.image} alt={businessName} className="h-40 lg:h-full min-h-[160px] w-full rounded-2xl object-cover border border-gray-200" />
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="text-2xl font-black text-[#333] truncate">{businessName}</h3>
@@ -843,7 +844,7 @@ export default function AgencyProfilePage() {
                     onClick={() => setSelectedTeamMember(member)}
                     className="rounded-2xl border border-gray-200 bg-gray-50 p-5 text-center transition-all hover:border-[#D32323]/40 hover:shadow-md hover:bg-white text-left"
                   >
-                    <img src={member.avatarUrl || fallbackAvatar} alt={member.name} className="w-20 h-20 rounded-full object-cover mx-auto ring-4 ring-white shadow" />
+                    <SafeImage src={member.avatarUrl || fallbackAvatar} alt={member.name} className="w-20 h-20 rounded-full object-cover mx-auto ring-4 ring-white shadow" />
                     <h3 className="mt-4 text-sm font-black text-[#333]">{member.name}</h3>
                     <p className="text-[10px] uppercase font-black text-[#D32323] mt-1">{member.roleTitle}</p>
                     <p className="mt-3 text-xs font-semibold text-gray-500 leading-relaxed">{member.bio}</p>

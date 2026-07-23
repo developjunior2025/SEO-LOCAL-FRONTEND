@@ -88,10 +88,44 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [selectedAgency, setSelectedAgency] = useState<Agency | null>(null);
   const [selectedPurchaseItem, setSelectedPurchaseItem] = useState<Service | Offer | null>(null);
 
-  // Lists & collections
-  const [favorites, setFavorites] = useState<string[]>([]);
-  const [cart, setCart] = useState<Service[]>([]);
-  const [compareServices, setCompareServices] = useState<Service[]>([]);
+  // Lists & collections (persisted locally; no backend requirement)
+  const [favorites, setFavorites] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      return JSON.parse(window.localStorage.getItem('seoLocalFavorites') || '[]');
+    } catch {
+      return [];
+    }
+  });
+  const [cart, setCart] = useState<Service[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      return JSON.parse(window.localStorage.getItem('seoLocalCart') || '[]');
+    } catch {
+      return [];
+    }
+  });
+  const [compareServices, setCompareServices] = useState<Service[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      return JSON.parse(window.localStorage.getItem('seoLocalCompareServices') || '[]');
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem('seoLocalFavorites', JSON.stringify(favorites));
+  }, [favorites]);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem('seoLocalCart', JSON.stringify(cart));
+  }, [cart]);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem('seoLocalCompareServices', JSON.stringify(compareServices));
+  }, [compareServices]);
   const [agenciesList, setAgenciesList] = useState<Agency[]>(() => (isDemoDataEnabled() ? AGENCIES : []));
   const [marketplaceCategories, setMarketplaceCategories] = useState<MarketplaceCategory[]>(() => (isDemoDataEnabled() ? MARKETPLACE_CATEGORIES : []));
   const [servicesList, setServicesList] = useState<Service[]>(() => (isDemoDataEnabled() ? POPULAR_SERVICES : []));

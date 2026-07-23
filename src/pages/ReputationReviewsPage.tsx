@@ -18,6 +18,7 @@ import {
   TrendingUp,
   UsersRound,
 } from 'lucide-react';
+import DemoPrice from '@/components/DemoPrice';
 import { Agency, Service } from '@/types';
 import { useAppState } from '@/state/useAppState';
 import { useFindAgencies } from '@/routes/navigation';
@@ -339,7 +340,7 @@ export default function ReputationReviewsPage() {
                 <card.icon className="ml-auto h-6 w-6 text-[#D32323]" />
                 <h3 className="mt-8 text-base font-black uppercase tracking-tight">{card.title}</h3>
                 <p className="mt-3 min-h-16 text-xs leading-5 text-gray-500">{card.desc}</p>
-                <div className="mt-5 border-t border-gray-200 pt-4 text-[11px] font-black text-gray-500">{card.price}</div>
+                <div className="mt-5 border-t border-gray-200 pt-4 text-[11px] font-black text-gray-500"><DemoPrice price={card.price}>{card.price}</DemoPrice></div>
               </div>
             ))}
           </div>
@@ -492,7 +493,7 @@ export default function ReputationReviewsPage() {
             </div>
             <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
               <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#D32323]">Herramientas pagas</p>
-              <div className="mt-5 space-y-3">{paidTools.map(([name, desc, price]) => <div key={name} className="rounded-xl border border-gray-100 p-4 flex items-center justify-between gap-4"><div><p className="text-xs font-black">{name}</p><p className="mt-1 text-[11px] text-gray-500">{desc}</p></div><span className="text-[10px] font-black text-[#0074E0]">{price}</span></div>)}</div>
+              <div className="mt-5 space-y-3">{paidTools.map(([name, desc, price]) => <div key={name} className="rounded-xl border border-gray-100 p-4 flex items-center justify-between gap-4"><div><p className="text-xs font-black">{name}</p><p className="mt-1 text-[11px] text-gray-500">{desc}</p></div><DemoPrice price={price} className="text-[10px] font-black text-[#0074E0]">{price}</DemoPrice></div>)}</div>
             </div>
           </div>
           <div className="mt-9 grid md:grid-cols-4 gap-5">
@@ -509,7 +510,7 @@ export default function ReputationReviewsPage() {
           <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-xl">
             <div className="flex items-center justify-between gap-4">
               <div><p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#D32323]">Cotizador modular</p><h2 className="mt-2 text-2xl font-black">Arma tu plan de reputación</h2></div>
-              <div className="rounded-2xl bg-[#111827] px-4 py-3 text-white"><p className="text-[10px] text-gray-400 font-black">Total estimado</p><p className="text-2xl font-black">${quoteResponse?.quote.estimatedPrice || liveQuote.estimatedPrice}</p></div>
+              <div className="rounded-2xl bg-[#111827] px-4 py-3 text-white"><p className="text-[10px] text-gray-400 font-black">Total estimado</p><p className="text-2xl font-black"><DemoPrice price={quoteResponse?.quote.estimatedPrice || liveQuote.estimatedPrice}>${quoteResponse?.quote.estimatedPrice || liveQuote.estimatedPrice}</DemoPrice></p></div>
             </div>
             <div className="mt-6 grid sm:grid-cols-2 gap-4">
               {modules.map((item) => (
@@ -562,7 +563,7 @@ export default function ReputationReviewsPage() {
               <div key={agency.id} className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
                 <div className="flex items-start justify-between gap-3"><div><h3 className="text-lg font-black">{agency.name}</h3><p className="text-xs text-gray-500">{agency.location}</p></div><div className="text-right"><p className="font-black text-[#D32323]">★ {agency.rating.toFixed(1)}</p><p className="text-[10px] text-gray-400">{agency.reviewsCount} reseñas</p></div></div>
                 <p className="mt-4 text-xs leading-5 text-gray-500 line-clamp-3">{agency.highlightReview}</p>
-                <div className="mt-5 flex items-center justify-between border-t border-gray-100 pt-4"><div><p className="text-[10px] font-black uppercase text-gray-400">Desde</p><p className="text-xl font-black">${agency.startingPrice}</p></div><button onClick={() => setContactAgency(agency)} className="rounded-xl bg-[#D32323] px-4 py-2 text-xs font-black text-white hover:bg-[#b01c1c]">Contactar</button></div>
+                <div className="mt-5 flex items-center justify-between border-t border-gray-100 pt-4"><div><p className="text-[10px] font-black uppercase text-gray-400">Desde</p><p className="text-xl font-black"><DemoPrice price={agency.startingPrice}>${agency.startingPrice}</DemoPrice></p></div><button onClick={() => setContactAgency(agency)} className="rounded-xl bg-[#D32323] px-4 py-2 text-xs font-black text-white hover:bg-[#b01c1c]">Contactar</button></div>
               </div>
             ))}
             {!reputationAgencies.length && <div className="md:col-span-2 xl:col-span-3 rounded-3xl border border-dashed border-gray-300 bg-white p-8 text-center"><AlertCircle className="mx-auto h-8 w-8 text-gray-400" /><h3 className="mt-3 font-black">No hay agencias con esos filtros</h3><p className="text-sm text-gray-500">Aumenta el presupuesto o cambia la búsqueda.</p></div>}

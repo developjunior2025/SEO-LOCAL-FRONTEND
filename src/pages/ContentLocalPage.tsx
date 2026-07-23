@@ -19,6 +19,8 @@ import {
   Star,
   Video,
 } from 'lucide-react';
+import DemoPrice from '@/components/DemoPrice';
+import { isDemoDataEnabled } from '@/lib/apiConfig';
 import type { Service } from '@/types';
 import { useAppState } from '@/state/useAppState';
 import { useFindAgencies } from '@/routes/navigation';
@@ -315,7 +317,7 @@ function ContentLocalPage() {
             <button onClick={() => onFindAgencies('Contenido Local')} className="text-xs font-black text-[#D32323] hover:underline">Ver todas las agencias →</button>
           </div>
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {serviceCards.map((item) => <div key={item.title} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md"><item.icon className="h-5 w-5 text-[#D32323]" /><h3 className="mt-5 text-sm font-black">{item.title}</h3><p className="mt-2 min-h-12 text-xs leading-6 text-gray-500">{item.desc}</p><div className="mt-5 border-t border-gray-100 pt-3 text-xs text-gray-500">{item.price}</div></div>)}
+            {serviceCards.map((item) => <div key={item.title} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md"><item.icon className="h-5 w-5 text-[#D32323]" /><h3 className="mt-5 text-sm font-black">{item.title}</h3><p className="mt-2 min-h-12 text-xs leading-6 text-gray-500">{item.desc}</p><div className="mt-5 border-t border-gray-100 pt-3 text-xs text-gray-500"><DemoPrice price={item.price}>{item.price}</DemoPrice></div></div>)}
           </div>
         </div>
       </section>
@@ -387,12 +389,12 @@ function ContentLocalPage() {
           <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
             <h2 className="text-xl font-black">Cotizador modular de contenido local</h2>
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
-              {modules.map((module) => <button type="button" key={module.key} onClick={() => toggleModule(module.key)} className={`rounded-2xl border p-4 text-left transition ${selectedModules[module.key] ? 'border-[#D32323] bg-red-50/50' : 'border-gray-200 bg-white hover:border-gray-300'}`}><div className="flex items-start justify-between gap-3"><module.icon className="h-5 w-5 text-[#D32323]" /><span className="text-xs font-black text-[#D32323]">${module.price}</span></div><h3 className="mt-3 text-sm font-black">{module.title}</h3><p className="mt-1 text-xs leading-5 text-gray-500">{module.desc}</p></button>)}
+              {modules.map((module) => <button type="button" key={module.key} onClick={() => toggleModule(module.key)} className={`rounded-2xl border p-4 text-left transition ${selectedModules[module.key] ? 'border-[#D32323] bg-red-50/50' : 'border-gray-200 bg-white hover:border-gray-300'}`}><div className="flex items-start justify-between gap-3"><module.icon className="h-5 w-5 text-[#D32323]" />{isDemoDataEnabled() && <span className="text-xs font-black text-[#D32323]">${module.price}</span>}</div><h3 className="mt-3 text-sm font-black">{module.title}</h3><p className="mt-1 text-xs leading-5 text-gray-500">{module.desc}</p></button>)}
             </div>
           </div>
           <aside className="rounded-3xl bg-slate-950 p-6 text-white shadow-sm h-fit sticky top-24">
             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Presupuesto estimado</p>
-            <div className="mt-3 text-5xl font-black">${quoteResponse?.quote.estimatedPrice || quotePreview.estimatedPrice}</div>
+            <div className="mt-3 text-5xl font-black"><DemoPrice price={quoteResponse?.quote.estimatedPrice || quotePreview.estimatedPrice}>${quoteResponse?.quote.estimatedPrice || quotePreview.estimatedPrice}</DemoPrice></div>
             <div className="mt-4 grid grid-cols-2 gap-3 text-center"><div className="rounded-xl bg-white/10 p-3"><div className="text-xl font-black">{quoteResponse?.quote.modulesCount || quotePreview.modulesCount}</div><p className="text-[10px] text-slate-400 uppercase">Módulos</p></div><div className="rounded-xl bg-white/10 p-3"><div className="text-xl font-black">{quoteResponse?.quote.estimatedHours || quotePreview.hours}h</div><p className="text-[10px] text-slate-400 uppercase">Trabajo</p></div></div>
             <button onClick={() => void handleQuote()} disabled={isQuoting} className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#D32323] px-5 py-3.5 text-xs font-black uppercase text-white hover:bg-[#b01c1c] disabled:opacity-60">{isQuoting ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />} Cotizar y contratar</button>
             {quoteResponse && <p className="mt-3 text-xs text-emerald-300">Cotización guardada: {quoteResponse.reference}</p>}
