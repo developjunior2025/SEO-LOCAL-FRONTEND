@@ -4,9 +4,12 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"npm:dev:backend\" \"wait-on http://localhost:4001/api/v1/health --timeout 120000 && npm run dev:frontend\"",
+    "dev": "node scripts/dev-orchestrator.mjs",
+    "dev:all": "node scripts/dev-orchestrator.mjs",
     "dev:frontend": "vite --open",
     "dev:backend": "npm --prefix ../../SEO-LOCAL-BACKEND-main run start:dev",
+    "dev:database": "node scripts/start-database.mjs",
+    "dev:wait-db": "wait-on tcp:127.0.0.1:5434 --timeout 120000",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
