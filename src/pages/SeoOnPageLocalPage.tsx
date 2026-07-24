@@ -26,6 +26,8 @@ import {
   Target,
   TrendingUp,
 } from 'lucide-react';
+import DemoPrice from '@/components/DemoPrice';
+import { isDemoDataEnabled } from '@/lib/apiConfig';
 import { Agency, Service } from '@/types';
 import { useAppState } from '@/state/useAppState';
 import { useFindAgencies } from '@/routes/navigation';
@@ -516,7 +518,7 @@ export default function SeoOnPageLocalPage() {
             </div>
             <div className="mt-6 grid grid-cols-2 gap-3">
               <div className="rounded-2xl bg-[#D32323] p-4 text-center text-white"><p className="text-[10px] font-black uppercase">ROI estimado</p><p className="text-2xl font-black">+{projected.roi}%</p></div>
-              <div className="rounded-2xl bg-[#333] p-4 text-center text-white"><p className="text-[10px] font-black uppercase">Inversión</p><p className="text-2xl font-black">${liveQuote.estimatedPrice} USD</p></div>
+              <div className="rounded-2xl bg-[#333] p-4 text-center text-white"><p className="text-[10px] font-black uppercase">Inversión</p><p className="text-2xl font-black"><DemoPrice price={liveQuote.estimatedPrice}>${liveQuote.estimatedPrice} USD</DemoPrice></p></div>
             </div>
           </div>
         </div>
@@ -536,7 +538,7 @@ export default function SeoOnPageLocalPage() {
               {onPageModules.map((item) => (
                 <button key={item.key} type="button" onClick={() => toggleModule(item.key)} className={`flex items-center justify-between gap-3 rounded-2xl border p-4 text-left transition ${selectedModules[item.key] ? 'border-red-200 bg-red-50' : 'border-gray-200 bg-white hover:border-gray-300'}`}>
                   <span className="flex items-center gap-3"><span className={`rounded-lg p-1 ${selectedModules[item.key] ? 'bg-[#D32323] text-white' : 'bg-gray-100 text-gray-500'}`}>{selectedModules[item.key] ? <Check className="h-3.5 w-3.5" /> : <item.icon className="h-3.5 w-3.5" />}</span><span className="text-xs font-black text-[#333]">{item.title}</span></span>
-                  <span className="text-xs font-black text-[#D32323]">${item.price}</span>
+                  {isDemoDataEnabled() && <span className="text-xs font-black text-[#D32323]">${item.price}</span>}
                 </button>
               ))}
             </div>
@@ -544,7 +546,7 @@ export default function SeoOnPageLocalPage() {
           </div>
           <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-xl h-fit">
             <p className="text-[10px] font-black uppercase tracking-[0.16em] text-gray-400">Presupuesto estimado</p>
-            <p className="mt-2 text-5xl font-black text-[#333]">${quoteResponse?.quote.estimatedPrice || liveQuote.estimatedPrice}</p>
+            <p className="mt-2 text-5xl font-black text-[#333]"><DemoPrice price={quoteResponse?.quote.estimatedPrice || liveQuote.estimatedPrice}>${quoteResponse?.quote.estimatedPrice || liveQuote.estimatedPrice}</DemoPrice></p>
             <p className="mt-2 text-xs font-bold text-gray-500">Entrega estimada: {quoteResponse?.quote.estimatedDeliveryDays || liveQuote.estimatedDeliveryDays} días</p>
             <p className="mt-1 text-xs font-bold text-gray-500">Módulos activos: {quoteResponse?.quote.modulesCount || liveQuote.activeCount}</p>
             {quoteResponse && <div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-xs font-bold text-emerald-700">Cotización guardada: {quoteResponse.reference}</div>}
@@ -567,7 +569,7 @@ export default function SeoOnPageLocalPage() {
                 <div className="flex items-start justify-between gap-4"><div><h3 className="text-lg font-black">{agency.name}</h3><p className="mt-1 text-xs font-semibold text-gray-500"><MapPin className="inline h-3.5 w-3.5 text-[#D32323]" /> {agency.location}</p></div><div className="text-right"><p className="font-black text-amber-500"><Star className="inline h-4 w-4 fill-amber-400" /> {agency.rating}</p><p className="text-[10px] text-gray-400">{agency.reviewsCount} reseñas</p></div></div>
                 <p className="mt-4 text-sm leading-6 text-gray-600">{agency.highlightReview}</p>
                 <div className="mt-4 flex flex-wrap gap-2">{agency.services.slice(0, 4).map((srv) => <span key={srv} className="rounded-full bg-gray-100 px-3 py-1 text-[10px] font-bold text-gray-600">{srv}</span>)}</div>
-                <div className="mt-5 flex items-center justify-between border-t border-gray-100 pt-4"><div><p className="text-[10px] font-black uppercase text-gray-400">Desde</p><p className="text-2xl font-black">${agency.startingPrice}</p></div><button onClick={() => { setContactAgency(agency); setContactStatus(null); }} className="rounded-xl bg-[#D32323] px-5 py-3 text-xs font-black text-white hover:bg-[#b01c1c]">Contactar</button></div>
+                <div className="mt-5 flex items-center justify-between border-t border-gray-100 pt-4"><div><p className="text-[10px] font-black uppercase text-gray-400">Desde</p><p className="text-2xl font-black"><DemoPrice price={agency.startingPrice}>${agency.startingPrice}</DemoPrice></p></div><button onClick={() => { setContactAgency(agency); setContactStatus(null); }} className="rounded-xl bg-[#D32323] px-5 py-3 text-xs font-black text-white hover:bg-[#b01c1c]">Contactar</button></div>
               </div>
             )) : <div className="md:col-span-2 rounded-3xl border border-dashed border-gray-300 bg-[#f8f8f8] p-10 text-center"><AlertCircle className="mx-auto mb-3 h-8 w-8 text-gray-400" /><p className="font-black">No hay agencias con esos filtros.</p><button onClick={() => onFindAgencies('Optimización de Contenido')} className="mt-3 text-sm font-black text-[#D32323]">Ver todas las agencias de contenido</button></div>}
           </div>

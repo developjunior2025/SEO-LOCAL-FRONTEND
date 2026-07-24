@@ -20,8 +20,8 @@ interface AgencyDetailsModalProps {
   agency: Agency | null;
   favorites: string[];
   onToggleFavorite: (id: string) => void;
-  onAddReview: (agencyId: string, rating: number, text: string, name: string) => void;
-  onHireAgency: (agency: Agency) => void;
+  onAddReview: (agencyId: string, rating: number, text: string, name: string) => void | Promise<void>;
+  onHireAgency: (agency: Agency) => void | Promise<void>;
 }
 
 export default function AgencyDetailsModal({

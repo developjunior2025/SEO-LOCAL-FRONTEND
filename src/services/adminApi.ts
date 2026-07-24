@@ -1,9 +1,6 @@
-import { resolveApiBases } from './apiBase';
+import { apiFetch, clearApiSession, DASHBOARD_TOKEN_KEY } from '@/lib/apiConfig';
 
-const TOKEN_KEY = 'seo_local_dashboard_token';
-const LAST_API_BASE_KEY = 'seo_local_dashboard_api_base';
-
-const API_BASES = resolveApiBases();
+const TOKEN_KEY = DASHBOARD_TOKEN_KEY;
 
 export type DashboardUser = {
   id: number;
@@ -32,52 +29,30 @@ export type AdminListResponse<T = Record<string, unknown>> = {
 };
 
 function getToken() {
+  if (typeof window === 'undefined') return '';
   return localStorage.getItem(TOKEN_KEY) || '';
 }
 
 function setToken(token: string) {
+  if (typeof window === 'undefined') return;
   localStorage.setItem(TOKEN_KEY, token);
 }
 
 export function clearAdminToken() {
+  if (typeof window === 'undefined') return;
   localStorage.removeItem(TOKEN_KEY);
+  clearApiSession();
 }
 
-function orderedBases() {
-  const last = localStorage.getItem(LAST_API_BASE_KEY);
-  if (last && API_BASES.includes(last)) return [last, ...API_BASES.filter((base) => base !== last)];
-  return API_BASES;
-}
-
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const headers = new Headers(options.headers || {});
-  headers.set('Content-Type', 'application/json');
-  const token = getToken();
-  if (token) headers.set('Authorization', `Bearer ${token}`);
-  const errors: string[] = [];
-
-  for (const base of orderedBases()) {
-    try {
-      const response = await fetch(`${base}${path}`, { ...options, headers });
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(payload.error || payload.message || `Error ${response.status}`);
-      localStorage.setItem(LAST_API_BASE_KEY, base);
-      return payload as T;
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : String(error);
-      errors.push(`${base}: ${message}`);
-      if (message && !/Failed to fetch|NetworkError|Load failed|fetch/i.test(message)) throw error;
-    }
-  }
-
-  throw new Error(`No se pudo conectar con la API. Detalle: ${errors.join(' | ')}`);
+async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+  return apiFetch<T>(path, init, { token: getToken() });
 }
 
 function post<T>(path: string, body: unknown) {
-  return request<T>(path, { method: 'POST', body: JSON.stringify(body || {}) });
+  return request<T>(path, { method: 'POST', body: JSON.stringify(body ?? {}) });
 }
 function put<T>(path: string, body: unknown) {
-  return request<T>(path, { method: 'PUT', body: JSON.stringify(body || {}) });
+  return request<T>(path, { method: 'PUT', body: JSON.stringify(body ?? {}) });
 }
 function del<T>(path: string) {
   return request<T>(path, { method: 'DELETE' });
@@ -91,7 +66,16 @@ export const adminApi = {
     setToken(payload.token);
     return payload;
   },
-  me: () => request<DashboardMeResponse>('/admin/auth/me'),
+  me: () => request<DashboardSession>('/admin/auth/me'),
+  logout: async () => {
+    try {
+      await request('/admin/auth/logout', { method: 'POST' });
+    } catch {
+      // Even if remote logout fails, clean local session.
+    } finally {
+      clearAdminToken();
+    }
+  },
 
   summary: () => request<Record<string, unknown>>('/admin/dashboard/summary'),
   reports: () => request<Record<string, unknown>>('/admin/reports/operational'),

@@ -32,7 +32,9 @@ import {
   Sparkles,
   CheckCircle2,
 } from 'lucide-react';
+import DemoPrice from '@/components/DemoPrice';
 import FunctionalCategoryModule from '@/components/services/FunctionalCategoryModule';
+import { isDemoDataEnabled } from '@/lib/apiConfig';
 import { useFindAgencies } from '@/routes/navigation';
 
 const valuePoints = [
@@ -366,7 +368,7 @@ export default function GoogleBusinessProfilePage() {
                 <Wrench className="h-4 w-4 text-[#ff5e6c]" />
                 <h3 className="text-sm font-black">Herramientas gratuitas</h3>
               </div>
-              <span className="rounded-full bg-white/10 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest">$0</span>
+              {isDemoDataEnabled() && <span className="rounded-full bg-white/10 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest">$0</span>}
             </div>
             <div className="p-5 space-y-4">
               {freeTools.map(([name, desc]) => (
@@ -387,7 +389,7 @@ export default function GoogleBusinessProfilePage() {
                 <Workflow className="h-4 w-4" />
                 <h3 className="text-sm font-black">Herramientas pagas (premium)</h3>
               </div>
-              <span className="rounded-full bg-white/15 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest">Desde $20/mes</span>
+              {isDemoDataEnabled() && <span className="rounded-full bg-white/15 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest">Desde $20/mes</span>}
             </div>
             <div className="p-5 space-y-4">
               {paidTools.map(([name, price]) => (
@@ -396,7 +398,7 @@ export default function GoogleBusinessProfilePage() {
                     <p className="text-sm font-bold text-[#333]">{name}</p>
                     <p className="mt-1 text-[11px] font-medium text-gray-400">SEO Local</p>
                   </div>
-                  <span className="text-sm font-black text-[#D32323]">{price}</span>
+                  <DemoPrice price={price} className="text-sm font-black text-[#D32323]">{price}</DemoPrice>
                 </div>
               ))}
             </div>

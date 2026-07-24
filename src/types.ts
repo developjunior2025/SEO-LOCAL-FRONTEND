@@ -40,6 +40,8 @@ export interface Agency {
   budgetMax?: number;
   audited?: boolean;
   profileCompleteness?: number;
+  coverageCities?: number;
+  memberSince?: string;
   status?: 'review' | string;
 }
 
@@ -83,10 +85,12 @@ export interface MarketplaceCategory {
   name: string;
   description: string;
   servicesCount: number;
+  agenciesCount?: number;
   iconName: string;
   keywords: string[];
   queryName: string;
   slug?: string;
+  imageUrl?: string;
 }
 
 export interface Offer {
@@ -95,7 +99,16 @@ export interface Offer {
   description: string;
   originalPrice: number;
   discountedPrice: number;
-  badge: string;
+  badge?: string;
+  subtitle?: string;
+  discountPercent?: number;
+  currencyCode?: string;
+  ctaLabel?: string;
+  ctaLink?: string;
+  imageUrl?: string;
+  startsAt?: string;
+  expiresAt?: string;
+  status?: 'active' | 'paused' | 'expired';
 }
 
 export interface SearchState {
@@ -213,4 +226,8 @@ export interface User {
   name: string;
   role: UserRole;
   avatar?: string;
+  roleCode?: string;
+  roleName?: string;
+  permissions?: string[];
+  agencyPartnerId?: number | null;
 }

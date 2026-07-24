@@ -20,6 +20,7 @@ import {
   TrendingUp,
   Users,
 } from 'lucide-react';
+import DemoPrice from '@/components/DemoPrice';
 import { Agency, Service } from '@/types';
 import { useAppState } from '@/state/useAppState';
 import { useFindAgencies } from '@/routes/navigation';
@@ -391,7 +392,7 @@ export default function LinkBuildingLocalPage() {
                     <ScoreBar label="Autoridad" value={opportunity.authorityScore} />
                     <ScoreBar label="Relevancia" value={opportunity.relevanceScore} />
                   </div>
-                  <p className="mt-4 text-sm font-black text-[#D32323]">${opportunity.estimatedCost} USD estimado</p>
+                  <p className="mt-4 text-sm font-black text-[#D32323]"><DemoPrice price={opportunity.estimatedCost}>${opportunity.estimatedCost} USD estimado</DemoPrice></p>
                 </motion.article>
               ))}
             </div>
@@ -453,7 +454,7 @@ export default function LinkBuildingLocalPage() {
               <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.16em] text-gray-400">Estimado</p>
-                  <p className="text-4xl font-black text-[#333]">${liveQuote.estimatedPrice}</p>
+                  <p className="text-4xl font-black text-[#333]"><DemoPrice price={liveQuote.estimatedPrice}>${liveQuote.estimatedPrice}</DemoPrice></p>
                   <p className="mt-1 text-xs font-bold text-gray-500">{liveQuote.totalLinks} enlaces · {liveQuote.estimatedDeliveryDays} días</p>
                 </div>
                 <button disabled={isQuoting} onClick={handleCreateQuote} className="rounded-xl bg-[#333] px-5 py-3.5 text-sm font-extrabold text-white transition hover:bg-black disabled:opacity-60">
@@ -512,7 +513,7 @@ export default function LinkBuildingLocalPage() {
               <div className="mt-4 flex items-center gap-2 text-xs font-bold text-gray-500"><Star className="h-4 w-4 fill-amber-400 text-amber-400" />{agency.rating} · {agency.reviewsCount} reseñas</div>
               <p className="mt-3 text-xs leading-relaxed font-medium text-gray-500 line-clamp-3">{agency.highlightReview}</p>
               <div className="mt-4 flex flex-wrap gap-1.5">{agency.services.slice(0, 4).map((service) => <span key={service} className="rounded-full bg-gray-100 px-2.5 py-1 text-[10px] font-bold text-gray-500">{service}</span>)}</div>
-              <div className="mt-5 flex items-center justify-between border-t border-gray-100 pt-4"><div><p className="text-[10px] font-black uppercase text-gray-400">Desde</p><p className="text-xl font-black text-[#333]">${agency.startingPrice}</p></div><button onClick={() => setContactAgency(agency)} className="rounded-xl bg-[#D32323] px-4 py-2.5 text-xs font-extrabold text-white hover:bg-[#b01c1c]">Contactar</button></div>
+              <div className="mt-5 flex items-center justify-between border-t border-gray-100 pt-4"><div><p className="text-[10px] font-black uppercase text-gray-400">Desde</p><p className="text-xl font-black text-[#333]"><DemoPrice price={agency.startingPrice}>${agency.startingPrice}</DemoPrice></p></div><button onClick={() => setContactAgency(agency)} className="rounded-xl bg-[#D32323] px-4 py-2.5 text-xs font-extrabold text-white hover:bg-[#b01c1c]">Contactar</button></div>
             </article>
           )) : <div className="md:col-span-2 xl:col-span-3 rounded-3xl border border-dashed border-gray-300 bg-white py-14 text-center"><ShieldAlert className="mx-auto h-10 w-10 text-gray-300" /><p className="mt-3 font-black text-[#333]">No hay agencias con esos filtros</p></div>}
         </div>
@@ -532,7 +533,7 @@ export default function LinkBuildingLocalPage() {
           <div className="relative z-10 w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl border border-gray-200">
             <div className="flex items-start justify-between gap-4"><div><p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#D32323]">Contacto directo</p><h3 className="mt-1 text-xl font-black text-[#333]">{contactAgency.name}</h3></div><button className="text-gray-400 hover:text-[#333]" onClick={() => setContactAgency(null)}>✕</button></div>
             <form onSubmit={handleContactAgency} className="mt-5 space-y-4">
-              <div className="rounded-2xl bg-gray-50 p-4 text-xs font-medium text-gray-500">Se enviará una solicitud al módulo comercial con presupuesto estimado de <strong>${liveQuote.estimatedPrice}</strong>.</div>
+              <div className="rounded-2xl bg-gray-50 p-4 text-xs font-medium text-gray-500">Se enviará una solicitud al módulo comercial con presupuesto estimado de <strong><DemoPrice price={liveQuote.estimatedPrice}>${liveQuote.estimatedPrice}</DemoPrice></strong>.</div>
               <textarea required rows={5} value={contactMessage} onChange={(e) => setContactMessage(e.target.value)} placeholder="Describe qué tipo de enlaces locales necesitas..." className={inputClass} />
               <button disabled={isContacting} className="w-full rounded-xl bg-[#D32323] px-5 py-3 text-sm font-extrabold text-white hover:bg-[#b01c1c] disabled:opacity-60"><MessageSquare className="mr-2 inline h-4 w-4" />{isContacting ? 'Enviando...' : 'Enviar solicitud'}</button>
               {contactStatus && <p className="text-xs font-bold text-[#333]">{contactStatus}</p>}

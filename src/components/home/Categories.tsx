@@ -1,11 +1,16 @@
 import { motion } from 'motion/react';
-import { Layers } from 'lucide-react';
 import type { MarketplaceCategory } from '@/types';
+import { Layers } from 'lucide-react';
+import SafeImage from '@/components/SafeImage';
 
 interface CategoriesProps {
   categories: MarketplaceCategory[];
   onSelectCategory: (serviceName: string) => void;
   activeCategory: string | null;
+}
+
+function getCategoryImage(category: MarketplaceCategory): string {
+  return category.imageUrl || `https://source.boringavatars.com/marble/600/${encodeURIComponent(category.name)}?colors=D32323,0074E0,0B1F3A,F5F5F5,333333`;
 }
 
 export default function Categories({ categories, onSelectCategory, activeCategory }: CategoriesProps) {
@@ -34,6 +39,11 @@ export default function Categories({ categories, onSelectCategory, activeCategor
           )}
         </div>
 
+        {categories.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
+            <p className="text-sm font-black text-gray-500">No hay categorías disponibles en este momento.</p>
+          </div>
+        ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {categories.map((category) => {
             const triggerName = category.queryName || category.name;
@@ -49,7 +59,16 @@ export default function Categories({ categories, onSelectCategory, activeCategor
                   isSelected ? 'border-[#D32323] ring-4 ring-red-100 shadow-lg' : 'border-transparent'
                 }`}
               >
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(211,35,35,0.24),transparent_34%),linear-gradient(180deg,#16202f,#111827)] group-hover:opacity-95 transition-all" />
+                {/* Background Image */}
+                <div className="absolute inset-0">
+                  <SafeImage
+                    alt={category.name}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 filter brightness-90 group-hover:brightness-95 select-none"
+                    src={getCategoryImage(category)}
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(211,35,35,0.24),transparent_34%),linear-gradient(180deg,rgba(17,24,39,0.15),rgba(17,24,39,0.92))] group-hover:opacity-95 transition-all" />
+                </div>
 
                 <div className="relative h-full p-5 flex flex-col justify-between">
                   <div className="inline-flex w-fit items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-white/80 border border-white/10">
@@ -70,7 +89,7 @@ export default function Categories({ categories, onSelectCategory, activeCategor
                     </div>
 
                     <span className="shrink-0 bg-white text-[#D32323] px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-wider shadow-md opacity-95 group-hover:bg-[#D32323] group-hover:text-white transition-all duration-300">
-                      {category.servicesCount} servicios
+                      {category.agenciesCount ?? 0} agencias
                     </span>
                   </div>
                 </div>
@@ -78,6 +97,7 @@ export default function Categories({ categories, onSelectCategory, activeCategor
             );
           })}
         </div>
+        )}
       </div>
     </section>
   );

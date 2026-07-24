@@ -1,29 +1,78 @@
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
-import { Offer, Service } from '@/types';
-import { Percent, Tag } from 'lucide-react';
+import type { Offer } from '@/types';
+import { marketplaceApi } from '@/services/marketplaceApi';
+import { isDemoDataEnabled } from '@/lib/apiConfig';
+import { SPECIAL_OFFERS } from '@/data';
+import { Percent, Tag, Loader2, AlertCircle } from 'lucide-react';
 
 interface OffersProps {
-  offers: Offer[];
-  sourceServicesCount: number;
-  onClaimOffer: (offer: Offer) => void;
+  onClaimOffer: (offer: Offer, payload?: { email: string; name?: string; phone?: string }) => Promise<void>;
 }
 
-export function buildHomeOffersFromServices(services: Service[]): Offer[] {
-  return services
-    .filter((service) => service.isPopular)
-    .slice(0, 2)
-    .map((service, index) => ({
-      id: `catalog-offer-${service.id}`,
-      title: service.title,
-      description: service.description,
-      originalPrice: service.price,
-      discountedPrice: service.price,
-      badge: index === 0 ? 'CATÁLOGO REAL' : 'SELECCIÓN ACTUAL',
-    }));
-}
+export default function Offers({ onClaimOffer }: OffersProps) {
+  const [offers, setOffers] = useState<Offer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [claiming, setClaiming] = useState<string | null>(null);
+  const [email, setEmail] = useState('');
 
-export default function Offers({ offers, sourceServicesCount, onClaimOffer }: OffersProps) {
-  if (offers.length === 0) return null;
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await marketplaceApi.getActiveOffers();
+        if (!cancelled) setOffers(response.items || []);
+      } catch {  // backend unavailable
+        if (isDemoDataEnabled()) {
+          setOffers(SPECIAL_OFFERS);
+        } else if (!cancelled) {
+          setError('No se pudieron cargar las ofertas.');
+          setOffers([]);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, []);
+
+  const activeOffers = useMemo(() => {
+    const now = new Date().toISOString();
+    return offers.filter((offer) => {
+      if (offer.status && offer.status !== 'active') return false;
+      if (offer.startsAt && offer.startsAt > now) return false;
+      if (offer.expiresAt && offer.expiresAt < now) return false;
+      return true;
+    });
+  }, [offers]);
+
+  if (loading) {
+    return (
+      <section id="offers" className="py-16 bg-gray-50 border-t border-b border-gray-150 scroll-mt-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-center gap-2 text-sm font-bold text-gray-500">
+          <Loader2 className="w-4 h-4 animate-spin" /> Cargando ofertas...
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section id="offers" className="py-12 bg-gray-50 border-t border-b border-gray-150 scroll-mt-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-center gap-2 text-sm font-bold text-gray-500">
+          <AlertCircle className="w-4 h-4 text-[#D32323]" /> {error}
+        </div>
+      </section>
+    );
+  }
+
+  if (activeOffers.length === 0) {
+    return null;
+  }
 
   return (
     <section id="offers" className="py-20 bg-gray-50 border-t border-b border-gray-150 scroll-mt-10">
@@ -33,64 +82,77 @@ export default function Offers({ offers, sourceServicesCount, onClaimOffer }: Of
             <span className="inline-flex items-center gap-1.5 bg-[#D32323]/10 text-[#D32323] text-xs font-black px-3.5 py-1.5 rounded-full uppercase tracking-wider">
               <Percent className="w-3.5 h-3.5" /> Catálogo operativo
             </span>
-
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-[#333] tracking-tight leading-tight">
               Selecciones destacadas del catálogo actual
             </h2>
-
             <p className="text-gray-500 font-medium text-sm sm:text-base leading-relaxed">
-              Estos servicios provienen del catálogo activo del marketplace. Se muestran como referencia comercial para continuar una solicitud real sin depender de promociones mock.
+              Nuestras agencias verificadas ofrecen paquetes especiales con descuentos temporales diseñados especialmente para nuevos clientes de SEO LOCAL.
             </p>
-
-            <div className="bg-white border border-gray-200 p-4 rounded-2xl shadow-sm space-y-2">
-              <span className="text-[10px] font-extrabold text-[#777] uppercase tracking-wider block">
-                SERVICIOS DISPONIBLES
-              </span>
-              <p className="text-sm font-bold text-[#333]">{sourceServicesCount} servicios reales listos para explorar y solicitar.</p>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-wider text-gray-500">Email para recibir ofertas</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="tu@empresa.com"
+                className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm font-bold text-[#333] outline-none focus:border-[#D32323]"
+              />
             </div>
           </div>
 
           <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-            {offers.map((offer) => (
-              <motion.div
-                key={offer.id}
-                whileHover={{ scale: 1.02 }}
-                className="bg-white p-6 sm:p-8 rounded-2xl border border-gray-200 shadow-lg relative flex flex-col hover:shadow-2xl transition-all duration-300"
-              >
-                <div className="absolute top-4 right-4 bg-[#D32323] text-white text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest shadow-sm">
-                  {offer.badge}
-                </div>
+            {activeOffers.map((offer) => {
+              const saveAmount = offer.originalPrice - offer.discountedPrice;
+              const discount = offer.discountPercent || Math.round((saveAmount / offer.originalPrice) * 100);
 
-                <span className="text-xs uppercase font-extrabold text-[#D32323] tracking-widest block mb-1">
-                  SELECCIÓN
-                </span>
-
-                <h3 className="font-extrabold text-lg sm:text-xl text-[#333] mb-3 leading-snug">
-                  {offer.title}
-                </h3>
-
-                <p className="text-xs text-gray-500 mb-6 font-medium leading-relaxed flex-1">
-                  {offer.description}
-                </p>
-
-                <div className="flex items-baseline gap-2 mb-6 pt-4 border-t border-gray-100">
-                  <span className="text-4xl font-black text-[#D32323]">
-                    ${offer.discountedPrice}
-                  </span>
-                  <span className="text-xs font-black text-gray-500 bg-gray-100 px-2 py-1.5 rounded-lg shrink-0 ml-auto">
-                    Precio actual del catálogo
-                  </span>
-                </div>
-
-                <button
-                  onClick={() => onClaimOffer(offer)}
-                  className="w-full bg-[#333] hover:bg-[#D32323] text-white cursor-pointer font-extrabold py-3.5 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 text-sm shadow-md"
+              return (
+                <motion.div
+                  key={offer.id}
+                  whileHover={{ scale: 1.02 }}
+                  className="bg-white p-6 sm:p-8 rounded-2xl border border-gray-200 shadow-lg relative flex flex-col hover:shadow-2xl transition-all duration-300"
                 >
-                  <Tag className="w-4 h-4" />
-                  <span>Solicitar este servicio</span>
-                </button>
-              </motion.div>
-            ))}
+                  <div className="absolute top-4 right-4 bg-[#D32323] text-white text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest shadow-sm">
+                    {discount}% DESCUENTO
+                  </div>
+
+                  <h3 className="font-extrabold text-lg sm:text-xl text-[#333] mb-3 leading-snug">
+                    {offer.title}
+                  </h3>
+
+                  <p className="text-xs text-gray-500 mb-6 font-medium leading-relaxed flex-1">
+                    {offer.description}
+                  </p>
+
+                  <div className="flex items-baseline gap-2 mb-6 pt-4 border-t border-gray-100">
+                    <span className="text-4xl font-black text-[#D32323]">
+                      ${offer.discountedPrice}
+                    </span>
+                    <span className="text-lg text-gray-400 font-bold line-through">
+                      ${offer.originalPrice}
+                    </span>
+                    <span className="text-xs font-black text-emerald-600 bg-emerald-50 px-2 py-1.5 rounded-lg shrink-0 ml-auto">
+                      Ahorras ${saveAmount}
+                    </span>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      if (!email) {
+                        alert('Ingresa tu email para reclamar la oferta.');
+                        return;
+                      }
+                      setClaiming(offer.id);
+                      onClaimOffer(offer, { email }).finally(() => setClaiming(null));
+                    }}
+                    disabled={claiming === offer.id}
+                    className="w-full bg-[#333] hover:bg-[#D32323] text-white cursor-pointer font-extrabold py-3.5 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 text-sm shadow-md disabled:opacity-60"
+                  >
+                    <Tag className="w-4 h-4" />
+                    <span>{claiming === offer.id ? 'Reclamando...' : 'Obtener esta oferta'}</span>
+                  </button>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </div>

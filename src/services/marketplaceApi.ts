@@ -1,7 +1,5 @@
-import { Agency, AgencyProfilePayload, MarketplaceCategory, Service } from '../types';
-import { getPrimaryApiBase } from './apiBase';
-
-const API_BASE = getPrimaryApiBase();
+import { apiFetch } from '@/lib/apiConfig';
+import { Agency, AgencyProfilePayload, MarketplaceCategory, Offer, Service } from '../types';
 
 export interface MarketplaceBootstrapPayload {
   meta: {
@@ -13,6 +11,7 @@ export interface MarketplaceBootstrapPayload {
   categories: MarketplaceCategory[];
   agencies: Agency[];
   services: Service[];
+  offers?: Offer[];
 }
 
 export interface AgenciesDirectoryResponse {
@@ -638,22 +637,8 @@ export type FunctionalModuleCode = 'audit-seo-local' | 'google-business-profile'
 
 export type FunctionalEvaluationPayload = Record<string, string | number | boolean | undefined | null>;
 
-async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_BASE}${path}`, {
-    ...init,
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      ...(init?.headers || {}),
-    },
-  });
-
-  const payload = await response.json().catch(() => null);
-  if (!response.ok) {
-    const detail = payload?.error || payload?.message || `HTTP ${response.status}`;
-    throw new Error(`API del marketplace: ${detail}`);
-  }
-  return payload as T;
+async function requestJson<T>(path: string, init?: RequestInit, signal?: AbortSignal): Promise<T> {
+  return apiFetch<T>(path, init, { signal });
 }
 
 const toolPathByModule: Record<FunctionalModuleCode, string> = {
@@ -673,10 +658,8 @@ const toolPathByModule: Record<FunctionalModuleCode, string> = {
 };
 
 export const marketplaceApi = {
-  baseUrl: API_BASE,
-
   getBootstrap(signal?: AbortSignal) {
-    return requestJson<MarketplaceBootstrapPayload>('/bootstrap', { signal });
+    return requestJson<MarketplaceBootstrapPayload>('/bootstrap', {}, signal);
   },
 
   getHealth(signal?: AbortSignal) {
@@ -809,5 +792,23 @@ export const marketplaceApi = {
     if (params?.moduleCode) query.set('moduleCode', params.moduleCode);
     const suffix = query.toString() ? `?${query.toString()}` : '';
     return requestJson<{ items: unknown[] }>(`/tools/assessments${suffix}`, { signal });
+  },
+
+  getActiveOffers(signal?: AbortSignal) {
+    return requestJson<{ items: Offer[] }>('/offers/active', { signal });
+  },
+
+  claimOffer(offerId: string, payload: { email: string; name?: string; phone?: string }) {
+    return requestJson<{ ok: boolean; reference: string }>(`/offers/${offerId}/claim`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  hireAgency(agencyIdentifier: string, payload: { name: string; email: string; phone?: string; company?: string; description?: string }) {
+    return requestJson<{ ok: boolean; reference: string }>(`/agencies/${encodeURIComponent(agencyIdentifier)}/hire`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
   },
 };

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { LucideIcon } from 'lucide-react';
 import {
   ArrowLeft,
@@ -316,6 +317,7 @@ function VisualImpactSimulator() {
 }
 
 export default function GbpVisualMediaServicePage({ service, relatedServices, onAddToCart, onBackToServices }: GbpVisualMediaServicePageProps) {
+  const navigate = useNavigate();
   const billing = formatBillingPeriod(service.billingPeriod);
   const delivery = service.deliveryDays ? `${service.deliveryDays} días` : '7 días';
 
@@ -352,7 +354,7 @@ export default function GbpVisualMediaServicePage({ service, relatedServices, on
                 <button type="button" onClick={() => onAddToCart(service)} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#D32323] px-6 py-3 text-sm font-black text-white shadow-lg shadow-red-900/15 transition hover:bg-[#b01c1c] active:scale-95">
                   <ShoppingBag className="h-4 w-4" /> Solicitar servicio
                 </button>
-                <button type="button" onClick={() => { window.location.hash = '#/categorias/google-business-profile'; }} className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-6 py-3 text-sm font-black text-[#333] transition hover:border-[#D32323]/40 hover:text-[#D32323] active:scale-95">
+                <button type="button" onClick={() => { navigate('/categorias/google-business-profile'); }} className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-6 py-3 text-sm font-black text-[#333] transition hover:border-[#D32323]/40 hover:text-[#D32323] active:scale-95">
                   Ver categoría GBP <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
@@ -620,7 +622,7 @@ export default function GbpVisualMediaServicePage({ service, relatedServices, on
             </div>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {relatedServices.slice(0, 4).map((item) => (
-                <button key={item.id} type="button" onClick={() => { window.location.hash = getServiceRoute(item); }} className="rounded-2xl border border-gray-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-1 hover:border-[#D32323]/30 hover:shadow-lg">
+                <button key={item.id} type="button" onClick={() => { navigate(getServiceRoute(item)); }} className="rounded-2xl border border-gray-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-1 hover:border-[#D32323]/30 hover:shadow-lg">
                   <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">{item.code}</p>
                   <h3 className="mt-2 line-clamp-2 text-sm font-black leading-tight text-[#333]">{item.title}</h3>
                   <p className="mt-3 line-clamp-2 text-xs leading-relaxed text-gray-500">{item.description}</p>

@@ -6,7 +6,6 @@ import {
   ClipboardCheck,
   Gauge,
   Loader2,
-  RefreshCcw,
   Save,
   SearchCheck,
   Sparkles,
@@ -14,6 +13,7 @@ import {
   Target,
   TrendingUp,
 } from 'lucide-react';
+import { isDemoDataEnabled } from '@/lib/apiConfig';
 import { FunctionalEvaluationPayload, FunctionalModuleCode, FunctionalResult, marketplaceApi } from '@/services/marketplaceApi';
 
 interface FunctionalCategoryModuleProps {
@@ -411,8 +411,22 @@ function gridTone(rank: number) {
   return 'bg-[#D32323] text-white';
 }
 
+const SOURCE_OPTIONS = [
+  { value: 'manual', label: 'Evaluación manual' },
+  { value: 'gbp', label: 'Google Business Profile' },
+  { value: 'ga4', label: 'Google Analytics 4' },
+  { value: 'gsc', label: 'Search Console' },
+  { value: 'ads', label: 'Google Ads' },
+  { value: 'import', label: 'Importación / otro' },
+];
+
+function getInitialData(moduleCode: FunctionalModuleCode): FunctionalEvaluationPayload {
+  if (isDemoDataEnabled()) return moduleDefaults[moduleCode] || {};
+  return { source: 'manual' };
+}
+
 export default function FunctionalCategoryModule({ moduleCode, title, eyebrow, description }: FunctionalCategoryModuleProps) {
-  const [formData, setFormData] = useState<FunctionalEvaluationPayload>(moduleDefaults[moduleCode] || {});
+  const [formData, setFormData] = useState<FunctionalEvaluationPayload>(() => getInitialData(moduleCode));
   const [result, setResult] = useState<FunctionalResult | null>(null);
   const [reference, setReference] = useState<string | null>(null);
   const [createdAt, setCreatedAt] = useState<string | null>(null);
@@ -455,6 +469,16 @@ export default function FunctionalCategoryModule({ moduleCode, title, eyebrow, d
             <p className="mt-3 max-w-2xl text-sm font-medium leading-relaxed text-gray-500">{description}</p>
 
             <form onSubmit={handleSubmit} className="mt-8 rounded-3xl border border-gray-200 bg-[#f8f8f8] p-5 sm:p-6 shadow-sm">
+              <div className="mb-4 rounded-xl border border-amber-100 bg-amber-50 px-4 py-3">
+                <label className="block text-[10px] font-black uppercase tracking-wider text-amber-800 mb-2">Origen de los datos</label>
+                <select
+                  value={String(formData.source || 'manual')}
+                  onChange={(event) => setFormData((current) => ({ ...current, source: event.target.value }))}
+                  className="w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm font-semibold text-[#333] outline-none focus:border-[#D32323]"
+                >
+                  {SOURCE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                </select>
+              </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 {fields.map((field) => (
                   <label key={field.name} className="block">
@@ -488,20 +512,22 @@ export default function FunctionalCategoryModule({ moduleCode, title, eyebrow, d
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#D32323] px-5 py-3.5 text-sm font-extrabold text-white shadow-md transition hover:bg-[#b01c1c] disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <SearchCheck className="h-4 w-4" />}
-                  Ejecutar módulo funcional
+                  Ejecutar evaluación manual
                 </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFormData(moduleDefaults[moduleCode] || {});
-                    setResult(null);
-                    setReference(null);
-                    setError(null);
-                  }}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-3.5 text-sm font-extrabold text-[#333] transition hover:border-[#333]"
-                >
-                  <RefreshCcw className="h-4 w-4" /> Reiniciar datos
-                </button>
+                {isDemoDataEnabled() && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormData(getInitialData(moduleCode));
+                      setResult(null);
+                      setReference(null);
+                      setError(null);
+                    }}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-3.5 text-sm font-extrabold text-[#333] transition hover:border-[#333]"
+                  >
+                    Reiniciar datos demo
+                  </button>
+                )}
               </div>
             </form>
           </div>
@@ -510,10 +536,15 @@ export default function FunctionalCategoryModule({ moduleCode, title, eyebrow, d
             <div className="rounded-3xl border border-gray-200 bg-white p-5 sm:p-6 shadow-xl">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#D32323]">Resultado en base de datos</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#D32323]">Resultado de evaluación</p>
                   <h3 className="mt-2 text-xl font-black tracking-tight text-[#333]">
                     {result ? result.headline : 'Aún sin evaluación'}
                   </h3>
+                  {result && (
+                    <p className="mt-1 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                      Fuente: {SOURCE_OPTIONS.find((o) => o.value === (formData.source || 'manual'))?.label || 'Manual'}
+                    </p>
+                  )}
                 </div>
                 <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#111827] text-white">
                   <Gauge className="h-6 w-6" />

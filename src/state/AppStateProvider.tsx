@@ -1,21 +1,32 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { AGENCIES, MARKETPLACE_CATEGORIES, POPULAR_SERVICES } from '@/data';
 import type { Agency, Service, Offer, SearchState, MarketplaceCategory, User } from '@/types';
+import { ApiError, isDemoDataEnabled } from '@/lib/apiConfig';
 import { marketplaceApi, type CreateLeadPayload } from '@/services/marketplaceApi';
-import { AUTH_STORAGE_KEY } from './authHelpers';
+import { adminApi, clearAdminToken, type DashboardSession } from '@/services/adminApi';
+import {
+  AUTH_STORAGE_KEY,
+  mapBackendRoleToFrontend,
+  normalizeEmail,
+  tryDemoLogin,
+} from './authHelpers';
 
 export interface AppStateValue {
   // Auth
   user: User | null;
-  login: (email: string, password: string) => User | null;
+  authLoading: boolean;
+  authError: string | null;
+  login: (email: string, password: string) => Promise<User | null>;
   logout: () => void;
+  clearAuthError: () => void;
 
-  // Catalog
+  // Catalog (bootstrapped from the API; mock data only when VITE_ENABLE_DEMO_DATA=true).
   agenciesList: Agency[];
   marketplaceCategories: MarketplaceCategory[];
   servicesList: Service[];
-  backendSource: 'postgresql' | 'mock';
-  isMarketplaceLoading: boolean;
-  marketplaceError: string | null;
+  backendSource: 'postgresql' | 'demo' | 'unavailable';
+  catalogLoading: boolean;
+  catalogError: string | null;
 
   // Search
   searchState: SearchState;
@@ -58,9 +69,9 @@ export interface AppStateValue {
   handleToggleCompareService: (srv: Service) => void;
   handleRemoveCompareService: (srvId: string) => void;
   handleClearCompareServices: () => void;
-  handleClaimOffer: (offer: Offer) => void;
-  handleAddReview: (agencyId: string, rating: number, text: string, name: string) => void;
-  handleHireAgency: (agency: Agency) => void;
+  handleClaimOffer: (offer: Offer, payload?: { email: string; name?: string; phone?: string }) => Promise<void>;
+  handleAddReview: (agencyId: string, rating: number, text: string, name: string, agencyIdentifier?: string) => Promise<void>;
+  handleHireAgency: (agency: Agency, payload?: { name: string; email: string; phone?: string; company?: string; description?: string }) => Promise<void>;
 }
 
 import { AppStateContext } from './AppStateContext';
@@ -77,31 +88,186 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [selectedAgency, setSelectedAgency] = useState<Agency | null>(null);
   const [selectedPurchaseItem, setSelectedPurchaseItem] = useState<Service | Offer | null>(null);
 
-  // Lists & collections
-  const [favorites, setFavorites] = useState<string[]>([]);
-  const [cart, setCart] = useState<Service[]>([]);
-  const [compareServices, setCompareServices] = useState<Service[]>([]);
-  const [agenciesList, setAgenciesList] = useState<Agency[]>([]);
-  const [marketplaceCategories, setMarketplaceCategories] = useState<MarketplaceCategory[]>([]);
-  const [servicesList, setServicesList] = useState<Service[]>([]);
-  const [backendSource, setBackendSource] = useState<'postgresql' | 'mock'>('mock');
-  const [isMarketplaceLoading, setIsMarketplaceLoading] = useState(true);
-  const [marketplaceError, setMarketplaceError] = useState<string | null>(null);
+  // Lists & collections (persisted locally; no backend requirement)
+  const [favorites, setFavorites] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      return JSON.parse(window.localStorage.getItem('seoLocalFavorites') || '[]');
+    } catch {
+      return [];
+    }
+  });
+  const [cart, setCart] = useState<Service[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      return JSON.parse(window.localStorage.getItem('seoLocalCart') || '[]');
+    } catch {
+      return [];
+    }
+  });
+  const [compareServices, setCompareServices] = useState<Service[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      return JSON.parse(window.localStorage.getItem('seoLocalCompareServices') || '[]');
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem('seoLocalFavorites', JSON.stringify(favorites));
+  }, [favorites]);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem('seoLocalCart', JSON.stringify(cart));
+  }, [cart]);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem('seoLocalCompareServices', JSON.stringify(compareServices));
+  }, [compareServices]);
+  const [agenciesList, setAgenciesList] = useState<Agency[]>(() => (isDemoDataEnabled() ? AGENCIES : []));
+  const [marketplaceCategories, setMarketplaceCategories] = useState<MarketplaceCategory[]>(() => (isDemoDataEnabled() ? MARKETPLACE_CATEGORIES : []));
+  const [servicesList, setServicesList] = useState<Service[]>(() => (isDemoDataEnabled() ? POPULAR_SERVICES : []));
+  const [backendSource, setBackendSource] = useState<'postgresql' | 'demo' | 'unavailable'>(() => (isDemoDataEnabled() ? 'demo' : 'postgresql'));
+  const [catalogError, setCatalogError] = useState<string | null>(() => (isDemoDataEnabled() ? null : null));
+  const [catalogLoading, setCatalogLoading] = useState(() => !isDemoDataEnabled());
 
   // Auth
   const [user, setUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
 
+  const clearAuthError = useCallback(() => setAuthError(null), []);
+
+  const persistUser = useCallback((nextUser: User | null) => {
+    setUser(nextUser);
+    if (typeof window === 'undefined') return;
+    if (nextUser) {
+      window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(nextUser));
+    } else {
+      window.localStorage.removeItem(AUTH_STORAGE_KEY);
+    }
+  }, []);
+
+  const mapSessionToUser = useCallback((session: DashboardSession): User => {
+    const backend = session.user;
+    return {
+      id: String(backend.id),
+      email: backend.login || '',
+      name: backend.displayName || backend.login || '',
+      role: mapBackendRoleToFrontend(backend.roleCode),
+      avatar: undefined,
+      roleCode: backend.roleCode,
+      roleName: backend.roleName,
+      permissions: backend.permissions,
+      agencyPartnerId: backend.agencyPartnerId,
+    };
+  }, []);
+
+  const finalizeLogout = useCallback(() => {
+    persistUser(null);
+    setAuthError(null);
+    clearAdminToken();
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('seo-dashboard-logout'));
+    }
+  }, [persistUser]);
+
+  const handleAuthError = useCallback((error: unknown): string => {
+    if (error instanceof ApiError) {
+      if (error.code === 'unauthorized' || error.code === 'forbidden') {
+        finalizeLogout();
+        return 'Sesión inválida o expirada. Vuelve a iniciar sesión.';
+      }
+      if (error.code === 'network' || error.code === 'timeout') {
+        return 'No se pudo conectar con el servidor. Revisa tu conexión.';
+      }
+      if (error.code === 'server') {
+        return 'Error del servidor. Intenta de nuevo en unos minutos.';
+      }
+      if (error.code === 'credentials') {
+        return 'Credenciales incorrectas.';
+      }
+      return error.message || 'Error desconocido';
+    }
+    return error instanceof Error ? error.message : 'Error desconocido';
+  }, [finalizeLogout]);
+
+  const restoreSession = useCallback(async () => {
+    if (typeof window === 'undefined') {
+      setAuthLoading(false);
+      return;
+    }
+
+    const token = adminApi.token;
+    const cachedUserRaw = window.localStorage.getItem(AUTH_STORAGE_KEY);
+
+    if (!token) {
+      if (cachedUserRaw) window.localStorage.removeItem(AUTH_STORAGE_KEY);
+      setAuthLoading(false);
+      return;
+    }
+
+    try {
+      const session = await adminApi.me();
+      persistUser(mapSessionToUser(session));
+    } catch (error: unknown) {
+      finalizeLogout();
+      if (error instanceof ApiError) {
+        setAuthError(handleAuthError(error));
+      }
+    } finally {
+      setAuthLoading(false);
+    }
+  }, [mapSessionToUser, handleAuthError, persistUser, finalizeLogout]);
+
+  /* eslint-disable react-hooks/set-state-in-effect -- Restauración de sesión al montar; necesaria hasta migrar a React Query. */
   useEffect(() => {
-    window.localStorage.removeItem(AUTH_STORAGE_KEY);
-  }, [user]);
+    restoreSession();
+  }, [restoreSession]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
-  const login = (_email: string, _password: string): User | null => {
-    return null;
-  };
+  // Note: `seo-dashboard-logout` is emitted by clearApiSession/adminApi.logout; other components may listen, but this provider does not re-trigger logout to avoid recursion.
 
-  const logout = () => {
-    setUser(null);
-  };
+  const login = useCallback(async (email: string, password: string): Promise<User | null> => {
+    setAuthLoading(true);
+    setAuthError(null);
+    try {
+      const normalized = normalizeEmail(email);
+      if (!normalized || !password) {
+        setAuthError('Ingresa email y contraseña.');
+        setAuthLoading(false);
+        return null;
+      }
+
+      try {
+        const session = await adminApi.login(email, password);
+        const nextUser = mapSessionToUser(session);
+        persistUser(nextUser);
+        window.dispatchEvent(new CustomEvent('seo-dashboard-login', { detail: session }));
+        return nextUser;
+      } catch (backendError: unknown) {
+        if (backendError instanceof ApiError && backendError.code !== 'network' && backendError.code !== 'timeout') {
+          const demoUser = tryDemoLogin(email, password);
+          if (demoUser) {
+            persistUser(demoUser);
+            return demoUser;
+          }
+        }
+        throw backendError;
+      }
+    } catch (error: unknown) {
+      setAuthError(handleAuthError(error));
+      return null;
+    } finally {
+      setAuthLoading(false);
+    }
+  }, [mapSessionToUser, handleAuthError, persistUser]);
+
+  const logout = useCallback(async () => {
+    await adminApi.logout();
+  }, []);
 
   // Aux Modals Visibility
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -114,33 +280,62 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const controller = new AbortController();
-    setIsMarketplaceLoading(true);
-    setMarketplaceError(null);
+    let cancelled = false;
 
-    marketplaceApi.getBootstrap(controller.signal)
-      .then((payload) => {
+    async function loadCatalog() {
+      if (isDemoDataEnabled()) {
+        if (!cancelled) setCatalogLoading(false);
+        return;
+      }
+      setCatalogLoading(true);
+      setCatalogError(null);
+      try {
+        const payload = await marketplaceApi.getBootstrap(controller.signal);
+        const furServicesResponse = await marketplaceApi.getServices({ furOnly: true }, controller.signal);
+
+        if (cancelled) return;
+
         if (payload.categories?.length) setMarketplaceCategories(payload.categories);
         if (payload.agencies?.length) setAgenciesList(payload.agencies);
 
-        const bootstrapServices = (payload.services || [])
+        const furServices = (furServicesResponse.items || [])
           .slice()
           .sort((a, b) => (a.furNumber || 9999) - (b.furNumber || 9999));
 
-        setServicesList(bootstrapServices);
+        const bootstrapFurServices = (payload.services || [])
+          .slice()
+          .sort((a, b) => (a.furNumber || 9999) - (b.furNumber || 9999));
+
+        if (furServices.length >= 8) {
+          setServicesList(furServices);
+        } else if (bootstrapFurServices.length >= 8) {
+          setServicesList(bootstrapFurServices);
+        } else {
+          console.warn(`[SEO Local] Catálogo FUR incompleto en API (${furServices.length || bootstrapFurServices.length}).`);
+        }
 
         setBackendSource('postgresql');
-        setIsMarketplaceLoading(false);
         console.info(`[SEO Local] Datos conectados a PostgreSQL autónomo: ${payload.meta.database}`);
-      })
-      .catch((error) => {
+      } catch (error: unknown) {
         if (error instanceof DOMException && error.name === 'AbortError') return;
-        setBackendSource('mock');
-        setMarketplaceError(error instanceof Error ? error.message : 'No se pudo cargar el marketplace.');
-        setIsMarketplaceLoading(false);
-        console.warn('[SEO Local] La API PostgreSQL no está disponible.', error);
-      });
+        if (cancelled) return;
+        setBackendSource('unavailable');
+        setAgenciesList([]);
+        setMarketplaceCategories([]);
+        setServicesList([]);
+        setCatalogError('No se pudo cargar el catálogo. Verifica que el backend esté disponible.');
+        console.warn('[SEO Local] La API PostgreSQL no está disponible; catálogo vacío hasta que se recupere.', error);
+      } finally {
+        if (!cancelled) setCatalogLoading(false);
+      }
+    }
 
-    return () => controller.abort();
+    loadCatalog();
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
   }, []);
 
   const triggerToast = (msg: string) => {
@@ -222,63 +417,63 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   };
 
   // Claim a promotional special offer
-  const handleClaimOffer = (offer: Offer) => {
-    setSelectedPurchaseItem(offer);
-  };
-
-  // Action callback when adding a fully-real review in detail panel
-  const handleAddReview = (agencyId: string, rating: number, text: string, name: string) => {
-    void name;
-    setAgenciesList((prev) =>
-      prev.map((agency) => {
-        if (agency.id === agencyId) {
-          const newReviewsCount = agency.reviewsCount + 1;
-          const newRating = (agency.rating * agency.reviewsCount + rating) / newReviewsCount;
-          return {
-            ...agency,
-            rating: Math.min(newRating, 5.0),
-            reviewsCount: newReviewsCount,
-            highlightReview: text,
-          };
-        }
-        return agency;
-      })
-    );
-    triggerToast('Reseña enviada desde esta vista. La ficha pública real depende del backend.');
-  };
-
-  const handleHireAgency = (agency: Agency) => {
-    const normalize = (value?: string) => String(value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    const agencyLabels = [agency.speciality, ...(agency.services || [])].map(normalize).filter(Boolean);
-    const matchedService = servicesList.find((service) => {
-      const candidates = [service.title, service.categoryName, service.code].map(normalize);
-      return candidates.some((candidate) => agencyLabels.some((label) => candidate.includes(label) || label.includes(candidate)));
-    });
-
-    if (matchedService) {
-      setSelectedPurchaseItem(matchedService);
+  const handleClaimOffer = async (offer: Offer, payload?: { email: string; name?: string; phone?: string }) => {
+    if (!payload?.email) {
+      triggerToast('Completa tu email para reclamar la oferta.');
       return;
     }
+    try {
+      const result = await marketplaceApi.claimOffer(offer.id, payload);
+      triggerToast(`Oferta reclamada: ${result.reference}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'No se pudo reclamar la oferta.';
+      triggerToast(message);
+    }
+  };
 
-    setSelectedPurchaseItem({
-      id: `agency-selection-${agency.id}`,
-      title: `Solicitud comercial con ${agency.name}`,
-      description: 'Preselección comercial para iniciar una cotización real con la agencia.',
-      price: agency.startingPrice,
-      iconName: 'message',
-    });
+  // Action callback when adding a review in detail panel
+  const handleAddReview = async (agencyId: string, rating: number, text: string, name: string, agencyIdentifier?: string) => {
+    try {
+      await marketplaceApi.createAgencyReview(agencyIdentifier || agencyId, {
+        authorName: name || 'Cliente verificado',
+        rating,
+        body: text,
+        title: 'Valoración desde perfil de agencia',
+      });
+      triggerToast('Reseña enviada para moderación.');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'No se pudo enviar la reseña.';
+      triggerToast(message);
+    }
+  };
+
+  const handleHireAgency = async (agency: Agency, payload?: { name: string; email: string; phone?: string; company?: string; description?: string }) => {
+    if (!payload?.email) {
+      triggerToast('Completa tus datos para solicitar cotización.');
+      return;
+    }
+    try {
+      const result = await marketplaceApi.hireAgency(agency.slug || agency.id, payload);
+      triggerToast(`Solicitud enviada: ${result.reference}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'No se pudo enviar la solicitud.';
+      triggerToast(message);
+    }
   };
 
   const value: AppStateValue = {
     user,
+    authLoading,
+    authError,
     login,
     logout,
+    clearAuthError,
     agenciesList,
     marketplaceCategories,
     servicesList,
     backendSource,
-    isMarketplaceLoading,
-    marketplaceError,
+    catalogLoading,
+    catalogError,
     searchState,
     setSearchState,
     hoveredAgencyId,

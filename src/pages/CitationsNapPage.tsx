@@ -16,6 +16,8 @@ import {
   Sparkles,
   TrendingUp,
 } from 'lucide-react';
+import DemoPrice from '@/components/DemoPrice';
+import { isDemoDataEnabled } from '@/lib/apiConfig';
 import { Agency, Service } from '@/types';
 import { useAppState } from '@/state/useAppState';
 import { useFindAgencies } from '@/routes/navigation';
@@ -431,13 +433,13 @@ export default function CitationsNapPage() {
                   {modules.map((item) => (
                     <button key={item.key} type="button" onClick={() => toggleModule(item.key)} className={`flex w-full items-center justify-between rounded-xl border p-3 text-left transition ${selectedModules[item.key] ? 'border-[#D32323]/40 bg-red-50/60' : 'border-gray-200 bg-white hover:border-gray-300'}`}>
                       <span className="flex items-center gap-3"><span className={`flex h-5 w-5 items-center justify-center rounded-md border ${selectedModules[item.key] ? 'border-[#D32323] bg-[#D32323] text-white' : 'border-gray-300 bg-white'}`}>{selectedModules[item.key] && <Check className="h-3.5 w-3.5" />}</span><span><span className="block text-xs font-black text-[#333]">{item.title}</span><span className="block text-[11px] text-gray-500">{item.desc}</span></span></span>
-                      <span className="text-xs font-black text-[#D32323]">${item.price}</span>
+                      {isDemoDataEnabled() && <span className="text-xs font-black text-[#D32323]">${item.price}</span>}
                     </button>
                   ))}
                 </div>
                 <div className="mt-5 rounded-2xl bg-[#111827] p-5 text-white">
                   <span className="text-[10px] font-black uppercase tracking-wider text-gray-400">Presupuesto estimado</span>
-                  <div className="mt-1 flex items-end justify-between gap-4"><span className="text-4xl font-black">${liveQuote.estimatedPrice}</span><span className="text-right text-xs text-gray-300">{liveQuote.estimatedDeliveryDays} días<br />{liveQuote.hours} horas</span></div>
+                  <div className="mt-1 flex items-end justify-between gap-4"><DemoPrice price={liveQuote.estimatedPrice} className="text-4xl font-black">${liveQuote.estimatedPrice}</DemoPrice><span className="text-right text-xs text-gray-300">{liveQuote.estimatedDeliveryDays} días<br />{liveQuote.hours} horas</span></div>
                   <button type="button" disabled={isQuoting} onClick={handleQuote} className="mt-4 w-full rounded-xl bg-[#D32323] py-3 text-xs font-black uppercase text-white transition hover:bg-[#b01c1c] disabled:opacity-60">{isQuoting ? 'Guardando...' : 'Guardar cotización'}</button>
                 </div>
                 {quoteError && <div className="mt-4 rounded-xl border border-red-100 bg-red-50 p-3 text-xs font-bold text-[#D32323]">{quoteError}</div>}
@@ -482,7 +484,7 @@ export default function CitationsNapPage() {
             </div>
             <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
               <h2 className="text-lg font-black text-[#333]">Herramientas pagas</h2>
-              <div className="mt-5 space-y-3">{paidTools.map(([name, desc, price]) => <div key={name} className="flex items-center justify-between rounded-xl border border-gray-100 bg-[#FAFAFA] p-3"><span><span className="block text-xs font-black text-[#333]">{name}</span><span className="block text-[11px] text-gray-500">{desc}</span></span><span className="text-[10px] font-black text-[#D32323]">{price}</span></div>)}</div>
+              <div className="mt-5 space-y-3">{paidTools.map(([name, desc, price]) => <div key={name} className="flex items-center justify-between rounded-xl border border-gray-100 bg-[#FAFAFA] p-3"><span><span className="block text-xs font-black text-[#333]">{name}</span><span className="block text-[11px] text-gray-500">{desc}</span></span><DemoPrice price={price} className="text-[10px] font-black text-[#D32323]">{price}</DemoPrice></div>)}</div>
             </div>
           </div>
 
@@ -521,7 +523,7 @@ export default function CitationsNapPage() {
               <div key={agency.id} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
                 <div className="flex items-start justify-between gap-3"><div><h3 className="font-black text-[#333]">{agency.name}</h3><p className="mt-1 flex items-center gap-1 text-xs text-gray-500"><MapPin className="h-3.5 w-3.5" />{agency.location}</p></div><span className="rounded-lg bg-red-50 px-2 py-1 text-xs font-black text-[#D32323]">{agency.rating.toFixed(1)}★</span></div>
                 <p className="mt-4 line-clamp-3 text-xs leading-5 text-gray-500">{agency.highlightReview}</p>
-                <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-4"><span><span className="block text-[10px] font-black uppercase text-gray-400">Desde</span><span className="text-xl font-black text-[#333]">${agency.startingPrice}</span></span><button onClick={() => setContactAgency(agency)} className="rounded-xl bg-[#D32323] px-4 py-2.5 text-xs font-black uppercase text-white hover:bg-[#b01c1c]">Contactar</button></div>
+                <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-4"><span><span className="block text-[10px] font-black uppercase text-gray-400">Desde</span><DemoPrice price={agency.startingPrice} className="text-xl font-black text-[#333]">${agency.startingPrice}</DemoPrice></span><button onClick={() => setContactAgency(agency)} className="rounded-xl bg-[#D32323] px-4 py-2.5 text-xs font-black uppercase text-white hover:bg-[#b01c1c]">Contactar</button></div>
               </div>
             ))}
           </div>

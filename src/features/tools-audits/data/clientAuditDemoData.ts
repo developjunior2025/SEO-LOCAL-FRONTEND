@@ -366,4 +366,8 @@ export const clientAuditDemoData: ClientAuditData = {
       { name: 'Acceso GBP', detail: 'Bloquea tareas', status: 'Pendiente' },
     ],
   },
+  actions: [
+    { key: 'approve-audit', title: 'Aprobar auditoría v2.1', subtitle: 'Cliente · vence 17 jul', owner: 'cliente', status: 'Pendiente', priority: 'media' },
+    { key: 'confirm-gbp', title: 'Confirmar acceso GBP', subtitle: 'Cliente · bloquea 2 tareas', owner: 'cliente', status: 'Bloqueo', priority: 'alta' },
+  ],
 };

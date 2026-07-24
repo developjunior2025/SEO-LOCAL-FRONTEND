@@ -71,7 +71,7 @@ function getScopeItems(service?: Service) {
 export default function ServiceDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const { servicesList, handleAddToCart, isMarketplaceLoading, marketplaceError } = useAppState();
+  const { servicesList, handleAddToCart, catalogLoading, catalogError } = useAppState();
 
   const service = slug ? findServiceBySlug(servicesList, slug) : undefined;
   const relatedServices = service
@@ -553,7 +553,7 @@ if (isSpeedOptimizationLocalService) {
   }
 
 
-  if (isMarketplaceLoading) {
+  if (catalogLoading) {
     return (
       <div className="bg-[#f5f5f5] min-h-[70vh] py-20">
         <div className="max-w-3xl mx-auto px-4 text-center">
@@ -565,7 +565,7 @@ if (isSpeedOptimizationLocalService) {
     );
   }
 
-  if (marketplaceError && servicesList.length === 0) {
+  if (catalogError && servicesList.length === 0) {
     return (
       <div className="bg-[#f5f5f5] min-h-[70vh] py-20">
         <div className="max-w-3xl mx-auto px-4 text-center">
@@ -573,7 +573,7 @@ if (isSpeedOptimizationLocalService) {
             <FileText className="w-8 h-8" />
           </div>
           <h1 className="mt-6 text-3xl font-black text-[#333]">No se pudo cargar el servicio</h1>
-          <p className="mt-3 text-gray-500 font-medium">{marketplaceError}</p>
+          <p className="mt-3 text-gray-500 font-medium">{catalogError}</p>
           <button type="button" onClick={onBackToServices} className="mt-8 inline-flex items-center gap-2 rounded-xl bg-[#D32323] px-6 py-3 text-sm font-black text-white shadow-lg hover:bg-[#b01c1c]">
             <ArrowLeft className="w-4 h-4" /> Volver a servicios
           </button>
@@ -737,7 +737,7 @@ if (isSpeedOptimizationLocalService) {
             </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {relatedServices.slice(0, 4).map((item) => (
-                <button key={item.id} type="button" onClick={() => { window.location.hash = getServiceRoute(item); }} className="text-left rounded-2xl border border-gray-200 bg-white p-5 shadow-sm hover:-translate-y-1 hover:border-[#D32323]/30 hover:shadow-lg transition">
+                <button key={item.id} type="button" onClick={() => { navigate(getServiceRoute(item)); }} className="text-left rounded-2xl border border-gray-200 bg-white p-5 shadow-sm hover:-translate-y-1 hover:border-[#D32323]/30 hover:shadow-lg transition">
                   <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">{item.code}</p>
                   <h3 className="mt-2 text-sm font-black leading-tight text-[#333]">{item.title}</h3>
                   <p className="mt-3 text-xs leading-relaxed text-gray-500 line-clamp-2">{item.description}</p>

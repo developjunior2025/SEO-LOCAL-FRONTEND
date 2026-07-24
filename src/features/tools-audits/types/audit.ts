@@ -158,6 +158,15 @@ export interface AuditApproval {
   status: string;
 }
 
+export interface AuditAction {
+  key: string;
+  title: string;
+  subtitle?: string;
+  owner: 'cliente' | 'vendedor' | 'agencia' | string;
+  status: 'Pendiente' | 'Bloqueo' | 'En ejecución' | 'Aprobado' | string;
+  priority?: 'baja' | 'media' | 'alta';
+}
+
 export interface ClientAuditData {
   project: AuditProject;
   summary: AuditSummary;
@@ -202,4 +211,5 @@ export interface ClientAuditData {
     deliverables: AuditDeliverable[];
     approvals: AuditApproval[];
   };
+  actions?: AuditAction[];
 }

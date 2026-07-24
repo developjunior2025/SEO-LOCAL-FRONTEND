@@ -17,6 +17,8 @@ import {
   TrendingUp,
   Users,
 } from 'lucide-react';
+import DemoPrice from '@/components/DemoPrice';
+import { isDemoDataEnabled } from '@/lib/apiConfig';
 import { Agency, Service } from '@/types';
 import { useAppState } from '@/state/useAppState';
 import { useFindAgencies } from '@/routes/navigation';
@@ -74,10 +76,10 @@ const freeTools = [
 ];
 
 const premiumTools = [
-  ['Whitespark', 'Desde $25/mes. Búsqueda de citas y reputación.'],
-  ['Localo', 'Desde $49/mes. Plataforma completa SEO Local.'],
-  ['SE Ranking Local', 'Desde $55/mes. Mapas de calor y rank tracking.'],
-  ['GeoRanker', 'Desde $49/mes. Multi-ubicación y reportes PDF.'],
+  ['Whitespark', 'Desde $25/mes', 'Búsqueda de citas y reputación.'],
+  ['Localo', 'Desde $49/mes', 'Plataforma completa SEO Local.'],
+  ['SE Ranking Local', 'Desde $55/mes', 'Mapas de calor y rank tracking.'],
+  ['GeoRanker', 'Desde $49/mes', 'Multi-ubicación y reportes PDF.'],
 ];
 
 const heatTone: Record<string, string> = {
@@ -380,7 +382,7 @@ export default function HeatMapsLocalPage() {
                   <item.icon className="w-5 h-5 text-[#D32323]" />
                   <h3 className="mt-4 text-sm font-black text-[#333]">{item.title}</h3>
                   <p className="mt-2 text-xs text-gray-500 leading-relaxed">{item.desc}</p>
-                  <p className="mt-4 text-[10px] font-black uppercase tracking-wide text-[#D32323]">{item.price}</p>
+                  <p className="mt-4 text-[10px] font-black uppercase tracking-wide text-[#D32323]"><DemoPrice price={item.price}>{item.price}</DemoPrice></p>
                 </div>
               ))}
             </div>
@@ -523,7 +525,7 @@ export default function HeatMapsLocalPage() {
                   </div>
                   <h3 className="mt-3 text-sm font-black text-[#333]">{item.title}</h3>
                   <p className="mt-1 text-xs text-gray-500 leading-relaxed">{item.desc}</p>
-                  <p className="mt-3 text-[10px] font-black text-[#D32323]">${item.price} USD · {item.hours}h</p>
+                  {isDemoDataEnabled() && <p className="mt-3 text-[10px] font-black text-[#D32323]">${item.price} USD · {item.hours}h</p>}
                 </button>
               ))}
             </div>
@@ -531,7 +533,7 @@ export default function HeatMapsLocalPage() {
           </div>
           <div className="sticky top-24 rounded-3xl bg-[#111827] p-6 text-white shadow-xl">
             <p className="text-[10px] font-black uppercase tracking-[0.14em] text-gray-400">Presupuesto estimado</p>
-            <div className="mt-3 text-5xl font-black">${quoteResponse?.quote.estimatedPrice || liveQuote.estimatedPrice}</div>
+            <div className="mt-3 text-5xl font-black"><DemoPrice price={quoteResponse?.quote.estimatedPrice || liveQuote.estimatedPrice}>${quoteResponse?.quote.estimatedPrice || liveQuote.estimatedPrice}</DemoPrice></div>
             <p className="mt-2 text-sm text-gray-300">{quoteResponse ? `${quoteResponse.quote.estimatedDeliveryDays} días · ${quoteResponse.quote.estimatedHours}h estimadas` : `${liveQuote.estimatedDeliveryDays} días · ${liveQuote.hours}h estimadas`}</p>
             {quoteResponse && <p className="mt-3 rounded-xl bg-white/10 p-3 text-xs font-bold text-emerald-200">Cotización guardada: {quoteResponse.reference}</p>}
             <button onClick={handleQuote} disabled={isQuoting} className="mt-5 w-full rounded-xl bg-[#D32323] px-5 py-3 text-sm font-black text-white hover:bg-[#b01c1c] disabled:opacity-60 flex items-center justify-center gap-2">
@@ -550,7 +552,7 @@ export default function HeatMapsLocalPage() {
           </div>
           <div className="rounded-3xl border border-gray-200 bg-white p-6">
             <h3 className="text-xl font-black text-[#333]">Herramientas premium</h3>
-            <div className="mt-5 space-y-3">{premiumTools.map(([name, desc]) => <div key={name} className="rounded-2xl bg-[#f8fafc] p-4 border border-gray-200"><p className="text-sm font-black">{name}</p><p className="mt-1 text-xs text-gray-500">{desc}</p></div>)}</div>
+            <div className="mt-5 space-y-3">{premiumTools.map(([name, price, desc]) => <div key={name} className="rounded-2xl bg-[#f8fafc] p-4 border border-gray-200"><p className="text-sm font-black">{name}</p><p className="mt-1 text-xs text-gray-500"><DemoPrice price={price}>{price}</DemoPrice> {desc}</p></div>)}</div>
           </div>
         </div>
       </section>
@@ -572,7 +574,7 @@ export default function HeatMapsLocalPage() {
             {heatmapAgencies.slice(0, 6).map((agency) => (
               <div key={agency.id} className="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm">
                 <div className="flex items-start justify-between gap-3"><div className="flex items-center gap-3"><div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-black" style={{ backgroundColor: agency.logoBgColor }}>{agency.logoLetter}</div><div><h3 className="font-black text-[#333]">{agency.name}</h3><p className="text-xs text-gray-500">{agency.location}</p></div></div>{agency.isVerified && <ShieldCheck className="w-5 h-5 text-emerald-500" />}</div>
-                <div className="mt-4 flex items-center gap-2 text-xs font-bold text-gray-600"><Star className="w-4 h-4 fill-[#D32323] text-[#D32323]" /> {agency.rating} · {agency.reviewsCount} reseñas · desde ${agency.startingPrice}</div>
+                <div className="mt-4 flex items-center gap-2 text-xs font-bold text-gray-600"><Star className="w-4 h-4 fill-[#D32323] text-[#D32323]" /> {agency.rating} · {agency.reviewsCount} reseñas · desde <DemoPrice price={agency.startingPrice}>{agency.startingPrice}</DemoPrice></div>
                 <p className="mt-3 text-xs text-gray-500 leading-relaxed line-clamp-3">{agency.highlightReview}</p>
                 <button onClick={() => { setContactAgency(agency); setContactMessage(`Hola ${agency.name}, necesito un mapa de calor local para ${form.keyword} en ${form.location}.`); }} className="mt-5 w-full rounded-xl bg-[#D32323] px-4 py-3 text-xs font-black text-white hover:bg-[#b01c1c]">Contactar agencia</button>
               </div>

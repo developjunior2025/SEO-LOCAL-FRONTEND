@@ -25,7 +25,9 @@ import {
   UsersRound,
   Wrench,
 } from 'lucide-react';
+import DemoPrice from '@/components/DemoPrice';
 import FunctionalCategoryModule from '@/components/services/FunctionalCategoryModule';
+import { isDemoDataEnabled } from '@/lib/apiConfig';
 import type { Service } from '@/types';
 import { useAppState } from '@/state/useAppState';
 import { useFindAgencies } from '@/routes/navigation';
@@ -298,8 +300,8 @@ export default function AuditSeoLocalPage() {
                 )}
                 <p className="text-[10px] font-black uppercase tracking-[0.16em] text-gray-400">{plan.eyebrow}</p>
                 <div className="mt-3 flex items-end gap-1">
-                  <span className="text-4xl font-black tracking-tight text-[#333]">${plan.price}</span>
-                  <span className="pb-1 text-xs font-extrabold text-gray-500">USD</span>
+                  <DemoPrice price={plan.price} className="text-4xl font-black tracking-tight text-[#333]">${plan.price}</DemoPrice>
+                  {isDemoDataEnabled() && <span className="pb-1 text-xs font-extrabold text-gray-500">USD</span>}
                 </div>
                 <h3 className="mt-3 text-base font-black text-[#333]">{plan.name}</h3>
                 <p className="mt-2 min-h-12 text-xs leading-relaxed text-gray-500 font-medium">{plan.description}</p>
@@ -351,7 +353,7 @@ export default function AuditSeoLocalPage() {
                 <Wrench className="w-4 h-4 text-[#D32323]" />
                 <h3 className="text-sm font-black text-[#333]">Herramientas gratuitas</h3>
               </div>
-              <span className="rounded-full bg-red-50 px-2.5 py-1 text-[9px] font-black uppercase text-[#D32323]">Costo $0 USD</span>
+              {isDemoDataEnabled() && <span className="rounded-full bg-red-50 px-2.5 py-1 text-[9px] font-black uppercase text-[#D32323]">Costo $0 USD</span>}
             </div>
             <div className="p-5 space-y-4">
               {[
@@ -378,13 +380,13 @@ export default function AuditSeoLocalPage() {
                 <Gauge className="w-4 h-4 text-[#0074E0]" />
                 <h3 className="text-sm font-black text-[#333]">Herramientas Pro</h3>
               </div>
-              <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[9px] font-black uppercase text-[#0074E0]">Desde $20/mes</span>
+              {isDemoDataEnabled() && <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[9px] font-black uppercase text-[#0074E0]">Desde $20/mes</span>}
             </div>
             <div className="divide-y divide-gray-100 px-5">
               {professionalTools.map(([tool, price]) => (
                 <div key={tool} className="flex items-center justify-between gap-4 py-3">
                   <span className="text-xs font-bold text-gray-600">{tool}</span>
-                  <span className="text-xs font-black text-[#D32323]">{price}</span>
+                  <DemoPrice price={price} className="text-xs font-black text-[#D32323]">{price}</DemoPrice>
                 </div>
               ))}
             </div>
@@ -426,7 +428,7 @@ export default function AuditSeoLocalPage() {
               <div className="mt-5 grid grid-cols-3 gap-2 rounded-2xl bg-gray-50 p-4 text-center">
                 <div>
                   <p className="text-[9px] font-black uppercase tracking-wide text-gray-400">Inversión</p>
-                  <p className="mt-1 text-sm font-black text-[#333]">$129</p>
+                  <p className="mt-1 text-sm font-black text-[#333]"><DemoPrice price={129}>$129</DemoPrice></p>
                 </div>
                 <div className="border-x border-gray-200">
                   <p className="text-[9px] font-black uppercase tracking-wide text-gray-400">Retorno ROI</p>

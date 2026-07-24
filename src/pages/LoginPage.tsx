@@ -1,11 +1,37 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Lock, ShieldCheck, User } from 'lucide-react';
+import { useAppState } from '@/state/useAppState';
+import { redirectAfterLogin } from '@/components/toolsDropdownConfig';
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { user, authLoading, authError, login, clearAuthError } = useAppState();
   const returnTo = useMemo(() => searchParams.get('returnTo'), [searchParams]);
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (user && !authLoading) {
+      navigate(redirectAfterLogin(user.role, returnTo));
+    }
+  }, [user, authLoading, returnTo, navigate]);
+
+  useEffect(() => {
+    clearAuthError();
+  }, [clearAuthError]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    await login(email, password);
+    setSubmitting(false);
+  };
+
+  const loading = authLoading || submitting;
 
   return (
     <section className="min-h-[calc(100vh-80px)] flex items-center justify-center bg-[#f5f5f5] px-4 py-12">
@@ -22,33 +48,59 @@ export default function LoginPage() {
           <div className="w-12 h-12 bg-[#D32323] text-white rounded-2xl flex items-center justify-center mx-auto font-black text-xl shadow-md">
             Y
           </div>
-          <h1 className="font-black text-2xl text-[#333]">Estado del acceso</h1>
+          <h1 className="font-black text-2xl text-[#333]">Accede a tu cuenta</h1>
           <p className="text-xs text-gray-500 font-medium leading-relaxed">
-            El acceso autenticado para clientes todavía no está habilitado como producto real dentro del marketplace.
+            Ingresa con tu cuenta administrativa para gestionar el marketplace desde el dashboard.
           </p>
         </div>
 
-        <div className="space-y-4">
-          <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4 space-y-3 text-sm text-gray-600">
-            <div className="flex items-start gap-3">
-              <User className="w-4 h-4 mt-0.5 text-[#D32323]" />
-              <p>Las acciones públicas reales actualmente son enviar solicitudes comerciales y reseñas públicas.</p>
-            </div>
-            <div className="flex items-start gap-3">
-              <Lock className="w-4 h-4 mt-0.5 text-[#D32323]" />
-              <p>El panel cliente y el Command Center 360 autenticado siguen fuera de alcance hasta tener backend público real.</p>
-            </div>
-            <div className="flex items-start gap-3">
-              <ShieldCheck className="w-4 h-4 mt-0.5 text-[#D32323]" />
-              <p>Si eres operador interno, usa el dashboard administrativo autenticado.</p>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-1">
+            <label className="text-[10px] font-black tracking-wider text-gray-400 uppercase">Email Corporativo</label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                required
+                type="email"
+                autoComplete="username"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="tu@empresa.com"
+                className="w-full bg-white border border-gray-200 py-3 pl-10 pr-4 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-[#D32323]"
+              />
             </div>
           </div>
 
-          {returnTo && (
-            <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-xs font-bold text-amber-900">
-              La ruta <code>{returnTo}</code> requiere una experiencia cliente que aún no está habilitada en backend.
+          <div className="space-y-1">
+            <label className="text-[10px] font-black tracking-wider text-gray-400 uppercase">Contraseña</label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                required
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full bg-white border border-gray-200 py-3 pl-10 pr-4 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-[#D32323]"
+              />
+            </div>
+          </div>
+
+          {authError && (
+            <div className="rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-xs font-bold text-[#D32323]">
+              {authError}
             </div>
           )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-[#D32323] hover:bg-[#b01c1c] disabled:opacity-60 disabled:cursor-not-allowed text-white font-extrabold py-3.5 rounded-xl text-xs tracking-wider uppercase transition-all shadow-md flex items-center justify-center gap-2"
+          >
+            <Lock className="w-4 h-4" />
+            {loading ? 'Verificando…' : 'Iniciar sesión'}
+          </button>
 
           <button
             type="button"
@@ -58,12 +110,14 @@ export default function LoginPage() {
             <ShieldCheck className="w-4 h-4" />
             Ir al dashboard admin
           </button>
-        </div>
+        </form>
 
-        <div className="mt-6 rounded-xl bg-amber-50 border border-amber-200 p-4 text-[10px] text-amber-900 leading-relaxed">
-          <p className="font-bold mb-1">Estado actual del acceso</p>
-          <p>Este acceso ya no simula credenciales de cliente. El ingreso real disponible hoy es el del dashboard administrativo.</p>
-        </div>
+        {import.meta.env.DEV && import.meta.env.VITE_ENABLE_DEMO_AUTH === 'true' && (
+          <div className="mt-6 rounded-xl bg-gray-50 border border-gray-200 p-4 text-[10px] text-gray-500 leading-relaxed">
+            <p className="font-bold text-gray-700 mb-1">Modo demostración activo</p>
+            <p>Usa los usuarios de prueba configurados en tu entorno de desarrollo. Las credenciales reales no se muestran por seguridad.</p>
+          </div>
+        )}
       </div>
     </section>
   );

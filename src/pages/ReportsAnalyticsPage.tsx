@@ -20,6 +20,7 @@ import {
   TrendingUp,
   Users,
 } from 'lucide-react';
+import DemoPrice from '@/components/DemoPrice';
 import { Agency, Service } from '@/types';
 import { useAppState } from '@/state/useAppState';
 import { useFindAgencies } from '@/routes/navigation';
@@ -334,7 +335,7 @@ export default function ReportsAnalyticsPage() {
                 <item.icon className="mb-4 h-6 w-6 text-[#D32323]" />
                 <h3 className="text-sm font-black text-[#333]">{item.title}</h3>
                 <p className="mt-2 text-xs leading-5 text-gray-500">{item.desc}</p>
-                <p className="mt-5 text-[10px] font-black uppercase tracking-wider text-[#D32323]">{item.price}</p>
+                <p className="mt-5 text-[10px] font-black uppercase tracking-wider text-[#D32323]"><DemoPrice price={item.price}>{item.price}</DemoPrice></p>
               </div>
             ))}
           </div>
@@ -487,7 +488,7 @@ export default function ReportsAnalyticsPage() {
               <div key={title} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
                 <div className="mb-4 rounded-xl bg-gray-100 p-5 text-center"><LineChart className="mx-auto h-10 w-10 text-[#D32323]" /></div>
                 <h3 className="text-sm font-black">{title}</h3><p className="mt-2 text-xs leading-5 text-gray-500">{desc}</p>
-                <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-3 text-xs"><span className="font-black text-[#D32323]">{price}</span><button type="button" onClick={() => onSelectPackage(packageService)} className="font-black text-[#333] hover:text-[#D32323]">Saber más →</button></div>
+                <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-3 text-xs"><DemoPrice price={price} className="font-black text-[#D32323]">{price}</DemoPrice><button type="button" onClick={() => onSelectPackage(packageService)} className="font-black text-[#333] hover:text-[#D32323]">Saber más →</button></div>
               </div>
             ))}
           </div>
@@ -503,12 +504,12 @@ export default function ReportsAnalyticsPage() {
               {modules.map((item) => (
                 <button key={item.key} type="button" onClick={() => toggleModule(item.key)} className={`flex items-center justify-between rounded-2xl border p-4 text-left transition ${selectedModules[item.key] ? 'border-[#D32323]/40 bg-red-50' : 'border-gray-200 bg-white hover:border-gray-300'}`}>
                   <span className="flex items-center gap-3"><span className={`flex h-5 w-5 items-center justify-center rounded border ${selectedModules[item.key] ? 'border-[#D32323] bg-[#D32323] text-white' : 'border-gray-300'}`}>{selectedModules[item.key] && <Check className="h-3.5 w-3.5" />}</span><span><span className="block text-xs font-black text-[#333]">{item.title}</span><span className="block text-[11px] text-gray-500">{item.desc}</span></span></span>
-                  <span className="text-xs font-black text-[#D32323]">${item.price}</span>
+                  <DemoPrice price={item.price} className="text-xs font-black text-[#D32323]">${item.price}</DemoPrice>
                 </button>
               ))}
             </div>
             <div className="mt-6 rounded-2xl bg-[#333] p-5 text-white">
-              <div className="flex items-end justify-between gap-4"><div><p className="text-[10px] font-black uppercase tracking-wider text-gray-400">Total estimado</p><p className="text-4xl font-black">${liveQuote.estimatedPrice} USD</p><p className="text-xs text-gray-300">Entrega: {liveQuote.estimatedDeliveryDays} días · {liveQuote.hours} h estimadas</p></div><PieChart className="h-10 w-10 text-[#D32323]" /></div>
+              <div className="flex items-end justify-between gap-4"><div><p className="text-[10px] font-black uppercase tracking-wider text-gray-400">Total estimado</p><p className="text-4xl font-black"><DemoPrice price={liveQuote.estimatedPrice}>${liveQuote.estimatedPrice} USD</DemoPrice></p><p className="text-xs text-gray-300">Entrega: {liveQuote.estimatedDeliveryDays} días · {liveQuote.hours} h estimadas</p></div><PieChart className="h-10 w-10 text-[#D32323]" /></div>
               <button type="button" onClick={handleQuote} disabled={isQuoting} className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#D32323] py-3 text-xs font-black uppercase tracking-wide text-white hover:bg-[#b01c1c] disabled:opacity-60">{isQuoting ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileBarChart className="h-4 w-4" />} Guardar cotización</button>
               {quoteError && <p className="mt-3 text-xs font-bold text-red-200">{quoteError}</p>}
               {quoteResponse && <p className="mt-3 rounded-xl bg-emerald-50 p-3 text-xs font-black text-emerald-700">Cotización guardada: {quoteResponse.reference}</p>}
@@ -547,7 +548,7 @@ export default function ReportsAnalyticsPage() {
                 <div className="flex items-start justify-between"><div><h3 className="font-black">{agency.name}</h3><p className="text-xs text-gray-500">{agency.location}</p></div><div className="flex items-center gap-1 text-xs font-black text-[#D32323]"><Star className="h-4 w-4 fill-[#D32323]" />{agency.rating}</div></div>
                 <p className="mt-4 text-xs leading-5 text-gray-500">{agency.highlightReview}</p>
                 <div className="mt-4 flex flex-wrap gap-1.5">{agency.services.slice(0, 3).map((service) => <span key={service} className="rounded-full bg-gray-100 px-2 py-1 text-[10px] font-bold text-gray-600">{service}</span>)}</div>
-                <div className="mt-5 flex items-center justify-between border-t border-gray-100 pt-4"><span className="text-sm font-black text-[#333]">Desde ${agency.startingPrice}</span><button type="button" onClick={() => setContactAgency(agency)} className="rounded-lg bg-[#D32323] px-4 py-2 text-xs font-black text-white hover:bg-[#b01c1c]">Contactar</button></div>
+                <div className="mt-5 flex items-center justify-between border-t border-gray-100 pt-4"><span className="text-sm font-black text-[#333]">Desde <DemoPrice price={agency.startingPrice}>${agency.startingPrice}</DemoPrice></span><button type="button" onClick={() => setContactAgency(agency)} className="rounded-lg bg-[#D32323] px-4 py-2 text-xs font-black text-white hover:bg-[#b01c1c]">Contactar</button></div>
               </div>
             ))}
           </div>
