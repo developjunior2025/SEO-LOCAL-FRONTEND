@@ -1,6 +1,7 @@
 import { Agency, AgencyProfilePayload, MarketplaceCategory, Service } from '../types';
+import { getPrimaryApiBase } from './apiBase';
 
-const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:4000/api/v1').replace(/\/$/, '');
+const API_BASE = getPrimaryApiBase();
 
 export interface MarketplaceBootstrapPayload {
   meta: {
@@ -12,6 +13,24 @@ export interface MarketplaceBootstrapPayload {
   categories: MarketplaceCategory[];
   agencies: Agency[];
   services: Service[];
+}
+
+export interface AgenciesDirectoryResponse {
+  items: Agency[];
+  facets: {
+    cities: string[];
+    services: string[];
+    certifications: string[];
+    languages: string[];
+    workModes: string[];
+  };
+  stats: {
+    total: number;
+    verified: number;
+    topRated: number;
+    recommended: number;
+    totalReviews: number;
+  };
 }
 
 
@@ -41,7 +60,7 @@ export interface CreateLeadPayload {
   phone?: string;
   company?: string;
   projectTitle?: string;
-  categoryId?: string;
+  categoryId?: number;
   location?: string;
   budget?: number;
   description: string;
@@ -677,6 +696,10 @@ export const marketplaceApi = {
     if (params?.category) query.set('category', params.category);
     const suffix = query.toString() ? `?${query.toString()}` : '';
     return requestJson<{ items: Service[] }>(`/services${suffix}`, { signal });
+  },
+
+  getAgenciesDirectory(signal?: AbortSignal) {
+    return requestJson<AgenciesDirectoryResponse>('/agencies/directory', { signal });
   },
 
 

@@ -1,39 +1,64 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Service, Offer } from '@/types';
+import type { CreateLeadPayload } from '@/services/marketplaceApi';
 import { X, CheckCircle, ShieldCheck, CreditCard, Building2, Globe, MapPin } from 'lucide-react';
 
 interface CheckoutModalProps {
   isOpen: boolean;
   onClose: () => void;
   selectedItem: Service | Offer | null;
-  onConfirmSuccess: () => void;
+  onSubmit: (payload: CreateLeadPayload) => Promise<{ reference: string }>;
 }
 
-export default function CheckoutModal({ isOpen, onClose, selectedItem, onConfirmSuccess }: CheckoutModalProps) {
+export default function CheckoutModal({ isOpen, onClose, selectedItem, onSubmit }: CheckoutModalProps) {
   const [businessName, setBusinessName] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
   const [website, setWebsite] = useState('');
   const [targetCity, setTargetCity] = useState('');
   const [isDone, setIsDone] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [reference, setReference] = useState<string | null>(null);
 
   if (!isOpen || !selectedItem) return null;
 
   const isOffer = 'discountedPrice' in selectedItem;
   const price = isOffer ? (selectedItem as Offer).discountedPrice : (selectedItem as Service).price;
 
-  const handleConfirm = (e: React.FormEvent) => {
+  const handleConfirm = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      const result = await onSubmit({
+        name: businessName.trim(),
+        email: contactEmail.trim(),
+        company: businessName.trim(),
+        projectTitle: selectedItem.title,
+        location: targetCity.trim(),
+        budget: price,
+        description: `Solicitud comercial para ${selectedItem.title}${website.trim() ? ` · Sitio: ${website.trim()}` : ''}`,
+        requestType: 'project',
+        sourcePath: typeof window !== 'undefined' ? window.location.pathname + window.location.search : '/',
+      });
+      setReference(result.reference);
       setIsDone(true);
-    }, 1200);
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : 'No se pudo registrar la solicitud comercial.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleFinalize = () => {
     setIsDone(false);
-    onConfirmSuccess();
+    setReference(null);
+    setBusinessName('');
+    setContactEmail('');
+    setWebsite('');
+    setTargetCity('');
+    setError(null);
     onClose();
   };
 
@@ -104,7 +129,7 @@ export default function CheckoutModal({ isOpen, onClose, selectedItem, onConfirm
               <div className="space-y-4">
                 
                 {/* Nombre de Negocio */}
-                <div className="space-y-1">
+                 <div className="space-y-1">
                   <label className="text-xs font-black text-[#333] uppercase tracking-wider flex items-center gap-1.5">
                     <Building2 className="w-3.5 h-3.5 text-gray-500" />
                     <span>Nombre de tu Negocio / Ficha</span>
@@ -116,6 +141,21 @@ export default function CheckoutModal({ isOpen, onClose, selectedItem, onConfirm
                     onChange={(e) => setBusinessName(e.target.value)}
                     className="w-full bg-white border border-gray-250 rounded-xl py-3 px-4 text-sm text-gray-800 focus:ring-2 focus:ring-[#D32323] focus:border-transparent outline-none transition-all placeholder:text-gray-400"
                     placeholder="Ej. Clínica Dental Sanz"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-black text-[#333] uppercase tracking-wider flex items-center gap-1.5">
+                    <CreditCard className="w-3.5 h-3.5 text-gray-500" />
+                    <span>Email de contacto</span>
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={contactEmail}
+                    onChange={(e) => setContactEmail(e.target.value)}
+                    className="w-full bg-white border border-gray-250 rounded-xl py-3 px-4 text-sm text-gray-800 focus:ring-2 focus:ring-[#D32323] focus:border-transparent outline-none transition-all placeholder:text-gray-400"
+                    placeholder="nombre@empresa.com"
                   />
                 </div>
 
@@ -152,13 +192,19 @@ export default function CheckoutModal({ isOpen, onClose, selectedItem, onConfirm
 
               </div>
 
+              {error && (
+                <div className="rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-xs font-bold text-[#D32323]">
+                  {error}
+                </div>
+              )}
+
               {/* Protection notice */}
               <div className="bg-blue-50/75 rounded-2xl p-4 border border-blue-150 flex gap-3 text-xs text-blue-850">
                 <ShieldCheck className="w-5 h-5 text-[#0074E0] shrink-0 mt-0.5" />
                 <div className="space-y-1">
-                  <span className="font-extrabold block">Tu pago está 100% Protegido</span>
+                  <span className="font-extrabold block">Solicitud comercial registrada en el marketplace</span>
                   <p className="font-medium text-[11px] text-gray-600 leading-relaxed">
-                    Sostenemos el depósito bajo custodia. Una vez la agencia entrega el reporte completo, das la aprobación y liberamos el dinero.
+                    Este flujo ya no simula custodia. Registra una solicitud real para que el equipo comercial o la agencia dé continuidad al proceso.
                   </p>
                 </div>
               </div>
@@ -174,7 +220,7 @@ export default function CheckoutModal({ isOpen, onClose, selectedItem, onConfirm
                 ) : (
                   <>
                     <CreditCard className="w-4 h-4" />
-                    <span>Depositar e Iniciar Proyecto</span>
+                    <span>Registrar solicitud</span>
                   </>
                 )}
               </button>
@@ -191,25 +237,25 @@ export default function CheckoutModal({ isOpen, onClose, selectedItem, onConfirm
                   ÉXITO
                 </span>
                 <h3 className="text-2xl font-black text-[#333] tracking-tight">
-                  ¡Proyecto Iniciado Súper Rápido!
+                  Solicitud registrada correctamente
                 </h3>
                 <p className="text-xs text-gray-500 font-medium max-w-sm mx-auto leading-relaxed">
-                  Hemos notificado a la agencia sobre tu depósito de custodia de <strong className="text-[#333] font-bold">${price}</strong> para <strong>{businessName}</strong>.
+                  Se registró una oportunidad comercial por <strong className="text-[#333] font-bold">${price}</strong> para <strong>{businessName}</strong> y ya puede ser atendida desde el marketplace.
                 </p>
               </div>
 
               <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 text-left space-y-2 text-xs text-gray-600">
                 <div className="flex justify-between">
-                  <span className="font-bold">Código de proyecto:</span>
-                  <span className="font-mono text-gray-800 font-bold">LSEO-98442X</span>
+                  <span className="font-bold">Referencia comercial:</span>
+                  <span className="font-mono text-gray-800 font-bold">{reference || 'Pendiente'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="font-bold">Ciudad objetivo:</span>
                   <span className="text-gray-800 font-bold">{targetCity}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="font-bold">Estatus Escrow:</span>
-                  <span className="text-[#0074E0] font-black uppercase">RETENIDO EN ESCROW</span>
+                  <span className="font-bold">Estado:</span>
+                  <span className="text-[#0074E0] font-black uppercase">SOLICITUD CREADA</span>
                 </div>
               </div>
 
@@ -217,7 +263,7 @@ export default function CheckoutModal({ isOpen, onClose, selectedItem, onConfirm
                 onClick={handleFinalize}
                 className="w-full bg-[#333] hover:bg-black text-white font-extrabold py-3.5 rounded-xl transition-all cursor-pointer shadow-md"
               >
-                Entendido, ir al Dashboard
+                Entendido
               </button>
             </div>
           )}

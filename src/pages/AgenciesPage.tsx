@@ -1,6 +1,6 @@
 // AGENCIES_DIRECTORY_V5_21_2_FULL_WIDTH_MARKER
 // AGENCIES_DIRECTORY_V5_19_0_MARKER
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ArrowRight,
   BadgeCheck,
@@ -26,6 +26,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import type { Agency } from '@/types';
 import { useAppState } from '@/state/useAppState';
+import { marketplaceApi, type AgenciesDirectoryResponse } from '@/services/marketplaceApi';
 
 type DirectoryTab = 'all' | 'featured' | 'recommended' | 'standard';
 
@@ -63,7 +64,7 @@ const starRow = (rating: number) => (
 
 export default function AgenciesDirectoryPage() {
   const navigate = useNavigate();
-  const { agenciesList: agencies, favorites, handleToggleFavorite, handleHireAgency, setShowProjectModal } = useAppState();
+  const { agenciesList: fallbackAgencies, favorites, handleToggleFavorite, handleHireAgency, setShowProjectModal } = useAppState();
 
   const onToggleFavorite = handleToggleFavorite;
   const onSelectProfile = (agency: Agency) => navigate(`/agencias/${agency.slug || agency.id}`);
@@ -82,12 +83,48 @@ export default function AgenciesDirectoryPage() {
   const [onlyVerified, setOnlyVerified] = useState(true);
   const [workModes, setWorkModes] = useState<Record<WorkMode, boolean>>({ Presencial: true, Remota: true, Híbrida: true });
   const [compareIds, setCompareIds] = useState<string[]>([]);
+  const [directoryData, setDirectoryData] = useState<AgenciesDirectoryResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const cities = useMemo(() => ['Todas las ciudades', ...Array.from(new Set(agencies.map(getCity))).sort()], [agencies]);
-  const services = useMemo(() => ['Todos los servicios', ...Array.from(new Set(agencies.flatMap((agency) => agency.services).filter((service) => !workModeOptions.includes(service as WorkMode)))).sort()], [agencies]);
-  const languages = useMemo(() => ['Cualquier idioma', ...Array.from(new Set(agencies.flatMap((agency) => agency.languages || ['Español']))).sort()], [agencies]);
+  useEffect(() => {
+    const controller = new AbortController();
+    setLoading(true);
+    setError(null);
+
+    marketplaceApi.getAgenciesDirectory(controller.signal)
+      .then((result) => {
+        setDirectoryData(result);
+        setLoading(false);
+      })
+      .catch((loadError) => {
+        if (loadError instanceof DOMException && loadError.name === 'AbortError') return;
+        setError(loadError instanceof Error ? loadError.message : 'No se pudo cargar el directorio de agencias.');
+        setLoading(false);
+      });
+
+    return () => controller.abort();
+  }, []);
+
+  const agencies = directoryData?.items?.length ? directoryData.items : fallbackAgencies;
+  const directoryFacets = directoryData?.facets;
+  const directoryStatsSource = directoryData?.stats;
+
+  const cities = useMemo(() => ['Todas las ciudades', ...(directoryFacets?.cities?.length ? directoryFacets.cities : Array.from(new Set(agencies.map(getCity))).sort())], [agencies, directoryFacets]);
+  const services = useMemo(() => ['Todos los servicios', ...(directoryFacets?.services?.length ? directoryFacets.services : Array.from(new Set(agencies.flatMap((agency) => agency.services).filter((service) => !workModeOptions.includes(service as WorkMode)))).sort())], [agencies, directoryFacets]);
+  const languages = useMemo(() => ['Cualquier idioma', ...(directoryFacets?.languages?.length ? directoryFacets.languages : Array.from(new Set(agencies.flatMap((agency) => agency.languages || ['Español']))).sort())], [agencies, directoryFacets]);
 
   const directoryStats = useMemo(() => {
+    if (directoryStatsSource) {
+      const totalProjects = agencies.reduce((sum, agency) => sum + (agency.qualifiedProjects || Math.round(agency.reviewsCount * 0.4)), 0);
+      const citiesCount = new Set(agencies.map(getCity)).size;
+      return {
+        agencies: directoryStatsSource.total,
+        reviews: directoryStatsSource.totalReviews,
+        cities: citiesCount,
+        projects: totalProjects,
+      };
+    }
     const totalReviews = agencies.reduce((sum, agency) => sum + agency.reviewsCount, 0);
     const totalProjects = agencies.reduce((sum, agency) => sum + (agency.qualifiedProjects || Math.round(agency.reviewsCount * 0.4)), 0);
     const citiesCount = new Set(agencies.map(getCity)).size;
@@ -218,6 +255,18 @@ export default function AgenciesDirectoryPage() {
         </div>
 
         <div className="mt-0 grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-4 lg:gap-5 items-start px-3 sm:px-4 lg:px-5 xl:px-6 py-5">
+          {loading && (
+            <div className="lg:col-span-2 rounded-2xl border border-gray-200 bg-white px-5 py-4 text-sm font-bold text-gray-600">
+              Cargando directorio de agencias...
+            </div>
+          )}
+
+          {error && !loading && (
+            <div className="lg:col-span-2 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-bold text-[#D32323]">
+              No se pudo cargar el directorio de agencias. {error}
+            </div>
+          )}
+
           <aside className="space-y-5 lg:sticky lg:top-24">
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5">
               <div className="flex items-start justify-between gap-3 mb-5">

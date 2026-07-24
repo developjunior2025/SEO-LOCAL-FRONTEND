@@ -24,7 +24,6 @@ import {
 import { useNavigate, useParams } from 'react-router-dom';
 import type { Agency, AgencyProfilePayload, AgencyProfileService, AgencyReview, AgencyTeamMember, Service } from '@/types';
 import { marketplaceApi } from '@/services/marketplaceApi';
-import { POPULAR_SERVICES } from '@/data';
 import { findServiceBySlug, normalizeServiceSlug, getServiceRoute, getServiceSlug } from '@/utils/serviceRoutes';
 import { useAppState } from '@/state/useAppState';
 import TeamMemberModal from '@/components/modals/TeamMemberModal';
@@ -36,186 +35,6 @@ const money = new Intl.NumberFormat('es-CO', {
 });
 
 const fallbackAvatar = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=320';
-
-const WORK_MODES = ['Presencial', 'Remota', 'Híbrida'];
-
-const SERVICE_CATEGORY_ALIASES: Record<string, string[]> = {
-  'Google Business Profile': ['Google Business Profile'],
-  'Local Pack Strategy': ['Local Pack y Ranking'],
-  'Auditoría SEO Local': ['Auditoría SEO Local'],
-  'Optimización de Contenido': ['Contenido Local'],
-  'Gestión de Reseñas': ['Reputación y Reseñas'],
-  'Link Building Local': ['Link Building Local'],
-  'SEO Técnico Local': ['SEO Técnico Local'],
-  'SEO On-Page Local': ['SEO On-Page Local'],
-  'Reputación y Reseñas': ['Reputación y Reseñas'],
-  'Citaciones y NAP': ['Citaciones y NAP'],
-  'Reportes y Analytics': ['Reportes y Analytics'],
-  'Mapas de Calor Local': ['Mapas de Calor Local'],
-  'Contenido Local': ['Contenido Local'],
-  'Schema Local': ['Schema'],
-  'Consultoría y Estrategia': ['Consultoría'],
-  'SEO Local para E-commerce': ['SEO Local para E-commerce'],
-};
-
-const matchCatalogServicesByAgencyLabel = (label: string, catalog: Service[]): Service[] => {
-  const normalizedLabel = normalizeServiceSlug(label);
-  const aliases = SERVICE_CATEGORY_ALIASES[label] || [label];
-
-  const byCategory = catalog.filter((service) =>
-    aliases.some((alias) =>
-      service.categoryName?.toLowerCase() === alias.toLowerCase() ||
-      service.categorySlug === normalizeServiceSlug(alias)
-    )
-  );
-  if (byCategory.length > 0) return byCategory;
-
-  return catalog.filter((service) => {
-    const normalizedTitle = normalizeServiceSlug(service.title);
-    return normalizedTitle.includes(normalizedLabel) || normalizedLabel.includes(normalizedTitle);
-  });
-};
-
-const buildProfileServices = (agency: Agency, catalog: Service[]): AgencyProfileService[] => {
-  const serviceLabels = agency.services.filter((service) => !WORK_MODES.includes(service));
-
-  const matchedServices = serviceLabels
-    .flatMap((label) => {
-      const matches = matchCatalogServicesByAgencyLabel(label, catalog);
-      const picked = matches.find((service) => service.isPopular) || matches[0];
-      return picked ? [picked] : [];
-    })
-    .filter((service, index, self) => self.findIndex((item) => item.id === service.id) === index)
-    .slice(0, 6);
-
-  if (matchedServices.length > 0) {
-    return matchedServices.map((service) => ({
-      id: service.id,
-      title: service.title,
-      subtitle: service.description,
-      serviceType: service.categoryName || 'FUR-S vinculado',
-      included: true,
-      productId: service.id,
-      serviceId: service.id,
-      serviceCode: service.code,
-      serviceSlug: getServiceSlug(service),
-      serviceRoute: getServiceRoute(service),
-      furNumber: service.furNumber,
-      price: service.price,
-      currencyCode: service.currencyCode,
-      billingPeriod: service.billingPeriod,
-      categoryName: service.categoryName,
-    }));
-  }
-
-  return serviceLabels.slice(0, 6).map((service, index) => ({
-    id: `${agency.id}-service-${index}`,
-    title: service,
-    subtitle: index % 2 === 0 ? 'Auditoría, rastreo, priorización y optimización local.' : 'Gestión mensual con reportes, checklist y seguimiento operativo.',
-    serviceType: 'FUR-S vinculado',
-    serviceSlug: normalizeServiceSlug(service),
-    serviceRoute: `/servicios/${normalizeServiceSlug(service)}`,
-    included: true,
-  }));
-};
-
-const defaultProfile = (agency?: Agency, servicesCatalog: Service[] = POPULAR_SERVICES): AgencyProfilePayload | null => {
-  if (!agency) return null;
-  const services = buildProfileServices(agency, servicesCatalog);
-
-  return {
-    agency,
-    profile: {
-      tagline: agency.commercialSummary || agency.highlightReview,
-      focus: 'SEO Local, datos estructurados, contenido geo-referenciado y autoridad NAP.',
-      methodology: 'Diagnóstico FUR-S, sprint de implementación, medición semanal y roadmap comercial por ubicación.',
-      industries: ['Salud & Clínicas', 'Retail / Comercios', 'Servicios Profesionales', 'Restaurantes'],
-      clientProfile: 'Pymes con sedes, cadenas regionales, franquicias y negocios con local físico.',
-      identityTags: ['SEO Local', 'Google Business Profile', 'Reputación Online', 'Contenido Local', 'Citaciones y NAP'],
-      promiseHeadline: 'Perfil verificado con datos comerciales auditables y contratación protegida.',
-    },
-    services,
-    certifications: [
-      { id: `${agency.id}-cert-1`, issuer: 'Google Marketing Platform', title: 'Google Display & Video 360', validUntil: '2026-12-31' },
-      { id: `${agency.id}-cert-2`, issuer: 'Google Partner Program', title: 'Google Analytics 4 Certified', validUntil: '2026-12-31' },
-      { id: `${agency.id}-cert-3`, issuer: 'Semrush Partner Network', title: 'Semrush Local SEO Certified', validUntil: '2026-12-31' },
-    ],
-    team: [
-      {
-        id: `${agency.id}-team-1`,
-        name: 'Andrés Torres',
-        roleTitle: 'CEO & Estratega Principal',
-        bio: 'Experto en posicionamiento local con 12+ años de experiencia homologada.',
-        avatarUrl: fallbackAvatar,
-        fullBio: 'Andrés lidera la estrategia de SEO local de la agencia desde 2012. Ha diseñado metodologías de auditoría FUR-S para franquicias, cadenas regionales y pymes con sedes físicas. Combina análisis técnico, contenido georreferenciado y optimización de señales NAP para convertir búsquedas locales en oportunidades reales.',
-        experience: '12+ años',
-        skills: ['SEO Local', 'Google Business Profile', 'Auditoría FUR-S', 'Estrategia de contenido local', 'Analítica y reporting'],
-        certifications: ['Google Analytics 4 Certified', 'Semrush Local SEO Certified', 'Google Business Profile Product Expert'],
-        email: `andres.torres@${agency.slug || 'agencia'}.com`,
-        phone: agency.phone,
-        linkedIn: 'https://www.linkedin.com/in/andres-torres-seo',
-        languages: ['Español', 'Inglés'],
-        availability: 'Lunes a viernes 08:00 - 18:00',
-        projects: 340,
-      },
-      {
-        id: `${agency.id}-team-2`,
-        name: 'Laura García',
-        roleTitle: 'Especialista GBP & Reputación',
-        bio: 'Gestiona auditorías de ficha, reseñas y procesos de mejora continua.',
-        avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=320',
-        fullBio: 'Laura supervisa la optimización de Google Business Profile y el ciclo de reputación online. Diseña protocolos de respuesta a reseñas, mejora la foto de la ficha y coordina campañas de generación de opiniones verificadas para clínicas, restaurantes y comercios locales.',
-        experience: '8 años',
-        skills: ['Gestión de GBP', 'Reputación Online', 'Respuesta a reseñas', 'Optimización de fichas', 'Customer success'],
-        certifications: ['Google Business Profile Product Expert', 'Trustpilot Partner Academy'],
-        email: `laura.garcia@${agency.slug || 'agencia'}.com`,
-        phone: agency.phone,
-        linkedIn: 'https://www.linkedin.com/in/laura-garcia-gbp',
-        languages: ['Español'],
-        availability: 'Lunes a viernes 09:00 - 17:00',
-        projects: 215,
-      },
-      {
-        id: `${agency.id}-team-3`,
-        name: 'Diego Ramírez',
-        roleTitle: 'Analista SEO Senior',
-        bio: 'Programa reportes, geogrids, mapas de calor y validación de rankings.',
-        avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=320',
-        fullBio: 'Diego se encarga de la medición y validación de resultados. Construye reportes operativos, geogrids de visibilidad local y alertas de ranking para priorizar acciones por ubicación. Su enfoque conecta diagnóstico técnico con decisiones comerciales concretas.',
-        experience: '7 años',
-        skills: ['Análisis de rankings', 'Geogrids', 'Reportes SEO', 'Screaming Frog', 'Data Studio / Looker'],
-        certifications: ['Google Analytics 4 Certified', 'Semrush SEO Toolkit Certification'],
-        email: `diego.ramirez@${agency.slug || 'agencia'}.com`,
-        phone: agency.phone,
-        linkedIn: 'https://www.linkedin.com/in/diego-ramirez-seo',
-        languages: ['Español', 'Inglés'],
-        availability: 'Lunes a viernes 08:00 - 18:00',
-        projects: 180,
-      },
-    ],
-    channels: [
-      { id: `${agency.id}-channel-1`, type: 'email', label: 'Correo Oficial', value: agency.email, url: `mailto:${agency.email}`, isVerified: true },
-      { id: `${agency.id}-channel-2`, type: 'phone', label: 'WhatsApp Direct', value: agency.phone, url: `tel:${agency.phone}`, isVerified: true },
-      { id: `${agency.id}-channel-3`, type: 'website', label: 'Sitio Web / Blog', value: 'Sitio web validado', url: '#', isVerified: true },
-      { id: `${agency.id}-channel-4`, type: 'linkedin', label: 'LinkedIn Page', value: 'Perfil externo', url: '#', isVerified: true },
-    ],
-    hours: [
-      { id: `${agency.id}-hours-1`, dayLabel: 'Lunes a Viernes', opensAt: '08:00', closesAt: '18:00', isClosed: false },
-      { id: `${agency.id}-hours-2`, dayLabel: 'Sábado', opensAt: '09:00', closesAt: '13:00', isClosed: false },
-      { id: `${agency.id}-hours-3`, dayLabel: 'Domingo', opensAt: '', closesAt: '', isClosed: true },
-    ],
-    trustItems: [
-      { id: `${agency.id}-trust-1`, label: 'Agencia verificada con soporte corporativo local', tone: 'positive' },
-      { id: `${agency.id}-trust-2`, label: 'Reseñas y rating altos auditados mensualmente', tone: 'positive' },
-      { id: `${agency.id}-trust-3`, label: 'Acreditación técnica en herramientas de analítica y mapas', tone: 'positive' },
-      { id: `${agency.id}-trust-4`, label: 'Pago seguro en garantía mediante el Marketplace', tone: 'benefit' },
-    ],
-    reviews: [
-      { id: `${agency.id}-review-1`, author: 'María Gómez', rating: Math.round(agency.rating), body: agency.highlightReview, city: agency.city || agency.location, createdAt: 'Hace 1 semana', verified: true },
-      { id: `${agency.id}-review-2`, author: 'Carlos Pérez', rating: 5, body: agency.caseStudy || 'Trabajo ordenado, métricas claras y respuesta rápida del equipo.', city: agency.city || agency.location, createdAt: 'Hace 3 semanas', verified: true },
-    ],
-  };
-};
 
 const starRow = (rating: number, size = 'w-4 h-4') => (
   <span className="inline-flex items-center gap-0.5 text-amber-400" aria-label={`Calificación ${rating}`}>
@@ -244,8 +63,9 @@ export default function AgencyProfilePage() {
   const onOpenService = (service: Service) => navigate(getServiceRoute(service));
   const onAddReview = handleAddReview;
 
-  const [payload, setPayload] = useState<AgencyProfilePayload | null>(() => defaultProfile(agency, POPULAR_SERVICES));
-  const [loading, setLoading] = useState(!defaultProfile(agency, POPULAR_SERVICES));
+  const [payload, setPayload] = useState<AgencyProfilePayload | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [profileError, setProfileError] = useState<string | null>(null);
   const [expandedServices, setExpandedServices] = useState(false);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewName, setReviewName] = useState('');
@@ -258,6 +78,8 @@ export default function AgencyProfilePage() {
   useEffect(() => {
     const controller = new AbortController();
     setLoading(true);
+    setProfileError(null);
+    setPayload(null);
 
     marketplaceApi.getAgencyProfile(profileIdentifier, controller.signal)
       .then((result) => {
@@ -266,13 +88,12 @@ export default function AgencyProfilePage() {
       })
       .catch((error) => {
         if (error instanceof DOMException && error.name === 'AbortError') return;
-        const fallback = defaultProfile(agency, servicesCatalog);
-        setPayload(fallback);
+        setProfileError(error instanceof Error ? error.message : 'No se pudo cargar el perfil de la agencia.');
         setLoading(false);
       });
 
     return () => controller.abort();
-  }, [agency, profileIdentifier, servicesCatalog]);
+  }, [profileIdentifier]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   const currentAgency = payload?.agency || agency;
@@ -322,12 +143,26 @@ export default function AgencyProfilePage() {
     navigate(profileService.serviceRoute?.replace(/^#/, '') || `/servicios/${fallbackSlug}`);
   };
 
-  if (loading && !currentAgency) {
+  if (loading) {
     return (
       <section className="min-h-screen bg-[#f5f5f5] px-4 py-20">
         <div className="max-w-5xl mx-auto bg-white rounded-3xl border border-gray-200 p-10 text-center shadow-sm">
           <div className="w-14 h-14 rounded-full border-4 border-[#D32323]/20 border-t-[#D32323] animate-spin mx-auto" />
           <h1 className="mt-6 text-xl font-black text-[#333]">Cargando perfil de agencia...</h1>
+        </div>
+      </section>
+    );
+  }
+
+  if (profileError) {
+    return (
+      <section className="min-h-screen bg-[#f5f5f5] px-4 py-20">
+        <div className="max-w-4xl mx-auto bg-white rounded-3xl border border-gray-200 p-10 text-center shadow-sm">
+          <h1 className="text-2xl font-black text-[#333]">No se pudo cargar el perfil</h1>
+          <p className="mt-3 text-sm font-semibold text-gray-500">{profileError}</p>
+          <button type="button" onClick={onBackToDirectory} className="mt-6 rounded-xl bg-[#D32323] text-white px-5 py-3 text-xs font-black uppercase tracking-wider">
+            Volver al directorio
+          </button>
         </div>
       </section>
     );

@@ -20,6 +20,7 @@ import { Agency, Service } from '@/types';
 import { useAppState } from '@/state/useAppState';
 import { useFindAgencies } from '@/routes/navigation';
 import { CitationsNapQuoteResponse, FunctionalEvaluationResponse, marketplaceApi } from '@/services/marketplaceApi';
+import { resolveMarketplaceCategoryId } from '@/utils/marketplaceCategories';
 
 type CitationIssue = {
   area: string;
@@ -106,31 +107,31 @@ function SmallBenefit({ icon: Icon, title, desc }: { icon: typeof Building2; tit
 }
 
 export default function CitationsNapPage() {
-  const { agenciesList: agencies, setSelectedPurchaseItem } = useAppState();
+  const { agenciesList: agencies, marketplaceCategories, setSelectedPurchaseItem } = useAppState();
   const onFindAgencies = useFindAgencies();
   const onSelectPackage = (service: Service) => setSelectedPurchaseItem(service);
 
   const [form, setForm] = useState({
-    businessName: 'Restaurante Centro Madrid',
-    email: 'cliente@negociolocal.com',
-    website: 'https://negociolocal.com',
-    location: 'Madrid Centro',
-    keyword: 'restaurante cerca de mí',
-    legalName: 'Restaurante Centro Madrid SL',
-    currentName: 'Restaurante Centro',
-    address: 'Calle Mayor 15, Madrid',
-    phone: '+34 910 555 222',
-    directoriesChecked: '48',
-    consistentDirectories: '22',
-    inconsistentDirectories: '15',
-    missingDirectories: '9',
-    duplicateListings: '6',
-    incorrectPhoneCount: '5',
-    incorrectAddressCount: '7',
-    listingsClaimed: '18',
-    competitorCitations: '85',
-    monthlyCalls: '120',
-    monthlyVisits: '900',
+    businessName: '',
+    email: '',
+    website: '',
+    location: '',
+    keyword: '',
+    legalName: '',
+    currentName: '',
+    address: '',
+    phone: '',
+    directoriesChecked: '',
+    consistentDirectories: '',
+    inconsistentDirectories: '',
+    missingDirectories: '',
+    duplicateListings: '',
+    incorrectPhoneCount: '',
+    incorrectAddressCount: '',
+    listingsClaimed: '',
+    competitorCitations: '',
+    monthlyCalls: '',
+    monthlyVisits: '',
   });
 
   const [selectedModules, setSelectedModules] = useState<Record<ModuleKey, boolean>>({
@@ -263,7 +264,7 @@ export default function CitationsNapPage() {
         email: form.email,
         company: form.businessName,
         projectTitle: `Citaciones y NAP con ${contactAgency.name}`,
-        categoryId: 'directory-cat-08',
+        categoryId: resolveMarketplaceCategoryId(marketplaceCategories, 'citaciones-y-nap', 'Citaciones y NAP'),
         location: form.location,
         budget: liveQuote.estimatedPrice,
         description: contactMessage || `Quiero corregir consistencia NAP, duplicados y citaciones para ${form.businessName}.`,

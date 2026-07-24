@@ -71,7 +71,7 @@ function getScopeItems(service?: Service) {
 export default function ServiceDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const { servicesList, handleAddToCart } = useAppState();
+  const { servicesList, handleAddToCart, isMarketplaceLoading, marketplaceError } = useAppState();
 
   const service = slug ? findServiceBySlug(servicesList, slug) : undefined;
   const relatedServices = service
@@ -552,6 +552,35 @@ if (isSpeedOptimizationLocalService) {
     );
   }
 
+
+  if (isMarketplaceLoading) {
+    return (
+      <div className="bg-[#f5f5f5] min-h-[70vh] py-20">
+        <div className="max-w-3xl mx-auto px-4 text-center">
+          <div className="mx-auto w-16 h-16 rounded-full border-4 border-[#D32323]/20 border-t-[#D32323] animate-spin" />
+          <h1 className="mt-6 text-3xl font-black text-[#333]">Cargando servicio...</h1>
+          <p className="mt-3 text-gray-500 font-medium">Estamos preparando la ficha técnica solicitada.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (marketplaceError && servicesList.length === 0) {
+    return (
+      <div className="bg-[#f5f5f5] min-h-[70vh] py-20">
+        <div className="max-w-3xl mx-auto px-4 text-center">
+          <div className="mx-auto w-16 h-16 rounded-2xl bg-red-50 text-[#D32323] flex items-center justify-center">
+            <FileText className="w-8 h-8" />
+          </div>
+          <h1 className="mt-6 text-3xl font-black text-[#333]">No se pudo cargar el servicio</h1>
+          <p className="mt-3 text-gray-500 font-medium">{marketplaceError}</p>
+          <button type="button" onClick={onBackToServices} className="mt-8 inline-flex items-center gap-2 rounded-xl bg-[#D32323] px-6 py-3 text-sm font-black text-white shadow-lg hover:bg-[#b01c1c]">
+            <ArrowLeft className="w-4 h-4" /> Volver a servicios
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (!service) {
     return (

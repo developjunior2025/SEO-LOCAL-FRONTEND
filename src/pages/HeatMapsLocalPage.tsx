@@ -21,6 +21,7 @@ import { Agency, Service } from '@/types';
 import { useAppState } from '@/state/useAppState';
 import { useFindAgencies } from '@/routes/navigation';
 import { FunctionalEvaluationResponse, HeatMapsLocalQuoteResponse, marketplaceApi } from '@/services/marketplaceApi';
+import { resolveMarketplaceCategoryId } from '@/utils/marketplaceCategories';
 
 type HeatmapIssue = {
   area: string;
@@ -154,29 +155,29 @@ function HeatmapGrid({ grid, gridSize }: { grid?: HeatmapCell[]; gridSize: numbe
 }
 
 export default function HeatMapsLocalPage() {
-  const { agenciesList: agencies, setSelectedPurchaseItem } = useAppState();
+  const { agenciesList: agencies, marketplaceCategories, setSelectedPurchaseItem } = useAppState();
   const onFindAgencies = useFindAgencies();
   const onSelectPackage = (service: Service) => setSelectedPurchaseItem(service);
 
   const [form, setForm] = useState({
-    businessName: 'Clínica Dental Centro',
-    email: 'cliente@negociolocal.com',
-    website: 'https://clinicacentro.com',
-    location: 'Valencia Centro',
-    keyword: 'dentista cerca de mí',
-    centerRank: '8',
-    gridSize: '5',
-    mapVisibility: '54',
-    top3Coverage: '18',
-    competitorsCount: '5',
-    weakZones: '9',
-    previousAvgRank: '18',
-    gbpScore: '72',
-    reviewScore: '74',
-    citationScore: '68',
-    callsFromMaps: '28',
-    requests: '34',
-    keywordsCount: '1',
+    businessName: '',
+    email: '',
+    website: '',
+    location: '',
+    keyword: '',
+    centerRank: '',
+    gridSize: '',
+    mapVisibility: '',
+    top3Coverage: '',
+    competitorsCount: '',
+    weakZones: '',
+    previousAvgRank: '',
+    gbpScore: '',
+    reviewScore: '',
+    citationScore: '',
+    callsFromMaps: '',
+    requests: '',
+    keywordsCount: '',
     scanFrequency: 'monthly',
   });
 
@@ -328,7 +329,7 @@ export default function HeatMapsLocalPage() {
         phone: '',
         company: form.businessName,
         projectTitle: `Solicitud de Mapas de Calor Local para ${contactAgency.name}`,
-        categoryId: 'directory-cat-10',
+        categoryId: resolveMarketplaceCategoryId(marketplaceCategories, 'mapas-calor-local', 'Mapas de Calor Local'),
         location: form.location,
         budget: quoteResponse?.quote.estimatedPrice || liveQuote.estimatedPrice,
         description: contactMessage || `Necesito un mapa de calor local para ${form.keyword} en ${form.location}.`,

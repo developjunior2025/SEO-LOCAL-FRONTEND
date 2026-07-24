@@ -24,6 +24,7 @@ import { Agency, Service } from '@/types';
 import { useAppState } from '@/state/useAppState';
 import { useFindAgencies } from '@/routes/navigation';
 import { FunctionalEvaluationResponse, LinkBuildingQuoteResponse, marketplaceApi } from '@/services/marketplaceApi';
+import { resolveMarketplaceCategoryId } from '@/utils/marketplaceCategories';
 
 type LinkOpportunity = {
   type: string;
@@ -99,24 +100,24 @@ function normalizeNumber(value: string, fallback: number) {
 }
 
 export default function LinkBuildingLocalPage() {
-  const { agenciesList: agencies, setSelectedPurchaseItem } = useAppState();
+  const { agenciesList: agencies, marketplaceCategories, setSelectedPurchaseItem } = useAppState();
   const onFindAgencies = useFindAgencies();
   const onSelectPackage = (service: Service) => setSelectedPurchaseItem(service);
 
   const [auditForm, setAuditForm] = useState({
-    businessName: 'Restaurante Sabor Local',
-    email: 'cliente@negociolocal.com',
-    website: 'https://negociolocal.com',
-    location: 'Madrid',
-    keyword: 'restaurante italiano madrid',
-    currentBacklinks: '180',
-    referringDomains: '62',
-    domainAuthority: '31',
-    competitorDomains: '145',
-    localCitations: '28',
-    toxicLinkPercent: '7',
-    currentRank: '8',
-    targetLinks: '42',
+    businessName: '',
+    email: '',
+    website: '',
+    location: '',
+    keyword: '',
+    currentBacklinks: '',
+    referringDomains: '',
+    domainAuthority: '',
+    competitorDomains: '',
+    localCitations: '',
+    toxicLinkPercent: '',
+    currentRank: '',
+    targetLinks: '',
   });
   const [evaluation, setEvaluation] = useState<FunctionalEvaluationResponse | null>(null);
   const [isEvaluating, setIsEvaluating] = useState(false);
@@ -238,7 +239,7 @@ export default function LinkBuildingLocalPage() {
         email: auditForm.email,
         company: auditForm.businessName,
         projectTitle: `Link Building Local con ${contactAgency.name}`,
-        categoryId: 'directory-cat-04',
+        categoryId: resolveMarketplaceCategoryId(marketplaceCategories, 'link-building-local', 'Link Building Local'),
         location: auditForm.location,
         budget: liveQuote.estimatedPrice,
         requestType: 'consultation',
@@ -307,11 +308,11 @@ export default function LinkBuildingLocalPage() {
             </p>
 
             <form onSubmit={handleEvaluate} className="mt-7 grid gap-4 sm:grid-cols-2 rounded-3xl border border-gray-200 bg-white p-5 sm:p-6 shadow-sm">
-              <div className="sm:col-span-2"><label className={labelClass}>Negocio</label><input className={inputClass} value={auditForm.businessName} onChange={(e) => updateAudit('businessName', e.target.value)} required /></div>
-              <div><label className={labelClass}>Email</label><input type="email" className={inputClass} value={auditForm.email} onChange={(e) => updateAudit('email', e.target.value)} /></div>
-              <div><label className={labelClass}>Sitio web</label><input className={inputClass} value={auditForm.website} onChange={(e) => updateAudit('website', e.target.value)} /></div>
-              <div><label className={labelClass}>Ubicación</label><input className={inputClass} value={auditForm.location} onChange={(e) => updateAudit('location', e.target.value)} required /></div>
-              <div><label className={labelClass}>Keyword local</label><input className={inputClass} value={auditForm.keyword} onChange={(e) => updateAudit('keyword', e.target.value)} required /></div>
+              <div className="sm:col-span-2"><label className={labelClass}>Negocio</label><input className={inputClass} placeholder="Ej. Restaurante La Plaza" value={auditForm.businessName} onChange={(e) => updateAudit('businessName', e.target.value)} required /></div>
+              <div><label className={labelClass}>Email</label><input type="email" className={inputClass} placeholder="nombre@empresa.com" value={auditForm.email} onChange={(e) => updateAudit('email', e.target.value)} /></div>
+              <div><label className={labelClass}>Sitio web</label><input className={inputClass} placeholder="https://www.tusitio.com" value={auditForm.website} onChange={(e) => updateAudit('website', e.target.value)} /></div>
+              <div><label className={labelClass}>Ubicación</label><input className={inputClass} placeholder="Madrid Centro" value={auditForm.location} onChange={(e) => updateAudit('location', e.target.value)} required /></div>
+              <div><label className={labelClass}>Keyword local</label><input className={inputClass} placeholder="restaurante italiano madrid" value={auditForm.keyword} onChange={(e) => updateAudit('keyword', e.target.value)} required /></div>
               <div><label className={labelClass}>Backlinks actuales</label><input type="number" min="0" className={inputClass} value={auditForm.currentBacklinks} onChange={(e) => updateAudit('currentBacklinks', e.target.value)} /></div>
               <div><label className={labelClass}>Dominios referencia</label><input type="number" min="0" className={inputClass} value={auditForm.referringDomains} onChange={(e) => updateAudit('referringDomains', e.target.value)} /></div>
               <div><label className={labelClass}>Autoridad dominio</label><input type="number" min="0" max="100" className={inputClass} value={auditForm.domainAuthority} onChange={(e) => updateAudit('domainAuthority', e.target.value)} /></div>

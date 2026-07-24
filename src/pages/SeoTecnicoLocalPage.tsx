@@ -27,6 +27,7 @@ import { Agency, Service } from '@/types';
 import { useAppState } from '@/state/useAppState';
 import { useFindAgencies } from '@/routes/navigation';
 import { FunctionalEvaluationResponse, marketplaceApi, SeoTecnicoQuoteResponse } from '@/services/marketplaceApi';
+import { resolveMarketplaceCategoryId } from '@/utils/marketplaceCategories';
 
 type TechnicalIssue = {
   area: string;
@@ -94,30 +95,30 @@ function numeric(value: string, fallback: number) {
 }
 
 export default function SeoTecnicoLocalPage() {
-  const { agenciesList: agencies, setSelectedPurchaseItem } = useAppState();
+  const { agenciesList: agencies, marketplaceCategories, setSelectedPurchaseItem } = useAppState();
   const onFindAgencies = useFindAgencies();
   const onSelectPackage = (service: Service) => setSelectedPurchaseItem(service);
 
   const [form, setForm] = useState({
-    businessName: 'Clínica Dental Centro',
-    email: 'cliente@negociolocal.com',
-    website: 'https://negociolocal.com',
-    location: 'Madrid',
-    keyword: 'dentista madrid centro',
-    pagesIndexed: '41',
-    localLandingPages: '3',
-    crawlErrors: '158',
-    brokenLinks: '24',
-    duplicateTitles: '18',
-    mobileSpeed: '54',
-    desktopSpeed: '72',
-    coreWebVitals: '58',
-    schemaCoverage: '22',
-    structuredDataErrors: '9',
-    sitemapHealth: '64',
-    robotsHealth: '70',
-    httpsScore: '82',
-    internalLinks: '120',
+    businessName: '',
+    email: '',
+    website: '',
+    location: '',
+    keyword: '',
+    pagesIndexed: '',
+    localLandingPages: '',
+    crawlErrors: '',
+    brokenLinks: '',
+    duplicateTitles: '',
+    mobileSpeed: '',
+    desktopSpeed: '',
+    coreWebVitals: '',
+    schemaCoverage: '',
+    structuredDataErrors: '',
+    sitemapHealth: '',
+    robotsHealth: '',
+    httpsScore: '',
+    internalLinks: '',
   });
 
   const [selectedModules, setSelectedModules] = useState({
@@ -270,7 +271,7 @@ export default function SeoTecnicoLocalPage() {
         email: form.email,
         company: form.businessName,
         projectTitle: `Consulta SEO Técnico Local con ${contactAgency.name}`,
-        categoryId: 'directory-cat-05',
+        categoryId: resolveMarketplaceCategoryId(marketplaceCategories, 'seo-tecnico-local', 'SEO Tecnico Local'),
         location: form.location,
         budget: contactAgency.startingPrice,
         description: contactMessage || `Me interesa una auditoría SEO técnico local para ${form.website}.`,

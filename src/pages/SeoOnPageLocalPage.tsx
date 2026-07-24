@@ -30,6 +30,7 @@ import { Agency, Service } from '@/types';
 import { useAppState } from '@/state/useAppState';
 import { useFindAgencies } from '@/routes/navigation';
 import { FunctionalEvaluationResponse, marketplaceApi, OnPageLocalQuoteResponse } from '@/services/marketplaceApi';
+import { resolveMarketplaceCategoryId } from '@/utils/marketplaceCategories';
 
 type ModuleKey = 'titles' | 'metaDescriptions' | 'headings' | 'localContent' | 'friendlyUrls' | 'images' | 'internalLinks' | 'structuredData' | 'mobileOptimization' | 'cta';
 
@@ -97,32 +98,32 @@ function MetricCard({ icon: Icon, label, value, muted = false }: { icon: typeof 
 }
 
 export default function SeoOnPageLocalPage() {
-  const { agenciesList: agencies, setSelectedPurchaseItem } = useAppState();
+  const { agenciesList: agencies, marketplaceCategories, setSelectedPurchaseItem } = useAppState();
   const onFindAgencies = useFindAgencies();
   const onSelectPackage = (service: Service) => setSelectedPurchaseItem(service);
 
   const [form, setForm] = useState({
-    businessName: 'Restaurante Sabor Local',
-    email: 'cliente@negociolocal.com',
-    website: 'https://negociolocal.com',
-    location: 'Madrid Centro',
-    keyword: 'restaurante mediterráneo madrid centro',
-    currentGooglePosition: '15.2',
-    monthlyTraffic: '320',
-    monthlyCalls: '18',
-    monthlyLeads: '12',
-    conversionRate: '3.0',
-    targetPages: '8',
-    titleOptimization: '46',
-    metaCtr: '38',
-    headingStructure: '52',
-    contentLocality: '44',
-    urlQuality: '61',
-    imageOptimization: '35',
-    internalLinks: '42',
-    schemaCoverage: '28',
-    mobileUx: '58',
-    ctaScore: '40',
+    businessName: '',
+    email: '',
+    website: '',
+    location: '',
+    keyword: '',
+    currentGooglePosition: '',
+    monthlyTraffic: '',
+    monthlyCalls: '',
+    monthlyLeads: '',
+    conversionRate: '',
+    targetPages: '',
+    titleOptimization: '',
+    metaCtr: '',
+    headingStructure: '',
+    contentLocality: '',
+    urlQuality: '',
+    imageOptimization: '',
+    internalLinks: '',
+    schemaCoverage: '',
+    mobileUx: '',
+    ctaScore: '',
   });
 
   const [selectedModules, setSelectedModules] = useState<Record<ModuleKey, boolean>>({
@@ -260,7 +261,7 @@ export default function SeoOnPageLocalPage() {
         email: form.email,
         company: form.businessName,
         projectTitle: `SEO On-Page Local con ${contactAgency.name}`,
-        categoryId: 'directory-cat-06',
+        categoryId: resolveMarketplaceCategoryId(marketplaceCategories, 'seo-on-page-local', 'SEO On Page Local'),
         location: form.location,
         budget: quoteResponse?.quote.estimatedPrice || liveQuote.estimatedPrice,
         requestType: 'project',

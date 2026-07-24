@@ -45,7 +45,7 @@ export default function ProjectRequestModal({ categories, onClose, onSubmit }: P
         phone: form.phone.trim(),
         company: form.company.trim(),
         projectTitle: form.projectTitle.trim() || `Proyecto ${selectedCategory?.name || 'SEO Local'}`,
-        categoryId: form.categoryId,
+        categoryId: form.categoryId ? Number(form.categoryId) : undefined,
         location: form.location.trim(),
         budget: Number(form.budget || 0),
         description: form.description.trim(),

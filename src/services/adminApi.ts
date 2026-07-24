@@ -1,25 +1,15 @@
+import { resolveApiBases } from './apiBase';
+
 const TOKEN_KEY = 'seo_local_dashboard_token';
 const LAST_API_BASE_KEY = 'seo_local_dashboard_api_base';
-
-function resolveApiBases() {
-  const configured = import.meta.env.VITE_API_URL;
-  if (configured) return [String(configured).replace(/\/$/, '')];
-  const host = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
-  const protocol = typeof window !== 'undefined' ? window.location.protocol : 'http:';
-  return Array.from(new Set([
-    `${protocol}//${host}:4000/api/v1`,
-    'http://127.0.0.1:4000/api/v1',
-    'http://localhost:4000/api/v1',
-  ]));
-}
 
 const API_BASES = resolveApiBases();
 
 export type DashboardUser = {
   id: number;
   login: string;
-  name: string;
-  baseRole: string;
+  email?: string;
+  displayName: string;
   roleCode: string;
   roleName: string;
   agencyPartnerId?: number | null;
@@ -28,6 +18,11 @@ export type DashboardUser = {
 
 export type DashboardSession = {
   token: string;
+  refreshToken?: string;
+  user: DashboardUser;
+};
+
+export type DashboardMeResponse = {
   user: DashboardUser;
 };
 
@@ -96,7 +91,7 @@ export const adminApi = {
     setToken(payload.token);
     return payload;
   },
-  me: () => request<DashboardSession>('/admin/auth/me'),
+  me: () => request<DashboardMeResponse>('/admin/auth/me'),
 
   summary: () => request<Record<string, unknown>>('/admin/dashboard/summary'),
   reports: () => request<Record<string, unknown>>('/admin/reports/operational'),

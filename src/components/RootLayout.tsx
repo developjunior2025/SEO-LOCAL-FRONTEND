@@ -130,10 +130,14 @@ export default function RootLayout() {
             <div className="text-center space-y-2">
               <div className="w-12 h-12 bg-red-100 rounded-2xl flex items-center justify-center text-[#D32323] mx-auto font-black text-lg">Y</div>
               <h3 className="font-extrabold text-xl">Accede a tu Panel Local</h3>
-              <p className="text-xs text-gray-500 font-medium leading-relaxed">Valora agencias, gestiona presupuestos en custodia o chatea con tus consultores.</p>
+              <p className="text-xs text-gray-500 font-medium leading-relaxed">El acceso autenticado se gestiona desde la pantalla de login. Este modal ya no simula inicio de sesión.</p>
             </div>
 
-            <form onSubmit={(e) => { e.preventDefault(); setShowAuthModal(false); triggerToast('¡Sesión iniciada con éxito!'); }} className="space-y-4">
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              setShowAuthModal(false);
+              navigate(`/login?returnTo=${encodeURIComponent(location.pathname + location.search)}`);
+            }} className="space-y-4">
               <div className="space-y-1">
                 <label className="text-[10px] font-black tracking-wider text-gray-400 uppercase">Email Corporativo</label>
                 <input required type="email" placeholder="nombre@tuempresa.com" className="w-full bg-white border border-gray-250 py-3 px-4 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-[#D32323]" />
@@ -144,7 +148,7 @@ export default function RootLayout() {
               </div>
 
               <button type="submit" className="w-full bg-[#D32323] hover:bg-[#b01c1c] text-white font-extrabold py-3.5 rounded-xl text-xs tracking-wider uppercase transition-all shadow-md">
-                Iniciar Sesión
+                Ir al acceso
               </button>
             </form>
           </div>
@@ -165,7 +169,7 @@ export default function RootLayout() {
               <div className="flex-1 flex flex-col items-center justify-center text-center p-6 space-y-3">
                 <ShoppingBag className="w-12 h-12 text-gray-300" />
                 <h4 className="font-extrabold text-gray-700 text-sm">El carrito está vacío</h4>
-                <p className="text-xs text-gray-500 font-medium">Ve a la sección 'Servicios Populares' para pre-seleccionar tus auditorías locales.</p>
+                <p className="text-xs text-gray-500 font-medium">Esta preselección vive localmente en este navegador mientras defines una solicitud real.</p>
               </div>
             ) : (
               <div className="flex-1 overflow-y-auto py-4 divide-y divide-gray-100">
@@ -187,19 +191,19 @@ export default function RootLayout() {
 
                   <button
                     onClick={() => {
-                      const mockCompositeService: Service = {
-                        id: 'composite-srv',
-                        title: `${cart.length} Servicios Locales Combinados`,
-                        description: `Comprende el pack de auditorías y gestiones para subir posiciones en Google Maps.`,
+                      const combinedSelection: Service = {
+                        id: 'combined-selection',
+                        title: `${cart.length} Servicios Locales Seleccionados`,
+                        description: 'Preselección comercial construida desde el carrito para continuar con una solicitud real.',
                         price: cart.reduce((acu, s) => acu + s.price, 0),
                         iconName: 'format_list_bulleted'
                       };
-                      setSelectedPurchaseItem(mockCompositeService);
+                      setSelectedPurchaseItem(combinedSelection);
                       setShowCartDrawer(false);
                     }}
                     className="w-full bg-[#0074E0] hover:bg-[#005BB5] text-white font-extrabold py-3.5 rounded-xl cursor-pointer shadow-md text-xs sm:text-sm text-center block"
                   >
-                    Depositar Custodia y Contratar
+                  Continuar con solicitud real
                   </button>
                 </div>
               </div>
@@ -221,6 +225,8 @@ export default function RootLayout() {
               <Heart className="w-5 h-5 text-[#D32323] fill-[#D32323]" />
               <h3 className="font-black text-lg">Agencias Guardadas</h3>
             </div>
+
+            <p className="mb-4 text-[11px] font-semibold text-gray-500">Tus favoritos se guardan solo en este navegador por ahora.</p>
 
             {favorites.length === 0 ? (
               <div className="py-12 text-center text-gray-400 space-y-2">
@@ -271,8 +277,10 @@ export default function RootLayout() {
 
             <div className="pb-4 border-b border-gray-150 mb-4 flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <h3 className="font-black text-lg">Mensajes y Consultas Online</h3>
-            </div>
+                 <h3 className="font-black text-lg">Mensajes y Consultas Online</h3>
+               </div>
+
+             <p className="mb-4 text-[11px] font-semibold text-gray-500">Esta bandeja sigue siendo una vista local de referencia y no un inbox sincronizado.</p>
 
             {/* Chat list history */}
             <div className="space-y-4 overflow-y-auto flex-1 h-80 divide-y divide-gray-100 pr-2">
@@ -326,9 +334,9 @@ export default function RootLayout() {
                   <GitCompare className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-wider text-[#D32323]">Comparador de FUR-Servicios</p>
+                  <p className="text-[10px] font-black uppercase tracking-wider text-[#D32323]">Comparador local de FUR-Servicios</p>
                   <h3 className="font-black text-xl text-[#333]">Compara servicios antes de contratar</h3>
-                  <p className="text-xs text-gray-500 font-medium mt-1">Evalúa precio, modalidad, entrega, categoría y alcance para elegir mejor.</p>
+                  <p className="text-xs text-gray-500 font-medium mt-1">Evalúa precio, modalidad, entrega, categoría y alcance para elegir mejor. Esta comparación se conserva localmente.</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -460,7 +468,7 @@ export default function RootLayout() {
         isOpen={selectedPurchaseItem !== null}
         onClose={() => setSelectedPurchaseItem(null)}
         selectedItem={selectedPurchaseItem}
-        onConfirmSuccess={() => triggerToast('¡Gracias! Tu pago de Escrow ha quedado retenido de forma totalmente segura.')}
+        onSubmit={handleCreateProjectLead}
       />
 
       {/* 11. Immersive Agency Profile/Review Modal component */}

@@ -1,8 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { AGENCIES, MARKETPLACE_CATEGORIES, POPULAR_SERVICES } from '@/data';
 import type { Agency, Service, Offer, SearchState, MarketplaceCategory, User } from '@/types';
 import { marketplaceApi, type CreateLeadPayload } from '@/services/marketplaceApi';
-import { AUTH_STORAGE_KEY, DEMO_USERS, normalizeEmail } from './authHelpers';
+import { AUTH_STORAGE_KEY } from './authHelpers';
 
 export interface AppStateValue {
   // Auth
@@ -10,11 +9,13 @@ export interface AppStateValue {
   login: (email: string, password: string) => User | null;
   logout: () => void;
 
-  // Catalog (bootstrapped from the API, falls back to local mock data — see marketplaceApi.getBootstrap()).
+  // Catalog
   agenciesList: Agency[];
   marketplaceCategories: MarketplaceCategory[];
   servicesList: Service[];
   backendSource: 'postgresql' | 'mock';
+  isMarketplaceLoading: boolean;
+  marketplaceError: string | null;
 
   // Search
   searchState: SearchState;
@@ -80,40 +81,22 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [favorites, setFavorites] = useState<string[]>([]);
   const [cart, setCart] = useState<Service[]>([]);
   const [compareServices, setCompareServices] = useState<Service[]>([]);
-  const [agenciesList, setAgenciesList] = useState<Agency[]>(AGENCIES);
-  const [marketplaceCategories, setMarketplaceCategories] = useState<MarketplaceCategory[]>(MARKETPLACE_CATEGORIES);
-  const [servicesList, setServicesList] = useState<Service[]>(POPULAR_SERVICES);
+  const [agenciesList, setAgenciesList] = useState<Agency[]>([]);
+  const [marketplaceCategories, setMarketplaceCategories] = useState<MarketplaceCategory[]>([]);
+  const [servicesList, setServicesList] = useState<Service[]>([]);
   const [backendSource, setBackendSource] = useState<'postgresql' | 'mock'>('mock');
+  const [isMarketplaceLoading, setIsMarketplaceLoading] = useState(true);
+  const [marketplaceError, setMarketplaceError] = useState<string | null>(null);
 
   // Auth
-  const [user, setUser] = useState<User | null>(() => {
-    if (typeof window === 'undefined') return null;
-    try {
-      const raw = window.localStorage.getItem(AUTH_STORAGE_KEY);
-      if (!raw) return null;
-      const parsed = JSON.parse(raw) as User;
-      if (parsed?.id && parsed?.email && parsed?.role) return parsed;
-      return null;
-    } catch {
-      return null;
-    }
-  });
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    if (user) {
-      window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
-    } else {
-      window.localStorage.removeItem(AUTH_STORAGE_KEY);
-    }
+    window.localStorage.removeItem(AUTH_STORAGE_KEY);
   }, [user]);
 
-  const login = (email: string, password: string): User | null => {
-    const normalized = normalizeEmail(email);
-    const found = DEMO_USERS.find((u) => normalizeEmail(u.email) === normalized);
-    if (!found) return null;
-    if (password !== 'Demo1234') return null;
-    setUser(found);
-    return found;
+  const login = (_email: string, _password: string): User | null => {
+    return null;
   };
 
   const logout = () => {
@@ -131,40 +114,30 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const controller = new AbortController();
+    setIsMarketplaceLoading(true);
+    setMarketplaceError(null);
 
     marketplaceApi.getBootstrap(controller.signal)
-      .then(async (payload) => {
+      .then((payload) => {
         if (payload.categories?.length) setMarketplaceCategories(payload.categories);
         if (payload.agencies?.length) setAgenciesList(payload.agencies);
 
-        const furServicesResponse = await marketplaceApi.getServices({ furOnly: true }, controller.signal);
-        const furServices = (furServicesResponse.items || [])
+        const bootstrapServices = (payload.services || [])
           .slice()
           .sort((a, b) => (a.furNumber || 9999) - (b.furNumber || 9999));
 
-        const bootstrapFurServices = (payload.services || [])
-          .slice()
-          .sort((a, b) => (a.furNumber || 9999) - (b.furNumber || 9999));
-
-        // El home debe mostrar 8 tarjetas iniciales y permitir desplegar el catálogo completo.
-        // Si la API todavía devuelve solo los 4 servicios mock antiguos, no reemplazamos
-        // el fallback local de 45 FUR-Servicios. La migración 014 repara la BD, pero este
-        // guard evita que el home vuelva a quedar limitado a 4 tarjetas.
-        if (furServices.length >= 8) {
-          setServicesList(furServices);
-        } else if (bootstrapFurServices.length >= 8) {
-          setServicesList(bootstrapFurServices);
-        } else {
-          console.warn(`[SEO Local] Catálogo FUR incompleto en API (${furServices.length || bootstrapFurServices.length}); se mantiene fallback local con 45 FUR-Servicios.`);
-        }
+        setServicesList(bootstrapServices);
 
         setBackendSource('postgresql');
+        setIsMarketplaceLoading(false);
         console.info(`[SEO Local] Datos conectados a PostgreSQL autónomo: ${payload.meta.database}`);
       })
       .catch((error) => {
         if (error instanceof DOMException && error.name === 'AbortError') return;
         setBackendSource('mock');
-        console.warn('[SEO Local] La API PostgreSQL no está disponible; se mantienen los datos mock.', error);
+        setMarketplaceError(error instanceof Error ? error.message : 'No se pudo cargar el marketplace.');
+        setIsMarketplaceLoading(false);
+        console.warn('[SEO Local] La API PostgreSQL no está disponible.', error);
       });
 
     return () => controller.abort();
@@ -192,7 +165,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         triggerToast('Eliminado de tus favoritos.');
         return prev.filter((id) => id !== agencyId);
       } else {
-        triggerToast('¡Agregado a tus favoritos con éxito!');
+        triggerToast('Agregado a favoritos en este navegador.');
         return [...prev, agencyId];
       }
     });
@@ -206,7 +179,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         triggerToast('Servicio ya agregado al carrito.');
         return prev;
       } else {
-        triggerToast(`'${srv.title}' agregado al carrito de cobros.`);
+        triggerToast(`'${srv.title}' agregado a tu preselección local.`);
         return [...prev, srv];
       }
     });
@@ -215,7 +188,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   // Remove from cart
   const handleRemoveFromCart = (srvId: string) => {
     setCart((prev) => prev.filter((item) => item.id !== srvId));
-    triggerToast('Servicio eliminado de la pre-selección.');
+    triggerToast('Servicio eliminado de tu preselección local.');
   };
 
   const handleToggleCompareService = (srv: Service) => {
@@ -235,7 +208,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
     setCompareServices((prev) => [...prev, srv]);
     setShowCompareModal(true);
-    triggerToast(`'${srv.title}' agregado al comparador.`);
+    triggerToast(`'${srv.title}' agregado al comparador local.`);
   };
 
   const handleRemoveCompareService = (srvId: string) => {
@@ -271,18 +244,29 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         return agency;
       })
     );
-    triggerToast('¡Gracias por tu reseña! Se ha incorporado al perfil.');
+    triggerToast('Reseña enviada desde esta vista. La ficha pública real depende del backend.');
   };
 
   const handleHireAgency = (agency: Agency) => {
-    const mockService: Service = {
-      id: `plan-${agency.id}`,
-      title: `Plan SEO Local Mensual - ${agency.name}`,
-      description: `Estrategia integral SEO Local, gestión continuada de GBP y auditorías para mejorar tus rankings locales directos.`,
+    const normalize = (value?: string) => String(value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const agencyLabels = [agency.speciality, ...(agency.services || [])].map(normalize).filter(Boolean);
+    const matchedService = servicesList.find((service) => {
+      const candidates = [service.title, service.categoryName, service.code].map(normalize);
+      return candidates.some((candidate) => agencyLabels.some((label) => candidate.includes(label) || label.includes(candidate)));
+    });
+
+    if (matchedService) {
+      setSelectedPurchaseItem(matchedService);
+      return;
+    }
+
+    setSelectedPurchaseItem({
+      id: `agency-selection-${agency.id}`,
+      title: `Solicitud comercial con ${agency.name}`,
+      description: 'Preselección comercial para iniciar una cotización real con la agencia.',
       price: agency.startingPrice,
-      iconName: 'trending_up',
-    };
-    setSelectedPurchaseItem(mockService);
+      iconName: 'message',
+    });
   };
 
   const value: AppStateValue = {
@@ -293,6 +277,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     marketplaceCategories,
     servicesList,
     backendSource,
+    isMarketplaceLoading,
+    marketplaceError,
     searchState,
     setSearchState,
     hoveredAgencyId,

@@ -3,6 +3,7 @@ import type { FormEvent } from 'react';
 import {
   adminApi,
   clearAdminToken,
+  DashboardMeResponse,
   DashboardSession,
   DashboardUser,
 } from '@/services/adminApi';
@@ -340,8 +341,8 @@ function coerceValue(field: FieldDef, value: unknown) {
 }
 
 function LoginCard() {
-  const [login, setLogin] = useState('admin@seolocalmarketplace.com');
-  const [password, setPassword] = useState('AdminSEOlocal2026!');
+  const [login, setLogin] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -383,8 +384,8 @@ function LoginCard() {
             {loading ? 'Validando...' : 'Entrar al dashboard'}
           </button>
           <div className="rounded-2xl bg-gray-50 border border-gray-200 p-4 text-xs text-gray-600">
-            <p className="font-black text-[#333] mb-2">Usuarios creados por rol:</p>
-            <p>superadmin@ / admin@seolocalmarketplace.com · Owner · Agencia · Soporte · Ventas · Contenido · Analyst.</p>
+            <p className="font-black text-[#333] mb-2">Acceso interno</p>
+            <p>Usa una cuenta administrativa provisionada en la base de datos. Las credenciales seed ya no se muestran en la interfaz.</p>
           </div>
         </div>
       </form>
@@ -505,11 +506,14 @@ function GenericModule({
   const [creating, setCreating] = useState(false);
   const [query, setQuery] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [notice, setNotice] = useState('');
   const canManage = has(user, module.managePermission);
 
   const load = useCallback(async () => {
     if (!module.listMethod) return;
     setError('');
+    setLoading(true);
     try {
       const api = adminApi as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>;
       const fn = api[module.listMethod];
@@ -518,6 +522,8 @@ function GenericModule({
       setMeta(result.meta || {});
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'No se pudo cargar el módulo.');
+    } finally {
+      setLoading(false);
     }
   }, [module.listMethod]);
 
@@ -538,15 +544,34 @@ function GenericModule({
     const id = editing?.[module.idKey || 'id'];
     const api = adminApi as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>;
     const fn = api[module.updateMethod || ''];
+    setNotice('');
     await fn(Number(id), data);
     await load();
+    setNotice('Cambios guardados correctamente.');
   }
 
   async function saveCreate(data: AdminRecord) {
     const api = adminApi as unknown as Record<string, (...args: unknown[]) => Promise<unknown>>;
     const fn = api[module.createMethod || ''];
+    setNotice('');
     await fn(data);
     await load();
+    setNotice('Registro creado correctamente.');
+  }
+
+  async function runAction(action: () => Promise<void>, successMessage: string) {
+    setError('');
+    setNotice('');
+    setLoading(true);
+    try {
+      await action();
+      await load();
+      setNotice(successMessage);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'No se pudo ejecutar la acción.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   const columns = useMemo(() => {
@@ -573,7 +598,7 @@ function GenericModule({
             {Object.keys(meta).length > 0 && <p className="mt-2 text-xs font-bold text-gray-400">Meta: {JSON.stringify(meta)}</p>}
           </div>
           <div className="flex items-center gap-3">
-            <button onClick={load} className="rounded-2xl border border-gray-200 px-4 py-3 font-black text-sm text-[#333] hover:bg-gray-50 inline-flex items-center gap-2"><RefreshCw className="w-4 h-4" /> Actualizar</button>
+            <button disabled={loading} onClick={load} className="rounded-2xl border border-gray-200 px-4 py-3 font-black text-sm text-[#333] hover:bg-gray-50 inline-flex items-center gap-2 disabled:opacity-60"><RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> {loading ? 'Cargando...' : 'Actualizar'}</button>
             {canManage && module.createMethod && (
               <button onClick={() => setCreating(true)} className="rounded-2xl bg-[#D32323] px-4 py-3 font-black text-sm text-white hover:bg-[#b51d1d] inline-flex items-center gap-2"><Plus className="w-4 h-4" /> {module.createLabel || 'Crear'}</button>
             )}
@@ -582,6 +607,7 @@ function GenericModule({
       </div>
 
       {error && <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-bold text-[#D32323]">{error}</div>}
+      {notice && <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm font-bold text-emerald-700">{notice}</div>}
 
       <div className="rounded-[28px] bg-white border border-gray-200 shadow-sm overflow-hidden">
         <div className="p-5 border-b border-gray-200 flex items-center gap-3">
@@ -597,12 +623,12 @@ function GenericModule({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {filtered.map((item, index) => (
+              {!loading && filtered.map((item, index) => (
                 <tr key={String(item.id ?? item.external_id ?? index)} className="hover:bg-gray-50/80">
                   {columns.map((col) => <td key={col} className="px-5 py-4 max-w-[260px] truncate font-semibold text-gray-700">{stringify(item[col])}</td>)}
                   <td className="px-5 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      {module.key === 'agencies' && has(user, 'agencies.publish') && (
+                      {module.key === 'agencies' && has(user, 'agencies.update') && (
                         <button
                           type="button"
                           title="Semáforo: verde publicada, amarillo vacaciones, rojo oculta del homepage"
@@ -621,6 +647,55 @@ function GenericModule({
                           }`}
                         />
                       )}
+                      {module.key === 'services' && canManage && (
+                        <button
+                          type="button"
+                          onClick={() => runAction(() => adminApi.duplicateService(Number(item.id)).then(() => Promise.resolve()), 'Servicio duplicado como borrador.')}
+                          className="rounded-xl border border-gray-200 px-3 py-2 text-xs font-black text-[#333] hover:border-[#0074E0] hover:text-[#0074E0]"
+                        >
+                          Duplicar
+                        </button>
+                      )}
+                      {module.key === 'agencyServices' && canManage && (
+                        <button
+                          type="button"
+                          onClick={() => runAction(() => adminApi.deleteAgencyService(Number(item.id)).then(() => Promise.resolve()), 'Asignación archivada correctamente.')}
+                          className="rounded-xl border border-red-200 px-3 py-2 text-xs font-black text-[#D32323] hover:bg-red-50"
+                        >
+                          Archivar
+                        </button>
+                      )}
+                      {module.key === 'leads' && canManage && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const note = window.prompt('Escribe una nota breve para este lead:');
+                            if (!note?.trim()) return;
+                            void runAction(() => adminApi.addLeadNote(Number(item.id), note.trim()).then(() => Promise.resolve()), 'Nota agregada al lead.');
+                          }}
+                          className="rounded-xl border border-gray-200 px-3 py-2 text-xs font-black text-[#333] hover:border-[#0074E0] hover:text-[#0074E0]"
+                        >
+                          Nota
+                        </button>
+                      )}
+                      {module.key === 'reviews' && canManage && (
+                        <button
+                          type="button"
+                          onClick={() => runAction(() => adminApi.moderateReview(Number(item.id), 'approve').then(() => Promise.resolve()), 'Reseña aprobada correctamente.')}
+                          className="rounded-xl border border-emerald-200 px-3 py-2 text-xs font-black text-emerald-700 hover:bg-emerald-50"
+                        >
+                          Aprobar
+                        </button>
+                      )}
+                      {module.key === 'reviews' && canManage && (
+                        <button
+                          type="button"
+                          onClick={() => runAction(() => adminApi.moderateReview(Number(item.id), 'hide').then(() => Promise.resolve()), 'Reseña ocultada correctamente.')}
+                          className="rounded-xl border border-amber-200 px-3 py-2 text-xs font-black text-amber-700 hover:bg-amber-50"
+                        >
+                          Ocultar
+                        </button>
+                      )}
                       {canManage && fields.length > 0 ? (
                         <button onClick={() => setEditing(item)} className="rounded-xl border border-gray-200 px-3 py-2 text-xs font-black text-[#333] hover:border-[#D32323] hover:text-[#D32323] inline-flex items-center gap-2"><Edit3 className="w-3.5 h-3.5" /> Editar</button>
                       ) : (
@@ -630,7 +705,12 @@ function GenericModule({
                   </td>
                 </tr>
               ))}
-              {!filtered.length && (
+              {loading && !filtered.length && (
+                <tr>
+                  <td colSpan={columns.length + 1 || 2} className="px-5 py-10 text-center text-sm font-bold text-gray-400">Cargando registros...</td>
+                </tr>
+              )}
+              {!loading && !filtered.length && (
                 <tr>
                   <td colSpan={columns.length + 1 || 2} className="px-5 py-10 text-center text-sm font-bold text-gray-400">{module.emptyLabel || 'Sin registros para mostrar.'}</td>
                 </tr>
@@ -750,7 +830,7 @@ function AgencyProfileModules({ user }: { user: DashboardUser | null }) {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
-  const canEdit = has(user, 'agency_profile.modules') || has(user, 'agency_profile.own.modules') || has(user, 'agencies.update') || has(user, 'agencies.own.update');
+  const canEdit = has(user, 'agency_profile.modules') || has(user, 'agencies.update') || has(user, 'agencies.own.update');
   const selectedAgency = agencies.find((agency) => String(agency.id) === String(agencyId));
 
   const loadAgencies = useCallback(async () => {
@@ -1057,6 +1137,7 @@ function AgencyProfileModules({ user }: { user: DashboardUser | null }) {
             {moduleKey === 'json' && (
               <div className="rounded-[28px] bg-white border border-gray-200 p-6 shadow-sm">
                 <div className="flex items-center justify-between gap-4 mb-4"><h3 className="font-black text-[#333]">Vista técnica JSON</h3><button onClick={() => saveModule('team')} disabled={!canEdit || saving} className="rounded-2xl bg-[#333] px-5 py-3 text-white font-black disabled:opacity-50">Guardar equipo desde JSON</button></div>
+                <p className="mb-4 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3">Esta vista es técnica. El botón actual solo persiste la colección <code>team</code>; no guarda automáticamente todas las colecciones del JSON.</p>
                 <textarea value={JSON.stringify(data, null, 2)} onChange={(e) => { try { setData(JSON.parse(e.target.value)); } catch { setData(data); } }} className="w-full min-h-[620px] rounded-2xl border border-gray-200 p-4 font-mono text-xs outline-none focus:border-[#D32323]" />
               </div>
             )}
@@ -1076,7 +1157,7 @@ export default function DashboardPage() {
     try {
       if (!adminApi.token) return;
       const me = await adminApi.me();
-      setSession(me);
+      setSession({ token: adminApi.token, user: me.user });
     } catch {
       clearAdminToken();
     } finally {
@@ -1117,7 +1198,7 @@ export default function DashboardPage() {
             <div className="w-12 h-12 rounded-2xl bg-[#D32323] text-white flex items-center justify-center font-black">Y</div>
             <div>
               <p className="text-xs font-black uppercase text-[#D32323]">Dashboard enterprise v5.27.0</p>
-              <h1 className="text-xl font-black text-[#333]">Hola, {user?.name}</h1>
+              <h1 className="text-xl font-black text-[#333]">Hola, {user?.displayName}</h1>
               <p className="text-xs font-semibold text-gray-500">{user?.login} · {user?.roleName} · Agencia asignada: {user?.agencyPartnerId || 'No aplica'}</p>
             </div>
           </div>

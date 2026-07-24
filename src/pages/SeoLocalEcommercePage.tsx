@@ -80,20 +80,20 @@ function SeoLocalEcommercePage() {
   const onFindAgencies = useFindAgencies();
   const onSelectPackage = (service: Service) => setSelectedPurchaseItem(service);
 
-  const [businessName, setBusinessName] = useState('Tienda Online de Ropa Deportiva');
-  const [email, setEmail] = useState('demo.ecommerce@example.com');
-  const [website, setWebsite] = useState('https://tiendadeportiva.example');
-  const [location, setLocation] = useState('Sabadell, Barcelona');
-  const [keyword, setKeyword] = useState('comprar zapatillas deportivas cerca de mi');
-  const [monthlyOrganicSessions, setMonthlyOrganicSessions] = useState('2650');
-  const [monthlyRevenue, setMonthlyRevenue] = useState('12500');
-  const [productCount, setProductCount] = useState('180');
-  const [categoryPages, setCategoryPages] = useState('12');
-  const [localLandingPages, setLocalLandingPages] = useState('2');
-  const [conversionRate, setConversionRate] = useState('1.3');
-  const [cartAbandonment, setCartAbandonment] = useState('68');
-  const [technicalScore, setTechnicalScore] = useState('54');
-  const [gbpProductCoverage] = useState('35');
+  const [businessName, setBusinessName] = useState('');
+  const [email, setEmail] = useState('');
+  const [website, setWebsite] = useState('');
+  const [location, setLocation] = useState('');
+  const [keyword, setKeyword] = useState('');
+  const [monthlyOrganicSessions, setMonthlyOrganicSessions] = useState('');
+  const [monthlyRevenue, setMonthlyRevenue] = useState('');
+  const [productCount, setProductCount] = useState('');
+  const [categoryPages, setCategoryPages] = useState('');
+  const [localLandingPages, setLocalLandingPages] = useState('');
+  const [conversionRate, setConversionRate] = useState('');
+  const [cartAbandonment, setCartAbandonment] = useState('');
+  const [technicalScore, setTechnicalScore] = useState('');
+  const [gbpProductCoverage] = useState('');
 
   const [selectedModules, setSelectedModules] = useState<Record<ModuleKey, boolean>>({
     localLanding: true,
@@ -294,7 +294,7 @@ function SeoLocalEcommercePage() {
       <section className="py-14 bg-[#f5f5f5] border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-[1.1fr_0.9fr] gap-8">
           <div className="bg-white border border-gray-200 rounded-3xl p-6 shadow-sm"><h2 className="text-2xl font-black">Cotizador modular</h2><p className="mt-2 text-sm text-gray-500 font-medium">Activa los módulos que necesita tu tienda.</p><div className="mt-6 grid sm:grid-cols-2 gap-3">{modules.map((module) => { const Icon = module.icon; return <button key={module.key} type="button" onClick={() => setSelectedModules((prev) => ({ ...prev, [module.key]: !prev[module.key] }))} className={`text-left rounded-2xl border p-4 transition ${selectedModules[module.key] ? 'border-[#D32323] bg-red-50' : 'border-gray-200 bg-white hover:border-gray-300'}`}><Icon className="w-5 h-5 text-[#D32323]" /><h3 className="mt-3 font-black text-sm">{module.title}</h3><p className="mt-1 text-xs text-gray-600">{module.desc}</p><p className="mt-3 text-xs font-black text-[#333]">${module.price}</p></button>; })}</div></div>
-          <div className="bg-[#111827] text-white rounded-3xl p-6 shadow-xl flex flex-col justify-between"><div><span className="text-[10px] uppercase tracking-widest font-black text-red-200">Presupuesto estimado</span><p className="mt-3 text-5xl font-black">${quoteResponse?.quote.estimatedPrice || quotePreview.estimatedPrice}</p><p className="mt-2 text-sm text-gray-300">{quoteResponse ? `Referencia ${quoteResponse.reference}` : `${quotePreview.modulesCount} módulos · ${quotePreview.hours} horas estimadas`}</p><div className="mt-6 space-y-3 text-sm">{['Optimización por zona y categoría', 'Datos guardados en PostgreSQL', 'Cotización lista para checkout'].map((item) => <div key={item} className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400" /><span>{item}</span></div>)}</div></div><div className="mt-8 space-y-3"><button onClick={handleQuote} disabled={isQuoting} className="w-full rounded-xl bg-white text-[#111827] px-5 py-3 font-black hover:bg-gray-100 transition flex items-center justify-center gap-2">{isQuoting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />} Generar cotización</button><button onClick={handleSelectPackage} className="w-full rounded-xl bg-[#D32323] px-5 py-3 font-black text-white hover:bg-[#b01c1c] transition">Contratar paquete</button></div></div>
+          <div className="bg-[#111827] text-white rounded-3xl p-6 shadow-xl flex flex-col justify-between"><div><span className="text-[10px] uppercase tracking-widest font-black text-red-200">Presupuesto estimado</span><p className="mt-3 text-5xl font-black">${quoteResponse?.quote.estimatedPrice || quotePreview.estimatedPrice}</p><p className="mt-2 text-sm text-gray-300">{quoteResponse ? `Referencia ${quoteResponse.reference}` : `${quotePreview.modulesCount} módulos · ${quotePreview.hours} horas estimadas`}</p><div className="mt-6 space-y-3 text-sm">{['Optimización por zona y categoría', 'Datos guardados en PostgreSQL', 'Cotización lista para continuar'].map((item) => <div key={item} className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400" /><span>{item}</span></div>)}</div></div><div className="mt-8 space-y-3"><button onClick={handleQuote} disabled={isQuoting} className="w-full rounded-xl bg-white text-[#111827] px-5 py-3 font-black hover:bg-gray-100 transition flex items-center justify-center gap-2">{isQuoting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />} Generar cotización</button><button onClick={handleSelectPackage} className="w-full rounded-xl bg-[#D32323] px-5 py-3 font-black text-white hover:bg-[#b01c1c] transition">Continuar con solicitud</button></div></div>
         </div>
       </section>
 

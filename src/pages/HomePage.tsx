@@ -4,11 +4,11 @@ import Categories from '@/components/home/Categories';
 import MapView from '@/components/home/MapView';
 import FeaturedAgencies from '@/components/home/FeaturedAgencies';
 import PopularServices from '@/components/home/PopularServices';
-import Offers from '@/components/home/Offers';
+import Offers, { buildHomeOffersFromServices } from '@/components/home/Offers';
 import Benefits from '@/components/home/Benefits';
 import { useAppState } from '@/state/useAppState';
 import { useHeroSearch } from '@/routes/navigation';
-import type { Agency, Service } from '@/types';
+import type { Agency, Offer, Service } from '@/types';
 import { getServiceRoute } from '@/utils/serviceRoutes';
 
 export default function HomePage() {
@@ -16,7 +16,10 @@ export default function HomePage() {
   const handleHeroSearch = useHeroSearch();
   const {
     agenciesList,
+    marketplaceCategories,
     servicesList,
+    isMarketplaceLoading,
+    marketplaceError,
     searchState,
     setSearchState,
     hoveredAgencyId,
@@ -33,6 +36,7 @@ export default function HomePage() {
 
   const navigateToService = (service: Service) => navigate(getServiceRoute(service));
   const navigateToAgencyProfile = (agency: Agency) => navigate(`/agencias/${agency.slug || agency.id}`);
+  const homeOffers: Offer[] = buildHomeOffersFromServices(servicesList);
 
   // Category trigger
   const handleCategorySelect = (serviceName: string) => {
@@ -79,9 +83,30 @@ export default function HomePage() {
 
       {/* 3. Category Grid Component */}
       <Categories
+        categories={marketplaceCategories}
         onSelectCategory={handleCategorySelect}
         activeCategory={searchState.keyword}
       />
+
+      {isMarketplaceLoading && (
+        <section className="bg-white border-b border-gray-150">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="rounded-2xl border border-gray-200 bg-gray-50 px-5 py-4 text-sm font-bold text-gray-600">
+              Cargando datos del marketplace...
+            </div>
+          </div>
+        </section>
+      )}
+
+      {marketplaceError && !isMarketplaceLoading && (
+        <section className="bg-white border-b border-gray-150">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-bold text-[#D32323]">
+              No se pudo cargar el marketplace. {marketplaceError}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* 4. Map View Component */}
       <MapView
@@ -105,7 +130,7 @@ export default function HomePage() {
       <PopularServices services={servicesList} onAddToCart={handleAddToCart} onOpenService={navigateToService} cart={cart} compareServices={compareServices} onToggleCompare={handleToggleCompareService} />
 
       {/* 7. Special Promo Offer Blocks */}
-      <Offers onClaimOffer={handleClaimOffer} />
+      <Offers offers={homeOffers} sourceServicesCount={servicesList.length} onClaimOffer={handleClaimOffer} />
 
       {/* 8. Trust Guarantees Checklist */}
       <Benefits />

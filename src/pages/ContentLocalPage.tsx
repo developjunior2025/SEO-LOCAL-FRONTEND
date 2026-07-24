@@ -116,7 +116,7 @@ function ContentLocalPage() {
   const onFindAgencies = useFindAgencies();
   const onSelectPackage = (service: Service) => setSelectedPurchaseItem(service);
 
-  const [businessName, setBusinessName] = useState('Clínica Dental Sonrisas');
+  const [businessName, setBusinessName] = useState('');
   const [email, setEmail] = useState('demo.contenido@example.com');
   const [website, setWebsite] = useState('https://clinicasonrisas.example');
   const [location, setLocation] = useState('Bogotá Centro');
@@ -357,16 +357,16 @@ function ContentLocalPage() {
           <form onSubmit={handleEvaluate} className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
             <div className="flex items-center gap-2"><PenLine className="h-5 w-5 text-[#D32323]" /><h2 className="text-xl font-black">Evaluador funcional de contenido</h2></div>
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
-              <label><span className={labelClass}>Negocio</span><input className={inputClass} value={businessName} onChange={(e) => setBusinessName(e.target.value)} /></label>
-              <label><span className={labelClass}>Email</span><input className={inputClass} value={email} onChange={(e) => setEmail(e.target.value)} /></label>
-              <label><span className={labelClass}>Web</span><input className={inputClass} value={website} onChange={(e) => setWebsite(e.target.value)} /></label>
-              <label><span className={labelClass}>Ubicación</span><input className={inputClass} value={location} onChange={(e) => setLocation(e.target.value)} /></label>
-              <label><span className={labelClass}>Keyword principal</span><input className={inputClass} value={keyword} onChange={(e) => setKeyword(e.target.value)} /></label>
-              <label><span className={labelClass}>Tráfico mensual</span><input className={inputClass} value={monthlyTraffic} onChange={(e) => setMonthlyTraffic(e.target.value)} /></label>
-              <label><span className={labelClass}>Artículos publicados</span><input className={inputClass} value={publishedArticles} onChange={(e) => setPublishedArticles(e.target.value)} /></label>
-              <label><span className={labelClass}>Frescura contenido %</span><input className={inputClass} value={contentFreshness} onChange={(e) => setContentFreshness(e.target.value)} /></label>
-              <label><span className={labelClass}>Cobertura FAQ %</span><input className={inputClass} value={faqCoverage} onChange={(e) => setFaqCoverage(e.target.value)} /></label>
-              <label><span className={labelClass}>Multimedia %</span><input className={inputClass} value={multimediaScore} onChange={(e) => setMultimediaScore(e.target.value)} /></label>
+              <label><span className={labelClass}>Negocio</span><input className={inputClass} placeholder="Ej. Clínica Dental Central" value={businessName} onChange={(e) => setBusinessName(e.target.value)} /></label>
+              <label><span className={labelClass}>Email</span><input type="email" className={inputClass} placeholder="nombre@empresa.com" value={email} onChange={(e) => setEmail(e.target.value)} /></label>
+              <label><span className={labelClass}>Web</span><input type="url" className={inputClass} placeholder="https://www.tusitio.com" value={website} onChange={(e) => setWebsite(e.target.value)} /></label>
+              <label><span className={labelClass}>Ubicación</span><input className={inputClass} placeholder="Bogotá, Madrid, Ciudad de México" value={location} onChange={(e) => setLocation(e.target.value)} /></label>
+              <label><span className={labelClass}>Keyword principal</span><input className={inputClass} placeholder="dentista cerca de mi" value={keyword} onChange={(e) => setKeyword(e.target.value)} /></label>
+              <label><span className={labelClass}>Tráfico mensual</span><input type="number" className={inputClass} placeholder="1200" value={monthlyTraffic} onChange={(e) => setMonthlyTraffic(e.target.value)} /></label>
+              <label><span className={labelClass}>Artículos publicados</span><input type="number" className={inputClass} placeholder="4" value={publishedArticles} onChange={(e) => setPublishedArticles(e.target.value)} /></label>
+              <label><span className={labelClass}>Frescura contenido %</span><input type="number" className={inputClass} placeholder="60" value={contentFreshness} onChange={(e) => setContentFreshness(e.target.value)} /></label>
+              <label><span className={labelClass}>Cobertura FAQ %</span><input type="number" className={inputClass} placeholder="45" value={faqCoverage} onChange={(e) => setFaqCoverage(e.target.value)} /></label>
+              <label><span className={labelClass}>Multimedia %</span><input type="number" className={inputClass} placeholder="50" value={multimediaScore} onChange={(e) => setMultimediaScore(e.target.value)} /></label>
             </div>
             <button disabled={isEvaluating} className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[#D32323] px-5 py-3.5 text-xs font-black uppercase text-white transition hover:bg-[#b01c1c] disabled:opacity-60">{isEvaluating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />} Evaluar contenido local</button>
           </form>
@@ -394,9 +394,10 @@ function ContentLocalPage() {
             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Presupuesto estimado</p>
             <div className="mt-3 text-5xl font-black">${quoteResponse?.quote.estimatedPrice || quotePreview.estimatedPrice}</div>
             <div className="mt-4 grid grid-cols-2 gap-3 text-center"><div className="rounded-xl bg-white/10 p-3"><div className="text-xl font-black">{quoteResponse?.quote.modulesCount || quotePreview.modulesCount}</div><p className="text-[10px] text-slate-400 uppercase">Módulos</p></div><div className="rounded-xl bg-white/10 p-3"><div className="text-xl font-black">{quoteResponse?.quote.estimatedHours || quotePreview.hours}h</div><p className="text-[10px] text-slate-400 uppercase">Trabajo</p></div></div>
-            <button onClick={() => void handleQuote()} disabled={isQuoting} className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#D32323] px-5 py-3.5 text-xs font-black uppercase text-white hover:bg-[#b01c1c] disabled:opacity-60">{isQuoting ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />} Cotizar y contratar</button>
+            <button onClick={() => void handleQuote()} disabled={isQuoting} className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#D32323] px-5 py-3.5 text-xs font-black uppercase text-white hover:bg-[#b01c1c] disabled:opacity-60">{isQuoting ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />} Generar cotización</button>
             {quoteResponse && <p className="mt-3 text-xs text-emerald-300">Cotización guardada: {quoteResponse.reference}</p>}
             {error && <p className="mt-3 rounded-xl bg-red-500/15 p-3 text-xs text-red-100">{error}</p>}
+            {quoteResponse && <button onClick={() => onSelectPackage({ id: quoteResponse.reference, title: `Plan Contenido Local - ${businessName || 'Negocio local'}`, description: `Producción mensual de contenido local, posts GBP, FAQs y calendario editorial. Referencia ${quoteResponse.reference}`, price: quoteResponse.quote.estimatedPrice, iconName: 'description' })} className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-white px-5 py-3.5 text-xs font-black uppercase text-[#111827] hover:bg-gray-100">Continuar con solicitud</button>}
           </aside>
         </div>
       </section>

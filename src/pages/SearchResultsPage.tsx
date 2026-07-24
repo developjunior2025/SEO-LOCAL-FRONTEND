@@ -13,7 +13,7 @@ const normalize = (value?: string | number) => String(value || '').toLowerCase()
 export default function SearchResultsPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { agenciesList: agencies, marketplaceCategories: categories, servicesList: services, searchState } = useAppState();
+  const { agenciesList: agencies, marketplaceCategories: categories, servicesList: services, searchState, isMarketplaceLoading, marketplaceError } = useAppState();
   const onSelectCategory = useSelectCategory();
   const onSearchAgain = useHeroSearch();
 
@@ -88,6 +88,32 @@ export default function SearchResultsPage() {
     event.preventDefault();
     onSearchAgain(keywordDraft.trim(), locationDraft.trim());
   };
+
+  if (isMarketplaceLoading) {
+    return (
+      <section className="bg-[#F5F5F5] min-h-screen pt-8 pb-16">
+        <div className="w-full px-4 sm:px-6 lg:px-8">
+          <div className="mt-6 rounded-[32px] border border-gray-200 bg-white p-10 text-center">
+            <h1 className="text-2xl font-black text-[#333]">Cargando resultados...</h1>
+            <p className="mt-2 text-sm font-semibold text-gray-500">Estamos preparando agencias, servicios y categorías del marketplace.</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (marketplaceError) {
+    return (
+      <section className="bg-[#F5F5F5] min-h-screen pt-8 pb-16">
+        <div className="w-full px-4 sm:px-6 lg:px-8">
+          <div className="mt-6 rounded-[32px] border border-red-200 bg-red-50 p-10 text-center">
+            <h1 className="text-2xl font-black text-[#333]">No se pudo cargar la búsqueda</h1>
+            <p className="mt-2 text-sm font-semibold text-[#D32323]">{marketplaceError}</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="bg-[#F5F5F5] min-h-screen pt-8 pb-16">

@@ -22,6 +22,7 @@ import { Agency, Service } from '@/types';
 import { useAppState } from '@/state/useAppState';
 import { useFindAgencies } from '@/routes/navigation';
 import { FunctionalEvaluationResponse, marketplaceApi, ReputationQuoteResponse } from '@/services/marketplaceApi';
+import { resolveMarketplaceCategoryId } from '@/utils/marketplaceCategories';
 
 type ReputationIssue = {
   area: string;
@@ -107,29 +108,29 @@ function SmallBenefit({ icon: Icon, title, desc }: { icon: typeof Star; title: s
 }
 
 export default function ReputationReviewsPage() {
-  const { agenciesList: agencies, setSelectedPurchaseItem } = useAppState();
+  const { agenciesList: agencies, marketplaceCategories, setSelectedPurchaseItem } = useAppState();
   const onFindAgencies = useFindAgencies();
   const onSelectPackage = (service: Service) => setSelectedPurchaseItem(service);
 
   const [form, setForm] = useState({
-    businessName: 'Cafetería Centro Madrid',
-    email: 'cliente@negociolocal.com',
-    website: 'https://negociolocal.com',
-    location: 'Madrid Centro',
-    keyword: 'cafetería cerca de mí',
-    currentRating: '3.8',
-    totalReviews: '45',
-    monthlyReviews: '6',
-    unansweredReviews: '18',
-    negativeReviews: '7',
-    responseRate: '35',
-    sentimentScore: '52',
-    competitorRating: '4.6',
-    competitorReviews: '140',
-    monthlyVisits: '1000',
-    monthlyClicks: '50',
-    monthlyCalls: '20',
-    monthlyConversions: '10',
+    businessName: '',
+    email: '',
+    website: '',
+    location: '',
+    keyword: '',
+    currentRating: '',
+    totalReviews: '',
+    monthlyReviews: '',
+    unansweredReviews: '',
+    negativeReviews: '',
+    responseRate: '',
+    sentimentScore: '',
+    competitorRating: '',
+    competitorReviews: '',
+    monthlyVisits: '',
+    monthlyClicks: '',
+    monthlyCalls: '',
+    monthlyConversions: '',
   });
 
   const [selectedModules, setSelectedModules] = useState<Record<ModuleKey, boolean>>({
@@ -264,7 +265,7 @@ export default function ReputationReviewsPage() {
         email: form.email,
         company: form.businessName,
         projectTitle: `Reputación y Reseñas con ${contactAgency.name}`,
-        categoryId: 'directory-cat-07',
+        categoryId: resolveMarketplaceCategoryId(marketplaceCategories, 'reputacion-y-resenas', 'Reputacion y Resenas'),
         location: form.location,
         budget: quoteResponse?.quote.estimatedPrice || liveQuote.estimatedPrice,
         description: contactMessage || `Necesito mejorar reputación, reseñas, rating y respuestas en ${form.location}.`,

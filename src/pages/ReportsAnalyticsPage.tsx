@@ -24,6 +24,7 @@ import { Agency, Service } from '@/types';
 import { useAppState } from '@/state/useAppState';
 import { useFindAgencies } from '@/routes/navigation';
 import { FunctionalEvaluationResponse, ReportsAnalyticsQuoteResponse, marketplaceApi } from '@/services/marketplaceApi';
+import { resolveMarketplaceCategoryId } from '@/utils/marketplaceCategories';
 
 type ReportingIssue = {
   area: string;
@@ -110,30 +111,30 @@ function MetricCard({ label, value, delta }: { label: string; value: string | nu
 }
 
 export default function ReportsAnalyticsPage() {
-  const { agenciesList: agencies, setSelectedPurchaseItem } = useAppState();
+  const { agenciesList: agencies, marketplaceCategories, setSelectedPurchaseItem } = useAppState();
   const onFindAgencies = useFindAgencies();
   const onSelectPackage = (service: Service) => setSelectedPurchaseItem(service);
 
   const [form, setForm] = useState({
-    businessName: 'Clínica Dental Centro',
-    email: 'cliente@negociolocal.com',
-    website: 'https://clinicacentro.com',
-    location: 'Valencia Centro',
-    keyword: 'dentista cerca de mí',
-    avgPosition: '24',
-    mapVisibility: '87',
-    impressions: '285',
-    profileActions: '162',
-    ctr: '5.2',
-    reviewSentiment: '80',
-    leadVolume: '42',
-    conversions: '18',
-    dashboardsConnected: '2',
-    rankingKeywords: '35',
-    gbpActions: '162',
-    ga4Sessions: '1200',
-    gscClicks: '215',
-    multiLocations: '1',
+    businessName: '',
+    email: '',
+    website: '',
+    location: '',
+    keyword: '',
+    avgPosition: '',
+    mapVisibility: '',
+    impressions: '',
+    profileActions: '',
+    ctr: '',
+    reviewSentiment: '',
+    leadVolume: '',
+    conversions: '',
+    dashboardsConnected: '',
+    rankingKeywords: '',
+    gbpActions: '',
+    ga4Sessions: '',
+    gscClicks: '',
+    multiLocations: '',
   });
 
   const [selectedModules, setSelectedModules] = useState<Record<ModuleKey, boolean>>({
@@ -273,7 +274,7 @@ export default function ReportsAnalyticsPage() {
         email: form.email,
         company: form.businessName,
         projectTitle: `Reportes y Analytics con ${contactAgency.name}`,
-        categoryId: 'directory-cat-09',
+        categoryId: resolveMarketplaceCategoryId(marketplaceCategories, 'reportes-y-analytics', 'Reportes y Analytics'),
         location: form.location,
         budget: liveQuote.estimatedPrice,
         description: contactMessage || `Necesito dashboards, ranking local, reportes GBP y analítica para ${form.keyword}.`,
@@ -410,11 +411,11 @@ export default function ReportsAnalyticsPage() {
             </div>
 
             <div className="mt-6 grid gap-4 md:grid-cols-2">
-              <div><label className={labelClass}>Negocio</label><input className={inputClass} value={form.businessName} onChange={(e) => updateForm('businessName', e.target.value)} required /></div>
-              <div><label className={labelClass}>Email</label><input className={inputClass} type="email" value={form.email} onChange={(e) => updateForm('email', e.target.value)} /></div>
-              <div><label className={labelClass}>Sitio web</label><input className={inputClass} value={form.website} onChange={(e) => updateForm('website', e.target.value)} /></div>
-              <div><label className={labelClass}>Ubicación objetivo</label><input className={inputClass} value={form.location} onChange={(e) => updateForm('location', e.target.value)} /></div>
-              <div><label className={labelClass}>Keyword local</label><input className={inputClass} value={form.keyword} onChange={(e) => updateForm('keyword', e.target.value)} required /></div>
+              <div><label className={labelClass}>Negocio</label><input className={inputClass} placeholder="Ej. Clínica Dental Central" value={form.businessName} onChange={(e) => updateForm('businessName', e.target.value)} required /></div>
+              <div><label className={labelClass}>Email</label><input className={inputClass} type="email" placeholder="nombre@empresa.com" value={form.email} onChange={(e) => updateForm('email', e.target.value)} /></div>
+              <div><label className={labelClass}>Sitio web</label><input className={inputClass} placeholder="https://www.tusitio.com" value={form.website} onChange={(e) => updateForm('website', e.target.value)} /></div>
+              <div><label className={labelClass}>Ubicación objetivo</label><input className={inputClass} placeholder="Valencia Centro" value={form.location} onChange={(e) => updateForm('location', e.target.value)} /></div>
+              <div><label className={labelClass}>Keyword local</label><input className={inputClass} placeholder="dentista cerca de mi" value={form.keyword} onChange={(e) => updateForm('keyword', e.target.value)} required /></div>
               <div><label className={labelClass}>Ubicaciones</label><input className={inputClass} type="number" min="1" value={form.multiLocations} onChange={(e) => updateForm('multiLocations', e.target.value)} /></div>
               <div><label className={labelClass}>Posición promedio</label><input className={inputClass} type="number" min="1" step="0.1" value={form.avgPosition} onChange={(e) => updateForm('avgPosition', e.target.value)} /></div>
               <div><label className={labelClass}>Visibilidad mapas %</label><input className={inputClass} type="number" min="0" max="100" value={form.mapVisibility} onChange={(e) => updateForm('mapVisibility', e.target.value)} /></div>

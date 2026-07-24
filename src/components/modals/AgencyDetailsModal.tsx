@@ -45,7 +45,7 @@ export default function AgencyDetailsModal({
 
   const isFavorite = favorites.includes(agency.id);
 
-  // Initial mockup reviews
+  // Local reference reviews while this modal remains a temporary local experience.
   const localReviews = [
     { name: 'David M.', rating: 5, text: agency.highlightReview, date: 'Hace 2 semanas' },
     { name: 'Clara S.', rating: 5, text: 'Gran atención con la ficha GMB. Logramos entrar en el Local Pack en tiempo récord para nuestra floristería.', date: 'Hace 1 mes' },
@@ -255,9 +255,9 @@ export default function AgencyDetailsModal({
                 
                 {/* List of existing comments */}
                 <div className="space-y-4">
-                  <h4 className="font-extrabold text-sm text-[#333] uppercase tracking-wider block">
-                    Lo que valoran los clientes
-                  </h4>
+                     <h4 className="font-extrabold text-sm text-[#333] uppercase tracking-wider block">
+                     Vista local de reseñas
+                     </h4>
 
                   <div className="space-y-3">
                     {localReviews.map((rev, i) => (
@@ -288,13 +288,13 @@ export default function AgencyDetailsModal({
                   {reviewSuccess ? (
                     <div className="text-center py-6 space-y-2">
                       <ThumbsUp className="w-10 h-10 text-emerald-600 mx-auto animate-bounce" />
-                      <h5 className="font-extrabold text-emerald-800 text-sm">¡Tu valoración ha sido guardada!</h5>
-                      <p className="text-xs text-gray-500 font-semibold">Hemos recalculado los valores de estimación general del perfil.</p>
+                      <h5 className="font-extrabold text-emerald-800 text-sm">Valoración guardada en esta vista local</h5>
+                      <p className="text-xs text-gray-500 font-semibold">Este modal sigue siendo temporal y no sincroniza una ficha real del cliente.</p>
                     </div>
                   ) : (
                     <form onSubmit={handleReviewSubmit} className="space-y-4">
                       <h4 className="text-xs font-black text-[#333] uppercase tracking-wider block">
-                        Escribir una valoración de cliente
+                         Escribir una valoración local
                       </h4>
 
                       <div className="grid grid-cols-2 gap-4">
@@ -346,7 +346,7 @@ export default function AgencyDetailsModal({
                         type="submit"
                         className="bg-[#D32323] hover:bg-[#b01c1c] text-white font-extrabold text-xs py-2.5 px-6 rounded-xl transition-all w-full cursor-pointer shadow-sm active:scale-95"
                       >
-                        Publicar Reseña
+                         Guardar valoración local
                       </button>
                     </form>
                   )}
@@ -371,8 +371,8 @@ export default function AgencyDetailsModal({
                 {contactSuccess ? (
                   <div className="bg-emerald-50 border border-emerald-150 rounded-2xl p-6 text-center text-emerald-8 bg-emerald-50 text-emerald-800 space-y-2">
                     <CheckCircle2 className="w-10 h-10 text-emerald-600 mx-auto animate-pulse" />
-                    <h5 className="font-extrabold">¡Mensaje enviado te responderán pronto!</h5>
-                    <p className="text-xs text-gray-500">Un consultor especializado de <strong>{agency.name}</strong> responderá en menos de 2 horas hábiles.</p>
+                     <h5 className="font-extrabold">Mensaje guardado en esta vista local</h5>
+                     <p className="text-xs text-gray-500">Este modal todavía no sincroniza una bandeja real con <strong>{agency.name}</strong>.</p>
                   </div>
                 ) : (
                   <form onSubmit={handleContactSubmit} className="space-y-4">
@@ -392,8 +392,8 @@ export default function AgencyDetailsModal({
                       type="submit"
                       className="bg-[#333] hover:bg-black text-white font-extrabold text-xs py-3.5 rounded-xl block w-full transition-all cursor-pointer shadow-md"
                     >
-                      Enviar Mensaje Seguro
-                    </button>
+                       Guardar mensaje local
+                      </button>
                   </form>
                 )}
               </div>
