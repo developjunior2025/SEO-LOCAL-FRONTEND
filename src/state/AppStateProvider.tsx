@@ -8,7 +8,6 @@ import {
   AUTH_STORAGE_KEY,
   mapBackendRoleToFrontend,
   normalizeEmail,
-  tryDemoLogin,
 } from './authHelpers';
 
 export interface AppStateValue {
@@ -155,7 +154,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     return {
       id: String(backend.id),
       email: backend.login || '',
-      name: backend.name || backend.login || '',
+      name: backend.name || backend.displayName || backend.login || '',
       role: mapBackendRoleToFrontend(backend.baseRole || backend.roleCode),
       avatar: undefined,
       roleCode: backend.roleCode,
@@ -169,16 +168,15 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     persistUser(null);
     setAuthError(null);
     clearAdminToken();
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('seo-dashboard-logout'));
-    }
   }, [persistUser]);
 
   const handleAuthError = useCallback((error: unknown): string => {
     if (error instanceof ApiError) {
       if (error.code === 'unauthorized' || error.code === 'forbidden') {
         finalizeLogout();
-        return 'Sesión inválida o expirada. Vuelve a iniciar sesión.';
+        return error.code === 'forbidden'
+          ? 'Tu cuenta no tiene permisos para acceder a esta sección.'
+          : 'Usuario o contraseña incorrectos.';
       }
       if (error.code === 'network' || error.code === 'timeout') {
         return 'No se pudo conectar con el servidor. Revisa tu conexión.';
@@ -241,22 +239,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         return null;
       }
 
-      try {
-        const session = await adminApi.login(email, password);
-        const nextUser = mapSessionToUser(session);
-        persistUser(nextUser);
-        window.dispatchEvent(new CustomEvent('seo-dashboard-login', { detail: session }));
-        return nextUser;
-      } catch (backendError: unknown) {
-        if (backendError instanceof ApiError && backendError.code !== 'network' && backendError.code !== 'timeout') {
-          const demoUser = tryDemoLogin(email, password);
-          if (demoUser) {
-            persistUser(demoUser);
-            return demoUser;
-          }
-        }
-        throw backendError;
-      }
+      const session = await adminApi.login(email, password);
+      const nextUser = mapSessionToUser(session);
+      persistUser(nextUser);
+      window.dispatchEvent(new CustomEvent('seo-dashboard-login', { detail: session }));
+      return nextUser;
     } catch (error: unknown) {
       setAuthError(handleAuthError(error));
       return null;

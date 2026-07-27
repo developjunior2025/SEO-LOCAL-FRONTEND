@@ -53,3 +53,54 @@ describe('adminApi.logout', () => {
     expect(localStorage.getItem(AUTH_STORAGE_KEY)).toBeNull();
   });
 });
+
+describe('adminApi authentication contracts', () => {
+  it('normaliza displayName y baseRole en login', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: new Headers({ 'content-type': 'application/json' }),
+      json: async () => ({
+        token: 'token-1',
+        refreshToken: 'refresh-1',
+        user: {
+          id: 1,
+          login: 'superadmin@seolocal.local',
+          displayName: 'Superadministrador SEOLOCAL',
+          roleCode: 'superadmin',
+          roleName: 'Superadministrador',
+          permissions: ['users.read'],
+        },
+      }),
+    });
+
+    const session = await adminApi.login('superadmin@seolocal.local', 'password');
+    expect(session.user.name).toBe('Superadministrador SEOLOCAL');
+    expect(session.user.baseRole).toBe('superadmin');
+    expect(localStorage.getItem(DASHBOARD_TOKEN_KEY)).toBe('token-1');
+  });
+
+  it('restaura /me aunque el backend no repita el token', async () => {
+    localStorage.setItem(DASHBOARD_TOKEN_KEY, 'stored-token');
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: new Headers({ 'content-type': 'application/json' }),
+      json: async () => ({
+        user: {
+          id: 2,
+          login: 'cliente@seolocal.local',
+          name: 'Cliente SEOLOCAL',
+          baseRole: 'client',
+          roleCode: 'client',
+          roleName: 'Cliente',
+          permissions: [],
+        },
+      }),
+    });
+
+    const session = await adminApi.me();
+    expect(session.token).toBe('stored-token');
+    expect(session.user.baseRole).toBe('client');
+  });
+});

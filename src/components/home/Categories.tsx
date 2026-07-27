@@ -9,8 +9,24 @@ interface CategoriesProps {
   activeCategory: string | null;
 }
 
+const CATEGORY_IMAGE_BY_SLUG: Record<string, string> = {
+  'auditoria-seo-local': '/assets/categories/auditoria-seo-local.webp',
+  'google-business-profile': '/assets/categories/google-business-profile.webp',
+  'local-pack-y-ranking': '/assets/categories/local-pack-y-ranking.webp',
+  'link-building-local': '/assets/categories/link-building-local.webp',
+  'seo-tecnico-local': '/assets/categories/seo-tecnico-local.webp',
+  'seo-on-page-local': '/assets/categories/seo-on-page-local.webp',
+  'reputacion-y-resenas': '/assets/categories/reputacion-y-resenas.webp',
+  'citaciones-y-nap': '/assets/categories/citaciones-y-nap.webp',
+  'reportes-y-analytics': '/assets/categories/reportes-y-analytics.webp',
+  'mapas-calor-local': '/assets/categories/mapas-calor-local.webp',
+  'contenido-local': '/assets/categories/contenido-local.webp',
+  'seo-local-ecommerce': '/assets/categories/seo-local-ecommerce.webp',
+  consultoria: '/assets/categories/consultoria.webp',
+};
+
 function getCategoryImage(category: MarketplaceCategory): string {
-  return category.imageUrl || `https://source.boringavatars.com/marble/600/${encodeURIComponent(category.name)}?colors=D32323,0074E0,0B1F3A,F5F5F5,333333`;
+  return category.imageUrl || CATEGORY_IMAGE_BY_SLUG[category.slug] || '/assets/categories/category-default.webp';
 }
 
 export default function Categories({ categories, onSelectCategory, activeCategory }: CategoriesProps) {
@@ -64,7 +80,6 @@ export default function Categories({ categories, onSelectCategory, activeCategor
                   alt={cat.name}
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 filter brightness-90 group-hover:brightness-95 select-none"
                   src={getCategoryImage(cat)}
-                  referrerPolicy="no-referrer"
                 />
 
                 {/* Ambient Soft Red gradient overlay */}
@@ -83,7 +98,7 @@ export default function Categories({ categories, onSelectCategory, activeCategor
                     </div>
                     
                     <span className="shrink-0 bg-white text-[#D32323] px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-wider shadow-md opacity-95 group-hover:bg-[#D32323] group-hover:text-white transition-all duration-300">
-                      {cat.agenciesCount ?? 0} agencias
+                      {cat.agenciesCount ?? 0} {(cat.agenciesCount ?? 0) === 1 ? 'agencia' : 'agencias'}
                     </span>
                   </div>
                 </div>

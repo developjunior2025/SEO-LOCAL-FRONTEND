@@ -5,8 +5,9 @@ const TOKEN_KEY = DASHBOARD_TOKEN_KEY;
 export type DashboardUser = {
   id: number;
   login: string;
-  name: string;
-  baseRole: string;
+  name?: string;
+  displayName?: string;
+  baseRole?: string;
   roleCode: string;
   roleName: string;
   agencyPartnerId?: number | null;
@@ -15,8 +16,15 @@ export type DashboardUser = {
 
 export type DashboardSession = {
   token: string;
+  refreshToken?: string;
   user: DashboardUser;
 };
+
+type DashboardMeResponse = { user: DashboardUser };
+
+function normalizeUser(user: DashboardUser): DashboardUser {
+  return { ...user, name: user.name || user.displayName || user.login, baseRole: user.baseRole || user.roleCode };
+}
 
 export type AdminListResponse<T = Record<string, unknown>> = {
   items: T[];
@@ -59,9 +67,12 @@ export const adminApi = {
   async login(login: string, password: string) {
     const payload = await post<DashboardSession>('/admin/auth/login', { login, password });
     setToken(payload.token);
-    return payload;
+    return { ...payload, user: normalizeUser(payload.user) };
   },
-  me: () => request<DashboardSession>('/admin/auth/me'),
+  async me(): Promise<DashboardSession> {
+    const payload = await request<DashboardMeResponse>('/admin/auth/me');
+    return { token: getToken(), user: normalizeUser(payload.user) };
+  },
   logout: async () => {
     try {
       await request('/admin/auth/logout', { method: 'POST' });

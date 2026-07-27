@@ -1129,11 +1129,11 @@ export default function DashboardPage() {
             <div className="w-12 h-12 rounded-2xl bg-[#D32323] text-white flex items-center justify-center font-black">Y</div>
             <div>
               <p className="text-xs font-black uppercase text-[#D32323]">Dashboard enterprise v5.27.0</p>
-              <h1 className="text-xl font-black text-[#333]">Hola, {user?.name}</h1>
+              <h1 className="text-xl font-black text-[#333]">Hola, {user?.name || user?.displayName || user?.login}</h1>
               <p className="text-xs font-semibold text-gray-500">{user?.login} · {user?.roleName} · Agencia asignada: {user?.agencyPartnerId || 'No aplica'}</p>
             </div>
           </div>
-          <button onClick={() => { clearAdminToken(); setSession(null); window.dispatchEvent(new CustomEvent('seo-dashboard-logout')); }} className="rounded-2xl border border-gray-200 px-4 py-3 text-sm font-black text-[#333] hover:bg-gray-50 inline-flex items-center gap-2"><LogOut className="w-4 h-4" /> Cerrar sesión</button>
+          <button onClick={async () => { await adminApi.logout(); setSession(null); }} className="rounded-2xl border border-gray-200 px-4 py-3 text-sm font-black text-[#333] hover:bg-gray-50 inline-flex items-center gap-2"><LogOut className="w-4 h-4" /> Cerrar sesión</button>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-[310px_1fr] gap-6">

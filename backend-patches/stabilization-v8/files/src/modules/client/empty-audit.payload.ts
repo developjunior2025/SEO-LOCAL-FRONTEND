@@ -1,0 +1,46 @@
+export function buildEmptyAuditPayload(
+  companyName: string,
+): Record<string, unknown> {
+  return {
+    project: {
+      id: 'PENDIENTE',
+      name: `${companyName} - SEO Local`,
+      status: 'En revisión',
+      serviceLine: 'Command Center 360',
+      location: 'Pendiente de configurar',
+      auditId: 'PENDIENTE',
+      logoLetters: companyName.slice(0, 2).toUpperCase(),
+    },
+    summary: {
+      health: 0,
+      healthDelta: 0,
+      workVerified: 0,
+      workDelta: 0,
+      resultAchieved: 0,
+      resultDelta: 0,
+      dataConfidence: 0,
+      confidenceLabel: 'Pendiente de datos',
+      roi: 0,
+      roiLabel: 'Sin medición',
+    },
+    dimensions: [],
+    compareRows: [],
+    sources: [],
+    stories: [],
+    timeline: { points: [], snapshots: [] },
+    evidence: { chain: [], ledger: [] },
+    rankings: {
+      kpis: [],
+      geoKeyword: '',
+      geoGridSize: '',
+      geoPoints: [],
+      competitors: [],
+    },
+    listings: { kpis: [], directories: [] },
+    reviews: { kpis: [], topics: [], queue: [] },
+    site: { kpis: [], issues: [] },
+    ads: { kpis: [], funnel: [], campaigns: [] },
+    files: { deliverables: [], approvals: [] },
+    actions: [],
+  };
+}
