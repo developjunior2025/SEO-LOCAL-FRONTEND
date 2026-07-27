@@ -25,7 +25,7 @@ export default function Hero({ onSearch, selectedKeyword, selectedLocation }: He
         <img 
           alt="Local SEO City Landscape" 
           className="w-full h-full object-cover brightness-40 scale-105 select-none"
-          src="https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&q=85&w=1500"
+          src="/assets/hero/home-city.webp"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/60 to-[#f5f5f5]"></div>
       </div>

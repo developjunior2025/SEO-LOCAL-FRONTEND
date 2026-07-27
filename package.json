@@ -11,9 +11,12 @@
     "dev:database": "node scripts/start-database.mjs",
     "dev:wait-db": "wait-on tcp:127.0.0.1:5434 --timeout 120000",
     "build": "tsc -b && vite build",
-    "lint": "eslint .",
+    "lint": "eslint . --ignore-pattern \"backend-patches/**\" --ignore-pattern \"dist/**\" --ignore-pattern \"coverage/**\"",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run --config vitest.config.ts",
+    "images:sync": "node scripts/sync-marketplace-images.mjs",
+    "lint:source": "eslint src scripts vite.config.ts --ignore-pattern \"backend-patches/**\" --ignore-pattern \"dist/**\" --ignore-pattern \"coverage/**\"",
+    "test:source": "vitest run --config vitest.config.ts src"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

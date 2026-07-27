@@ -10,13 +10,13 @@ import {
   X,
 } from 'lucide-react';
 import type { AgencyTeamMember } from '@/types';
+import SafeImage from '@/components/SafeImage';
+import { IMAGE_FALLBACKS, getAvatarImage } from '@/lib/imageAssets';
 
 interface TeamMemberModalProps {
   member: AgencyTeamMember;
   onClose: () => void;
 }
-
-const fallbackAvatar = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=320';
 
 export default function TeamMemberModal({ member, onClose }: TeamMemberModalProps) {
   return (
@@ -48,8 +48,9 @@ export default function TeamMemberModal({ member, onClose }: TeamMemberModalProp
           <div className="flex flex-col items-center pt-4 text-center">
             <div className="relative">
               <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-[#D32323]/20 to-[#0074E0]/20 blur-xl" />
-              <img
-                src={member.avatarUrl || fallbackAvatar}
+              <SafeImage
+                src={getAvatarImage(member.avatarUrl)}
+                fallback={IMAGE_FALLBACKS.avatar}
                 alt={member.name}
                 className="relative h-36 w-36 rounded-3xl object-cover ring-4 ring-white shadow-xl"
               />

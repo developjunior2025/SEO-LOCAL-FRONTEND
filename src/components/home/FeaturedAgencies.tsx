@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Agency } from '@/types';
 import { Star, ShieldCheck, SlidersHorizontal, MapPin, Heart } from 'lucide-react';
 import SafeImage from '@/components/SafeImage';
+import { getAgencyImage, IMAGE_FALLBACKS } from '@/lib/imageAssets';
 
 interface FeaturedAgenciesProps {
   agencies: Agency[];
@@ -262,8 +263,8 @@ export default function FeaturedAgencies({
                     <SafeImage
                       alt={agency.name}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-108 select-none"
-                      src={agency.image}
-                      referrerPolicy="no-referrer"
+                      src={getAgencyImage(agency.slug, agency.image)}
+                      fallback={IMAGE_FALLBACKS.agency}
                     />
                     
                     {/* Custom initials logo with verification */}

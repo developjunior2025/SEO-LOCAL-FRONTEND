@@ -27,6 +27,7 @@ import { useNavigate } from 'react-router-dom';
 import type { Agency } from '@/types';
 import { useAppState } from '@/state/useAppState';
 import SafeImage from '@/components/SafeImage';
+import { getAgencyImage, IMAGE_FALLBACKS } from '@/lib/imageAssets';
 
 type DirectoryTab = 'all' | 'featured' | 'recommended' | 'standard';
 
@@ -385,7 +386,7 @@ export default function AgenciesDirectoryPage() {
                   return (
                     <article key={agency.id} className="group bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden flex flex-col">
                       <div className="relative h-44 overflow-hidden">
-                        <SafeImage src={agency.image} alt={agency.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        <SafeImage src={getAgencyImage(agency.slug, agency.image)} fallback={IMAGE_FALLBACKS.agency} alt={agency.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
                         <button type="button" onClick={() => onToggleFavorite(agency.id)} className="absolute top-3 left-3 w-9 h-9 rounded-full bg-white/95 shadow-md flex items-center justify-center text-gray-500 hover:text-[#D32323] transition-all" aria-label="Guardar agencia">
                           <Heart className={`w-4 h-4 ${isFavorite ? 'fill-[#D32323] text-[#D32323]' : ''}`} />

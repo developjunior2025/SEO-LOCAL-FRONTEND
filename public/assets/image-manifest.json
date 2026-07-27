@@ -1,0 +1,564 @@
+{
+  "generatedAt": "2026-07-27T19:24:03.935Z",
+  "source": "existing-project-references-with-multi-source-local-recovery",
+  "summary": {
+    "downloaded": 0,
+    "reusedExisting": 28,
+    "generatedLocal": 0,
+    "derived": 2
+  },
+  "items": [
+    {
+      "type": "category",
+      "key": "auditoria-seo-local",
+      "sourceUrl": "local-existing:/assets/categories/auditoria-seo-local.webp",
+      "sourceStatus": "reused-existing",
+      "attemptedUrls": [
+        "https://images.unsplash.com/photo-1507537297725-24a1c029d3ca?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=88&w=1600"
+      ],
+      "downloadError": null,
+      "localPath": "/assets/categories/auditoria-seo-local.webp",
+      "width": 1200,
+      "height": 700,
+      "sha256": "812a79f6da8f52a0816c699588dec1525efb1ee8122740cda235f438d4087d28"
+    },
+    {
+      "type": "category",
+      "key": "google-business-profile",
+      "sourceUrl": "local-existing:/assets/categories/google-business-profile.webp",
+      "sourceStatus": "reused-existing",
+      "attemptedUrls": [
+        "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=88&w=1600"
+      ],
+      "downloadError": null,
+      "localPath": "/assets/categories/google-business-profile.webp",
+      "width": 1200,
+      "height": 700,
+      "sha256": "8240b9bc1289f922465ae36cfebcdd385fad6fd8f01572df3eb1a5b292a6d1c0"
+    },
+    {
+      "type": "category",
+      "key": "local-pack-y-ranking",
+      "sourceUrl": "local-existing:/assets/categories/local-pack-y-ranking.webp",
+      "sourceStatus": "reused-existing",
+      "attemptedUrls": [
+        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=88&w=1600"
+      ],
+      "downloadError": null,
+      "localPath": "/assets/categories/local-pack-y-ranking.webp",
+      "width": 1200,
+      "height": 700,
+      "sha256": "4f949cbd8c1d3c1bfde228876cdc26b018b79856ee1b553c69690e6ecd25e83c"
+    },
+    {
+      "type": "category",
+      "key": "link-building-local",
+      "sourceUrl": "local-existing:/assets/categories/link-building-local.webp",
+      "sourceStatus": "reused-existing",
+      "attemptedUrls": [
+        "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=88&w=1600"
+      ],
+      "downloadError": null,
+      "localPath": "/assets/categories/link-building-local.webp",
+      "width": 1200,
+      "height": 700,
+      "sha256": "66dab52e21c7cfdca341a9b80dcd8ad1df0359e8d1aed16a79944668a182af28"
+    },
+    {
+      "type": "category",
+      "key": "seo-tecnico-local",
+      "sourceUrl": "local-existing:/assets/categories/seo-tecnico-local.webp",
+      "sourceStatus": "reused-existing",
+      "attemptedUrls": [
+        "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=88&w=1600"
+      ],
+      "downloadError": null,
+      "localPath": "/assets/categories/seo-tecnico-local.webp",
+      "width": 1200,
+      "height": 700,
+      "sha256": "f6a68bc7aef361a0a37b4d76d0af9b6ae7432c1a70b906775a2b4ef5d182ecb8"
+    },
+    {
+      "type": "category",
+      "key": "seo-on-page-local",
+      "sourceUrl": "local-existing:/assets/categories/seo-on-page-local.webp",
+      "sourceStatus": "reused-existing",
+      "attemptedUrls": [
+        "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=88&w=1600"
+      ],
+      "downloadError": null,
+      "localPath": "/assets/categories/seo-on-page-local.webp",
+      "width": 1200,
+      "height": 700,
+      "sha256": "beabb572ab3fdec37ad92a2c18cc738d99fb221da8fe2edc10ce5e21c830d10d"
+    },
+    {
+      "type": "category",
+      "key": "reputacion-y-resenas",
+      "sourceUrl": "local-existing:/assets/categories/reputacion-y-resenas.webp",
+      "sourceStatus": "reused-existing",
+      "attemptedUrls": [
+        "https://images.unsplash.com/photo-1521791136368-1a46827d0adb?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=88&w=1600"
+      ],
+      "downloadError": null,
+      "localPath": "/assets/categories/reputacion-y-resenas.webp",
+      "width": 1200,
+      "height": 700,
+      "sha256": "66dab52e21c7cfdca341a9b80dcd8ad1df0359e8d1aed16a79944668a182af28"
+    },
+    {
+      "type": "category",
+      "key": "citaciones-y-nap",
+      "sourceUrl": "local-existing:/assets/categories/citaciones-y-nap.webp",
+      "sourceStatus": "reused-existing",
+      "attemptedUrls": [
+        "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=88&w=1600"
+      ],
+      "downloadError": null,
+      "localPath": "/assets/categories/citaciones-y-nap.webp",
+      "width": 1200,
+      "height": 700,
+      "sha256": "0c714d8019f992bb07295ac6bdeee404da16e21bb0ca5349e288c0a367d29939"
+    },
+    {
+      "type": "category",
+      "key": "reportes-y-analytics",
+      "sourceUrl": "local-existing:/assets/categories/reportes-y-analytics.webp",
+      "sourceStatus": "reused-existing",
+      "attemptedUrls": [
+        "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=88&w=1600"
+      ],
+      "downloadError": null,
+      "localPath": "/assets/categories/reportes-y-analytics.webp",
+      "width": 1200,
+      "height": 700,
+      "sha256": "b7efd0d0fcaef359a6ce90eeeac6c01621e8c1fc641ab2adb8bdc57f28115383"
+    },
+    {
+      "type": "category",
+      "key": "mapas-calor-local",
+      "sourceUrl": "local-existing:/assets/categories/mapas-calor-local.webp",
+      "sourceStatus": "reused-existing",
+      "attemptedUrls": [
+        "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=88&w=1600"
+      ],
+      "downloadError": null,
+      "localPath": "/assets/categories/mapas-calor-local.webp",
+      "width": 1200,
+      "height": 700,
+      "sha256": "781b38d9a387371aad3ad7b4c0cc32ce75e5fd813c15ea70bd5c94a2075424da"
+    },
+    {
+      "type": "category",
+      "key": "contenido-local",
+      "sourceUrl": "local-existing:/assets/categories/contenido-local.webp",
+      "sourceStatus": "reused-existing",
+      "attemptedUrls": [
+        "https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=88&w=1600"
+      ],
+      "downloadError": null,
+      "localPath": "/assets/categories/contenido-local.webp",
+      "width": 1200,
+      "height": 700,
+      "sha256": "98c66e388f2e9bd60d62db0653bb388e8585406bea1fb4f4d26ee2c2c66445e1"
+    },
+    {
+      "type": "category",
+      "key": "seo-local-ecommerce",
+      "sourceUrl": "local-existing:/assets/categories/seo-local-ecommerce.webp",
+      "sourceStatus": "reused-existing",
+      "attemptedUrls": [
+        "https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=88&w=1600"
+      ],
+      "downloadError": null,
+      "localPath": "/assets/categories/seo-local-ecommerce.webp",
+      "width": 1200,
+      "height": 700,
+      "sha256": "f2f4135055015d96a4bb182aa782d4ccdd7479534a28e51679e561d920b59562"
+    },
+    {
+      "type": "category",
+      "key": "consultoria",
+      "sourceUrl": "local-existing:/assets/categories/consultoria.webp",
+      "sourceStatus": "reused-existing",
+      "attemptedUrls": [
+        "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=88&w=1600"
+      ],
+      "downloadError": null,
+      "localPath": "/assets/categories/consultoria.webp",
+      "width": 1200,
+      "height": 700,
+      "sha256": "cc7bc1a89c66f3b84c061ae8c06d62197e4ad95019bb5e49d718c30fab2deeb5"
+    },
+    {
+      "type": "category",
+      "key": "alternativas-locales",
+      "sourceUrl": "local-existing:/assets/categories/alternativas-locales.webp",
+      "sourceStatus": "reused-existing",
+      "attemptedUrls": [
+        "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=88&w=1600"
+      ],
+      "downloadError": null,
+      "localPath": "/assets/categories/alternativas-locales.webp",
+      "width": 1200,
+      "height": 700,
+      "sha256": "bcd9017d2c23c798ddb9d624bbd36dc4041b9d76d8785159785e671aedfec14f"
+    },
+    {
+      "type": "category",
+      "key": "schema-local",
+      "sourceUrl": "local-existing:/assets/categories/schema-local.webp",
+      "sourceStatus": "reused-existing",
+      "attemptedUrls": [
+        "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=88&w=1600"
+      ],
+      "downloadError": null,
+      "localPath": "/assets/categories/schema-local.webp",
+      "width": 1200,
+      "height": 700,
+      "sha256": "f6a68bc7aef361a0a37b4d76d0af9b6ae7432c1a70b906775a2b4ef5d182ecb8"
+    },
+    {
+      "type": "category",
+      "key": "software-y-automatizacion",
+      "sourceUrl": "local-existing:/assets/categories/software-y-automatizacion.webp",
+      "sourceStatus": "reused-existing",
+      "attemptedUrls": [
+        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=88&w=1600"
+      ],
+      "downloadError": null,
+      "localPath": "/assets/categories/software-y-automatizacion.webp",
+      "width": 1200,
+      "height": 700,
+      "sha256": "4f949cbd8c1d3c1bfde228876cdc26b018b79856ee1b553c69690e6ecd25e83c"
+    },
+    {
+      "type": "agency",
+      "key": "visibilidad-pro-seo",
+      "sourceUrl": "local-existing:/assets/agencies/visibilidad-pro-seo.webp",
+      "sourceStatus": "reused-existing",
+      "attemptedUrls": [
+        "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=88&w=1600"
+      ],
+      "downloadError": null,
+      "localPath": "/assets/agencies/visibilidad-pro-seo.webp",
+      "width": 1200,
+      "height": 700,
+      "sha256": "7f9784592035e67d339024d7fc64e19ff2854dad962dedd9e069214f4c7150ae"
+    },
+    {
+      "type": "agency",
+      "key": "mapa-ranking-agency",
+      "sourceUrl": "local-existing:/assets/agencies/mapa-ranking-agency.webp",
+      "sourceStatus": "reused-existing",
+      "attemptedUrls": [
+        "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=88&w=1600"
+      ],
+      "downloadError": null,
+      "localPath": "/assets/agencies/mapa-ranking-agency.webp",
+      "width": 1200,
+      "height": 700,
+      "sha256": "aaafc01f0b05ec8d070dd84603c5d7a38372d5f58f277973769ec73ff8d07f6b"
+    },
+    {
+      "type": "agency",
+      "key": "eje-cafetero-posicionamiento",
+      "sourceUrl": "local-existing:/assets/agencies/eje-cafetero-posicionamiento.webp",
+      "sourceStatus": "reused-existing",
+      "attemptedUrls": [
+        "https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=88&w=1600"
+      ],
+      "downloadError": null,
+      "localPath": "/assets/agencies/eje-cafetero-posicionamiento.webp",
+      "width": 1200,
+      "height": 700,
+      "sha256": "f2f4135055015d96a4bb182aa782d4ccdd7479534a28e51679e561d920b59562"
+    },
+    {
+      "type": "agency",
+      "key": "impulsa-local-studio",
+      "sourceUrl": "local-existing:/assets/agencies/impulsa-local-studio.webp",
+      "sourceStatus": "reused-existing",
+      "attemptedUrls": [
+        "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=88&w=1600"
+      ],
+      "downloadError": null,
+      "localPath": "/assets/agencies/impulsa-local-studio.webp",
+      "width": 1200,
+      "height": 700,
+      "sha256": "beabb572ab3fdec37ad92a2c18cc738d99fb221da8fe2edc10ce5e21c830d10d"
+    },
+    {
+      "type": "agency",
+      "key": "seo-local-colombia",
+      "sourceUrl": "local-existing:/assets/agencies/seo-local-colombia.webp",
+      "sourceStatus": "reused-existing",
+      "attemptedUrls": [
+        "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=88&w=1600"
+      ],
+      "downloadError": null,
+      "localPath": "/assets/agencies/seo-local-colombia.webp",
+      "width": 1200,
+      "height": 700,
+      "sha256": "bcd9017d2c23c798ddb9d624bbd36dc4041b9d76d8785159785e671aedfec14f"
+    },
+    {
+      "type": "agency",
+      "key": "local-rankers",
+      "sourceUrl": "local-existing:/assets/agencies/local-rankers.webp",
+      "sourceStatus": "reused-existing",
+      "attemptedUrls": [
+        "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=88&w=1600"
+      ],
+      "downloadError": null,
+      "localPath": "/assets/agencies/local-rankers.webp",
+      "width": 1200,
+      "height": 700,
+      "sha256": "0c714d8019f992bb07295ac6bdeee404da16e21bb0ca5349e288c0a367d29939"
+    },
+    {
+      "type": "agency",
+      "key": "seo-certero",
+      "sourceUrl": "local-existing:/assets/agencies/seo-certero.webp",
+      "sourceStatus": "reused-existing",
+      "attemptedUrls": [
+        "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=88&w=1600"
+      ],
+      "downloadError": null,
+      "localPath": "/assets/agencies/seo-certero.webp",
+      "width": 1200,
+      "height": 700,
+      "sha256": "b7efd0d0fcaef359a6ce90eeeac6c01621e8c1fc641ab2adb8bdc57f28115383"
+    },
+    {
+      "type": "agency",
+      "key": "santander-local-rank",
+      "sourceUrl": "local-existing:/assets/agencies/santander-local-rank.webp",
+      "sourceStatus": "reused-existing",
+      "attemptedUrls": [
+        "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=88&w=1600"
+      ],
+      "downloadError": null,
+      "localPath": "/assets/agencies/santander-local-rank.webp",
+      "width": 1200,
+      "height": 700,
+      "sha256": "cc7bc1a89c66f3b84c061ae8c06d62197e4ad95019bb5e49d718c30fab2deeb5"
+    },
+    {
+      "type": "agency",
+      "key": "estrategia-local",
+      "sourceUrl": "local-existing:/assets/agencies/estrategia-local.webp",
+      "sourceStatus": "reused-existing",
+      "attemptedUrls": [
+        "https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=88&w=1600"
+      ],
+      "downloadError": null,
+      "localPath": "/assets/agencies/estrategia-local.webp",
+      "width": 1200,
+      "height": 700,
+      "sha256": "98c66e388f2e9bd60d62db0653bb388e8585406bea1fb4f4d26ee2c2c66445e1"
+    },
+    {
+      "type": "hero",
+      "key": "home-city",
+      "sourceUrl": "local-existing:/assets/hero/home-city.webp",
+      "sourceStatus": "reused-existing",
+      "attemptedUrls": [
+        "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&q=88&w=2000",
+        "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=88&w=1600"
+      ],
+      "downloadError": null,
+      "localPath": "/assets/hero/home-city.webp",
+      "width": 1600,
+      "height": 900,
+      "sha256": "b6edbcdd1b6155ac72819c7245f8f51526bbba6ded746a4e49842eb249a77703"
+    },
+    {
+      "type": "avatar",
+      "key": "ana-torres",
+      "sourceUrl": "local-existing:/assets/avatars/ana-torres.webp",
+      "sourceStatus": "reused-existing",
+      "attemptedUrls": [
+        "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=88&w=700",
+        "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=88&w=1600"
+      ],
+      "downloadError": null,
+      "localPath": "/assets/avatars/ana-torres.webp",
+      "width": 480,
+      "height": 480,
+      "sha256": "53738a3714ef494dcb1b1408548f749686b11571e7ee8dc254f25905c8890286"
+    },
+    {
+      "type": "avatar",
+      "key": "carlos-gomez",
+      "sourceUrl": "local-existing:/assets/avatars/carlos-gomez.webp",
+      "sourceStatus": "reused-existing",
+      "attemptedUrls": [
+        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=88&w=700",
+        "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=88&w=1600",
+        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=88&w=1600"
+      ],
+      "downloadError": null,
+      "localPath": "/assets/avatars/carlos-gomez.webp",
+      "width": 480,
+      "height": 480,
+      "sha256": "d25302b896e1eed7a49bc9d0d75cea96bd5c3f88beb80535d2de73cc5c5359eb"
+    },
+    {
+      "type": "offer",
+      "key": "auditoria-seo-local",
+      "sourceUrl": "derived:/assets/categories/auditoria-seo-local.webp",
+      "sourceStatus": "derived",
+      "attemptedUrls": [],
+      "downloadError": null,
+      "localPath": "/assets/offers/auditoria-seo-local.webp",
+      "width": 1200,
+      "height": 700,
+      "sha256": "812a79f6da8f52a0816c699588dec1525efb1ee8122740cda235f438d4087d28"
+    },
+    {
+      "type": "offer",
+      "key": "google-business-profile",
+      "sourceUrl": "derived:/assets/categories/google-business-profile.webp",
+      "sourceStatus": "derived",
+      "attemptedUrls": [],
+      "downloadError": null,
+      "localPath": "/assets/offers/google-business-profile.webp",
+      "width": 1200,
+      "height": 700,
+      "sha256": "8240b9bc1289f922465ae36cfebcdd385fad6fd8f01572df3eb1a5b292a6d1c0"
+    }
+  ]
+}

@@ -6,6 +6,7 @@ import { getServiceRoute } from '@/utils/serviceRoutes';
 import { useAppState } from '@/state/useAppState';
 import { useSelectCategory, useHeroSearch } from '@/routes/navigation';
 import SafeImage from '@/components/SafeImage';
+import { getAgencyImage, IMAGE_FALLBACKS } from '@/lib/imageAssets';
 
 type ResultTab = 'all' | 'agencies' | 'services' | 'categories';
 
@@ -157,7 +158,7 @@ export default function SearchResultsPage() {
               {agencyResults.slice(0, tab === 'agencies' ? 30 : 6).map((agency) => (
                 <article key={agency.id} className="rounded-[28px] border border-gray-200 bg-white shadow-sm overflow-hidden hover:shadow-lg transition-shadow">
                   <div className="h-32 relative">
-                    <SafeImage src={agency.image} alt={agency.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                    <SafeImage src={getAgencyImage(agency.slug, agency.image)} fallback={IMAGE_FALLBACKS.agency} alt={agency.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
                     <span className="absolute top-4 left-4 rounded-full bg-white/95 px-3 py-1 text-[10px] font-black text-[#D32323]">{agency.speciality || 'SEO Local'}</span>
                   </div>

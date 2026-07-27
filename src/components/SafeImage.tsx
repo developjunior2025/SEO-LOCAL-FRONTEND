@@ -1,6 +1,8 @@
 import { useState } from 'react';
 
-const DEFAULT_FALLBACK = '/assets/categories/category-default.webp';
+import { IMAGE_FALLBACKS } from '@/lib/imageAssets';
+
+const DEFAULT_FALLBACK = IMAGE_FALLBACKS.neutral;
 
 interface SafeImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   fallback?: string;

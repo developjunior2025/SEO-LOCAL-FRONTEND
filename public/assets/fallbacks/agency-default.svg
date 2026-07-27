@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700">
+      <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#101827"/><stop offset="1" stop-color="#1F2937"/></linearGradient></defs>
+      <rect width="1200" height="700" fill="url(#g)"/>
+      <circle cx="600" cy="300" r="110" fill="#D32323"/>
+      <path d="M535 345V250l65-45 65 45v95h-45v-70h-40v70h-45z" fill="#FFFFFF"/>
+      <text x="600" y="500" text-anchor="middle" font-family="Arial, sans-serif" font-size="48" font-weight="800" fill="#FFFFFF">AGENCIA SEO LOCAL</text>
+      <text x="600" y="550" text-anchor="middle" font-family="Arial, sans-serif" font-size="26" fill="#CBD5E1">Imagen pendiente de publicación</text>
+    </svg>

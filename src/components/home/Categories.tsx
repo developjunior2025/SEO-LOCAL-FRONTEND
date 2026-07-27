@@ -2,31 +2,12 @@ import { motion } from 'motion/react';
 import type { MarketplaceCategory } from '@/types';
 import { Layers } from 'lucide-react';
 import SafeImage from '@/components/SafeImage';
+import { getCategoryImage, IMAGE_FALLBACKS } from '@/lib/imageAssets';
 
 interface CategoriesProps {
   categories: MarketplaceCategory[];
   onSelectCategory: (serviceName: string) => void;
   activeCategory: string | null;
-}
-
-const CATEGORY_IMAGE_BY_SLUG: Record<string, string> = {
-  'auditoria-seo-local': '/assets/categories/auditoria-seo-local.webp',
-  'google-business-profile': '/assets/categories/google-business-profile.webp',
-  'local-pack-y-ranking': '/assets/categories/local-pack-y-ranking.webp',
-  'link-building-local': '/assets/categories/link-building-local.webp',
-  'seo-tecnico-local': '/assets/categories/seo-tecnico-local.webp',
-  'seo-on-page-local': '/assets/categories/seo-on-page-local.webp',
-  'reputacion-y-resenas': '/assets/categories/reputacion-y-resenas.webp',
-  'citaciones-y-nap': '/assets/categories/citaciones-y-nap.webp',
-  'reportes-y-analytics': '/assets/categories/reportes-y-analytics.webp',
-  'mapas-calor-local': '/assets/categories/mapas-calor-local.webp',
-  'contenido-local': '/assets/categories/contenido-local.webp',
-  'seo-local-ecommerce': '/assets/categories/seo-local-ecommerce.webp',
-  consultoria: '/assets/categories/consultoria.webp',
-};
-
-function getCategoryImage(category: MarketplaceCategory): string {
-  return category.imageUrl || CATEGORY_IMAGE_BY_SLUG[category.slug] || '/assets/categories/category-default.webp';
 }
 
 export default function Categories({ categories, onSelectCategory, activeCategory }: CategoriesProps) {
@@ -79,7 +60,8 @@ export default function Categories({ categories, onSelectCategory, activeCategor
                 <SafeImage
                   alt={cat.name}
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 filter brightness-90 group-hover:brightness-95 select-none"
-                  src={getCategoryImage(cat)}
+                  src={getCategoryImage(cat.slug, cat.imageUrl)}
+                  fallback={IMAGE_FALLBACKS.category}
                 />
 
                 {/* Ambient Soft Red gradient overlay */}

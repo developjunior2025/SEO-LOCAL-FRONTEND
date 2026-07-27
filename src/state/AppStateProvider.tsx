@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { AGENCIES, MARKETPLACE_CATEGORIES, POPULAR_SERVICES } from '@/data';
 import type { Agency, Service, Offer, SearchState, MarketplaceCategory, User } from '@/types';
 import { ApiError, isDemoDataEnabled } from '@/lib/apiConfig';
+import { getAgencyImage, getCategoryImage } from '@/lib/imageAssets';
 import { marketplaceApi, type CreateLeadPayload } from '@/services/marketplaceApi';
 import { adminApi, clearAdminToken, type DashboardSession } from '@/services/adminApi';
 import {
@@ -282,8 +283,18 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
         if (cancelled) return;
 
-        if (payload.categories?.length) setMarketplaceCategories(payload.categories);
-        if (payload.agencies?.length) setAgenciesList(payload.agencies);
+        if (payload.categories?.length) {
+          setMarketplaceCategories(payload.categories.map((category) => ({
+            ...category,
+            imageUrl: getCategoryImage(category.slug, category.imageUrl),
+          })));
+        }
+        if (payload.agencies?.length) {
+          setAgenciesList(payload.agencies.map((agency) => ({
+            ...agency,
+            image: getAgencyImage(agency.slug, agency.image),
+          })));
+        }
 
         const furServices = (furServicesResponse.items || [])
           .slice()

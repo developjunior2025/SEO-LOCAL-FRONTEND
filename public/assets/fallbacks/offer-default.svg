@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700">
+      <rect width="1200" height="700" fill="#FFF7F7"/>
+      <circle cx="600" cy="300" r="150" fill="#D32323"/>
+      <path d="M500 300h200M600 200v200" stroke="#FFFFFF" stroke-width="42" stroke-linecap="round"/>
+      <text x="600" y="535" text-anchor="middle" font-family="Arial, sans-serif" font-size="58" font-weight="800" fill="#333333">OFERTA SEO LOCAL</text>
+    </svg>

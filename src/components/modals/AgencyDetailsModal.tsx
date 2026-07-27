@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Agency } from '@/types';
+import SafeImage from '@/components/SafeImage';
+import { getAgencyImage, IMAGE_FALLBACKS } from '@/lib/imageAssets';
 import { 
   X, 
   MapPin, 
@@ -93,11 +95,11 @@ export default function AgencyDetailsModal({
         >
           {/* Top cover image */}
           <div className="w-full h-44 sm:h-52 relative shrink-0">
-            <img 
-              alt={agency.name} 
+            <SafeImage
+              alt={agency.name}
               className="w-full h-full object-cover select-none"
-              src={agency.image}
-              referrerPolicy="no-referrer"
+              src={getAgencyImage(agency.slug, agency.image)}
+              fallback={IMAGE_FALLBACKS.agency}
             />
             {/* Soft gradient bottom vignette */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
