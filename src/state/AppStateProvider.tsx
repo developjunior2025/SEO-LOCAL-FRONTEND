@@ -17,7 +17,7 @@ export interface AppStateValue {
   authLoading: boolean;
   authError: string | null;
   login: (email: string, password: string) => Promise<User | null>;
-  logout: () => void;
+  logout: () => Promise<void>;
   clearAuthError: () => void;
 
   // Catalog (bootstrapped from the API; mock data only when VITE_ENABLE_DEMO_DATA=true).
@@ -156,7 +156,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       id: String(backend.id),
       email: backend.login || '',
       name: backend.name || backend.displayName || backend.login || '',
-      role: mapBackendRoleToFrontend(backend.baseRole || backend.roleCode),
+      role: mapBackendRoleToFrontend(backend.roleCode),
       avatar: undefined,
       roleCode: backend.roleCode,
       roleName: backend.roleName,
@@ -173,11 +173,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   const handleAuthError = useCallback((error: unknown): string => {
     if (error instanceof ApiError) {
-      if (error.code === 'unauthorized' || error.code === 'forbidden') {
+      if (error.code === 'unauthorized') {
         finalizeLogout();
-        return error.code === 'forbidden'
-          ? 'Tu cuenta no tiene permisos para acceder a esta sección.'
-          : 'Usuario o contraseña incorrectos.';
+        return 'La sesión expiró o las credenciales no son válidas.';
+      }
+      if (error.code === 'forbidden') {
+        return 'Tu cuenta está autenticada, pero no tiene permiso para esta operación.';
       }
       if (error.code === 'network' || error.code === 'timeout') {
         return 'No se pudo conectar con el servidor. Revisa tu conexión.';
@@ -227,7 +228,14 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   }, [restoreSession]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  // Note: `seo-dashboard-logout` is emitted by clearApiSession/adminApi.logout; other components may listen, but this provider does not re-trigger logout to avoid recursion.
+  useEffect(() => {
+    const handleExternalLogout = () => {
+      persistUser(null);
+      setAuthError(null);
+    };
+    window.addEventListener('seo-dashboard-logout', handleExternalLogout);
+    return () => window.removeEventListener('seo-dashboard-logout', handleExternalLogout);
+  }, [persistUser]);
 
   const login = useCallback(async (email: string, password: string): Promise<User | null> => {
     setAuthLoading(true);
@@ -254,8 +262,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   }, [mapSessionToUser, handleAuthError, persistUser]);
 
   const logout = useCallback(async () => {
-    await adminApi.logout();
-  }, []);
+    try {
+      await adminApi.logout();
+    } finally {
+      finalizeLogout();
+    }
+  }, [finalizeLogout]);
 
   // Aux Modals Visibility
   const [showAuthModal, setShowAuthModal] = useState(false);

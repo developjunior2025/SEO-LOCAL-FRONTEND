@@ -8,8 +8,6 @@ import {
   Star,
   WalletCards,
 } from 'lucide-react';
-import type { UserRole } from '@/types';
-import { getDashboardPathForRole } from '@/state/authHelpers';
 
 export const AUDIT_TAB_OPTIONS = [
   { key: 'summary', label: 'Centro de Auditoría 360', description: 'Vista consolidada de salud, trabajo y ROI.' },
@@ -47,8 +45,8 @@ export function safeReturnTo(returnTo: string | null, fallback: string) {
   return fallback;
 }
 
-export function redirectAfterLogin(role: UserRole, returnTo: string | null) {
-  return safeReturnTo(returnTo, getDashboardPathForRole(role));
+export function redirectAfterLogin(returnTo: string | null) {
+  return safeReturnTo(returnTo, '/dashboard');
 }
 
 export const AUDIT_TAB_ICONS: Record<AuditTabKey, React.ElementType> = {

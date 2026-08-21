@@ -1,5 +1,5 @@
-import { spawn } from 'node:child_process';
-import { existsSync, readFileSync, rmSync } from 'node:fs';
+import { execFileSync, spawn } from 'node:child_process';
+import { existsSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve, join } from 'node:path';
 import net from 'node:net';
@@ -169,30 +169,109 @@ async function waitForHttp(url, timeoutMs = 120000, label = 'endpoint') {
 }
 
 async function ensureDatabase() {
-  log(`Verificando PostgreSQL en ${DB_HOST}:${DB_PORT}...`);
-  if (await checkPort(DB_HOST, DB_PORT)) {
-    log(`PostgreSQL ya está disponible en ${DB_HOST}:${DB_PORT}.`);
-    return;
+  log(
+    `Verificando identidad PostgreSQL canonica en ${DB_HOST}:${DB_PORT}...`,
+  );
+  await run('npm', ['run', 'dev:database'], { cwd: FRONTEND_DIR });
+  await waitForPort(DB_HOST, DB_PORT, 120000, 'PostgreSQL canonico');
+  log(
+    'PostgreSQL canonico verificado por container, volumen y system_identifier.',
+  );
+}
+
+function latestSourceMtime(directory) {
+  let latest = 0;
+  if (!existsSync(directory)) return latest;
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const full = join(directory, entry.name);
+    if (entry.isDirectory()) latest = Math.max(latest, latestSourceMtime(full));
+    else if (entry.isFile() && entry.name.endsWith('.ts')) latest = Math.max(latest, statSync(full).mtimeMs);
+  }
+  return latest;
+}
+
+function backendBuildId() {
+  const entry = join(BACKEND_DIR, 'dist', 'main.js');
+  if (!existsSync(entry)) return '';
+  const stat = statSync(entry);
+  return `${Math.trunc(stat.mtimeMs)}-${stat.size}`;
+}
+
+async function prepareBackendBuild() {
+  const entry = join(BACKEND_DIR, 'dist', 'main.js');
+  const distMtime = existsSync(entry) ? statSync(entry).mtimeMs : 0;
+  const srcMtime = latestSourceMtime(join(BACKEND_DIR, 'src'));
+  if (!existsSync(entry) || srcMtime > distMtime) {
+    log('El codigo backend es mas nuevo que dist/main.js. Compilando antes de validar el runtime...');
+    await run('npm', ['run', 'build'], { cwd: BACKEND_DIR });
+  }
+  const buildId = backendBuildId();
+  if (!buildId) fatal('No se pudo calcular la version compilada del backend.');
+  return buildId;
+}
+
+function powershell(command) {
+  return execFileSync(
+    'powershell.exe',
+    ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', command],
+    { encoding: 'utf8', windowsHide: true },
+  ).trim();
+}
+
+async function stopOwnedBackendOnWindows() {
+  if (process.platform !== 'win32') return false;
+  let pidText = '';
+  try {
+    pidText = powershell(`$c = Get-NetTCPConnection -LocalPort ${API_PORT} -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1; if ($c) { $c.OwningProcess }`);
+  } catch {
+    return false;
+  }
+  const pid = Number(pidText);
+  if (!Number.isInteger(pid) || pid <= 0) return false;
+
+  let commandLine = '';
+  try {
+    commandLine = powershell(`$p = Get-CimInstance Win32_Process -Filter \"ProcessId = ${pid}\" -ErrorAction SilentlyContinue; if ($p) { $p.CommandLine }`);
+  } catch {
+    return false;
   }
 
-  log('PostgreSQL no responde. Iniciando contenedor Docker...');
-  const composeFile = join(BACKEND_DIR, 'docker-compose.yml');
-  if (!existsSync(composeFile)) {
-    fatal(`No se encontró ${composeFile}. Crea el archivo docker-compose.yml con el servicio db.`);
+  const normalizedCommand = commandLine.replaceAll('\\', '/').toLowerCase();
+  const normalizedBackend = BACKEND_DIR.replaceAll('\\', '/').toLowerCase();
+  if (!normalizedCommand.includes(normalizedBackend) && !normalizedCommand.includes('seo-local-backend-main')) {
+    fatal(`El puerto ${API_PORT} usa PID ${pid}, pero no parece ser SEOLOCAL. No se cerrara automaticamente.`);
   }
-  await run('npm', ['run', 'dev:database'], { cwd: FRONTEND_DIR });
-  await waitForPort(DB_HOST, DB_PORT, 120000, 'PostgreSQL');
+
+  log(`Backend SEOLOCAL desactualizado detectado (PID ${pid}). Reiniciando de forma controlada...`);
+  try {
+    execFileSync('taskkill.exe', ['/PID', String(pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true });
+  } catch (error) {
+    fatal(`No se pudo detener el backend SEOLOCAL PID ${pid}: ${error.message}`);
+  }
+
+  const started = Date.now();
+  while (Date.now() - started < 15000) {
+    if (!(await checkPort('127.0.0.1', API_PORT))) return true;
+    await sleep(300);
+  }
+  fatal(`El backend PID ${pid} fue detenido, pero el puerto ${API_PORT} sigue ocupado.`);
 }
 
 async function ensureBackend() {
-  log(`Verificando backend NestJS en ${HEALTH_URL}...`);
+  const expectedBuildId = await prepareBackendBuild();
+  log(`Verificando backend NestJS en ${HEALTH_URL}... Build esperado: ${expectedBuildId}`);
+
   try {
     const res = await fetch(HEALTH_URL, { signal: AbortSignal.timeout(2000) });
     if (res.ok) {
       const body = await res.json();
-      if (body.ok && body.database === 'connected') {
-        log('Backend ya está saludable y conectado a la base de datos. Se reutiliza.');
+      if (body.ok && body.database === 'connected' && body.runtimeBuildId === expectedBuildId) {
+        log(`Backend saludable y actualizado (${expectedBuildId}). Se reutiliza.`);
         return;
+      }
+      if (body.ok && body.database === 'connected') {
+        log(`Backend saludable pero desactualizado: runtime=${body.runtimeBuildId ?? 'legacy'} / disco=${expectedBuildId}.`);
+        await stopOwnedBackendOnWindows();
       }
     }
   } catch {
@@ -200,19 +279,22 @@ async function ensureBackend() {
   }
 
   if (await checkPort('127.0.0.1', API_PORT)) {
-    fatal(`El puerto ${API_PORT} está ocupado por otro proceso que no responde con health correcto. Cierra ese proceso antes de continuar.`);
-  }
-
-  log('Iniciando backend NestJS...');
-  // Borrar info de compilación incremental stale; de lo contrario nest start --watch puede no emitir dist/main.
-  for (const file of ['tsconfig.tsbuildinfo', 'tsconfig.build.tsbuildinfo']) {
-    const p = join(BACKEND_DIR, file);
-    if (existsSync(p)) {
-      log(`Eliminando ${p} para forzar compilación limpia...`);
-      rmSync(p);
+    const stopped = await stopOwnedBackendOnWindows();
+    if (!stopped && (await checkPort('127.0.0.1', API_PORT))) {
+      fatal(`El puerto ${API_PORT} esta ocupado por otro proceso. Cierra ese proceso antes de continuar.`);
     }
   }
-  spawnPersistent('npm', ['run', 'start:dev'], { cwd: BACKEND_DIR });
+
+  log('Iniciando backend NestJS compilado y actualizado...');
+  for (const file of ['tsconfig.tsbuildinfo', 'tsconfig.build.tsbuildinfo']) {
+    const p = join(BACKEND_DIR, file);
+    if (existsSync(p)) rmSync(p);
+  }
+  // Build was already prepared above. start:prod avoids recompiling after the build id was calculated.
+  spawnPersistent('npm', ['run', 'start:prod'], {
+    cwd: BACKEND_DIR,
+    env: { SEOLOCAL_BUILD_ID: expectedBuildId },
+  });
   await waitForHttp(HEALTH_URL, 120000, 'health del backend');
 }
 

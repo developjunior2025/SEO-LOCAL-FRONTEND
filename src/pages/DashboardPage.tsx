@@ -101,7 +101,7 @@ const modules: ModuleDef[] = [
       { key: 'login', label: 'Usuario / email' },
       { key: 'email', label: 'Email' },
       { key: 'password', label: 'Clave inicial / nueva clave', type: 'password', placeholder: 'Solo llenar para crear o resetear' },
-      { key: 'dashboard_role_code', label: 'Rol funcional', type: 'select', options: ['superadmin', 'marketplace_admin', 'agency_manager', 'support_moderator', 'sales_operator', 'content_manager', 'analyst'] },
+        { key: 'dashboard_role_code', label: 'Rol funcional', type: 'select', options: ['superadmin', 'marketplace_admin', 'agency_manager', 'support_moderator', 'sales_operator', 'content_manager', 'analyst', 'utilidades'] },
       { key: 'agency_partner_id', label: 'ID agencia asignada', type: 'number' },
       { key: 'active', label: 'Activo', type: 'checkbox' },
     ],

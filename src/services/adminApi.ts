@@ -1,4 +1,4 @@
-import { apiFetch, clearApiSession, DASHBOARD_TOKEN_KEY } from '@/lib/apiConfig';
+import { apiFetch, clearApiSession, DASHBOARD_TOKEN_KEY, REFRESH_TOKEN_KEY } from '@/lib/apiConfig';
 
 const TOKEN_KEY = DASHBOARD_TOKEN_KEY;
 
@@ -41,6 +41,17 @@ function setToken(token: string) {
   localStorage.setItem(TOKEN_KEY, token);
 }
 
+function getRefreshToken() {
+  if (typeof window === 'undefined') return '';
+  return localStorage.getItem(REFRESH_TOKEN_KEY) || '';
+}
+
+function setRefreshToken(token?: string) {
+  if (typeof window === 'undefined') return;
+  if (token) localStorage.setItem(REFRESH_TOKEN_KEY, token);
+  else localStorage.removeItem(REFRESH_TOKEN_KEY);
+}
+
 export function clearAdminToken() {
   if (typeof window === 'undefined') return;
   localStorage.removeItem(TOKEN_KEY);
@@ -67,6 +78,7 @@ export const adminApi = {
   async login(login: string, password: string) {
     const payload = await post<DashboardSession>('/admin/auth/login', { login, password });
     setToken(payload.token);
+    setRefreshToken(payload.refreshToken);
     return { ...payload, user: normalizeUser(payload.user) };
   },
   async me(): Promise<DashboardSession> {
@@ -74,11 +86,26 @@ export const adminApi = {
     return { token: getToken(), user: normalizeUser(payload.user) };
   },
   logout: async () => {
+    const refreshToken = getRefreshToken();
     try {
-      await request('/admin/auth/logout', { method: 'POST' });
+      await request('/admin/auth/logout', {
+        method: 'POST',
+        body: JSON.stringify({ refreshToken: refreshToken || undefined }),
+      });
     } catch {
-      // Even if remote logout fails, clean local session.
+      // El access token puede haber expirado; la revocación del refresh token
+      // se intenta de forma independiente en el endpoint idempotente.
     } finally {
+      if (refreshToken) {
+        try {
+          await apiFetch('/admin/auth/logout-refresh', {
+            method: 'POST',
+            body: JSON.stringify({ refreshToken }),
+          }, { token: '', retryAuth: true });
+        } catch {
+          // La sesión local siempre se elimina incluso si el servidor no responde.
+        }
+      }
       clearAdminToken();
     }
   },
@@ -133,4 +160,5 @@ export const adminApi = {
   updateCategory: (id: number, data: Record<string, unknown>) => put(`/admin/categories/${id}`, data),
 
   activity: () => request<AdminListResponse>('/admin/activity'),
+
 };

@@ -1,4 +1,5 @@
 // AGENCY_PROFILE_PAGE_V5_20_4_POCKET_REVIEWS_MARKER
+// AGENCY_PROFILE_FIRST_LOAD_RACE_FIX_V5_37_55_MARKER
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import {
   ArrowLeft,
@@ -24,7 +25,7 @@ import {
 import { useNavigate, useParams } from 'react-router-dom';
 import type { Agency, AgencyProfilePayload, AgencyProfileService, AgencyReview, AgencyTeamMember, Service } from '@/types';
 import { marketplaceApi } from '@/services/marketplaceApi';
-import { isDemoDataEnabled } from '@/lib/apiConfig';
+import { ApiError, isDemoDataEnabled } from '@/lib/apiConfig';
 import { findServiceBySlug, normalizeServiceSlug, getServiceRoute, getServiceSlug } from '@/utils/serviceRoutes';
 import { useAppState } from '@/state/useAppState';
 import TeamMemberModal from '@/components/modals/TeamMemberModal';
@@ -249,6 +250,7 @@ export default function AgencyProfilePage() {
   const [payload, setPayload] = useState<AgencyProfilePayload | null>(() => defaultProfile(agency));
   const [loading, setLoading] = useState(!defaultProfile(agency));
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [profileReloadKey, setProfileReloadKey] = useState(0);
   const [expandedServices, setExpandedServices] = useState(false);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewName, setReviewName] = useState('');
@@ -257,29 +259,67 @@ export default function AgencyProfilePage() {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [selectedTeamMember, setSelectedTeamMember] = useState<AgencyTeamMember | null>(null);
 
-  /* eslint-disable react-hooks/set-state-in-effect -- Carga inicial del perfil; migrar a React Query queda fuera del alcance de esta estabilización. */
   useEffect(() => {
     const controller = new AbortController();
-    setLoading(true);
-    setLoadError(null);
+    let active = true;
 
-    marketplaceApi.getAgencyProfile(profileIdentifier, controller.signal)
-      .then((result) => {
-        setPayload(result);
-        setLoading(false);
-      })
-      .catch((error) => {
-        if (error instanceof DOMException && error.name === 'AbortError') return;
-        setLoadError('No se pudo cargar el perfil. Intenta de nuevo más tarde.');
-        if (isDemoDataEnabled()) {
-          setPayload(defaultProfile(agency, servicesCatalog));
+    const loadProfile = async () => {
+      setLoading(true);
+      setLoadError(null);
+
+      // React StrictMode ejecuta un ciclo extra setup/cleanup/setup en desarrollo.
+      // Una petición cancelada por ese cleanup nunca debe convertirse en un error visible.
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        try {
+          const result = await marketplaceApi.getAgencyProfile(profileIdentifier, controller.signal);
+          if (!active || controller.signal.aborted) return;
+
+          setPayload(result);
+          setLoadError(null);
+          setLoading(false);
+          return;
+        } catch (error: unknown) {
+          if (!active || controller.signal.aborted) return;
+          if (error instanceof DOMException && error.name === 'AbortError') return;
+
+          const transientFailure =
+            error instanceof ApiError && (error.code === 'network' || error.code === 'timeout');
+
+          if (transientFailure && attempt === 0) {
+            await new Promise<void>((resolve) => window.setTimeout(resolve, 250));
+            if (!active || controller.signal.aborted) return;
+            continue;
+          }
+
+          const demoFallback = isDemoDataEnabled()
+            ? defaultProfile(agency, servicesCatalog)
+            : null;
+
+          if (demoFallback) {
+            setPayload(demoFallback);
+            setLoadError(null);
+          } else {
+            setLoadError('No se pudo cargar el perfil. Intenta de nuevo más tarde.');
+          }
+          setLoading(false);
+          return;
         }
-        setLoading(false);
-      });
+      }
+    };
 
-    return () => controller.abort();
-  }, [agency, profileIdentifier, servicesCatalog]);
-  /* eslint-enable react-hooks/set-state-in-effect */
+    void loadProfile();
+
+    return () => {
+      active = false;
+      controller.abort();
+    };
+  }, [agency, profileIdentifier, profileReloadKey, servicesCatalog]);
+
+  const retryProfileLoad = () => {
+    setLoadError(null);
+    setLoading(true);
+    setProfileReloadKey((current) => current + 1);
+  };
 
   const currentAgency = payload?.agency || agency;
 
@@ -342,7 +382,7 @@ export default function AgencyProfilePage() {
         <div className="max-w-4xl mx-auto bg-white rounded-3xl border border-red-200 p-10 text-center shadow-sm">
           <h1 className="text-2xl font-black text-[#333]">Error al cargar el perfil</h1>
           <p className="mt-3 text-sm font-semibold text-gray-500">{loadError}</p>
-          <button type="button" onClick={() => window.location.reload()} className="mt-6 rounded-xl bg-[#D32323] text-white px-5 py-3 text-xs font-black uppercase tracking-wider">
+          <button type="button" onClick={retryProfileLoad} className="mt-6 rounded-xl bg-[#D32323] text-white px-5 py-3 text-xs font-black uppercase tracking-wider">
             Reintentar
           </button>
         </div>

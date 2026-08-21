@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, Heart, MessageSquare, ShoppingCart, User, CheckCircle2, LogOut } from 'lucide-react';
 import { useAppState } from '@/state/useAppState';
 import { useNavigateHomeSection } from '@/routes/navigation';
-import ToolsDropdown from './ToolsDropdown';
 
 const CATEGORY_PATHS_PREFIX = '/categorias';
 const AGENCY_PATHS_PREFIX = '/agencias';
@@ -20,7 +19,7 @@ export default function Header() {
   const isCategoriesActive = location.pathname.startsWith(CATEGORY_PATHS_PREFIX);
   const isAgenciesActive = location.pathname.startsWith(AGENCY_PATHS_PREFIX);
   const isServiceActive = location.pathname.startsWith('/servicios');
-  const isDashboardActive = location.pathname === '/dashboard';
+  const isDashboardActive = location.pathname === '/dashboard' || location.pathname.startsWith('/herramientas') || location.pathname.startsWith('/utilidades');
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 15);
@@ -74,7 +73,6 @@ export default function Header() {
             <button type="button" onClick={() => { setMobileMenuOpen(false); navigateHome('services'); }} className={navClass(isServiceActive)}>
               Servicios Directos
             </button>
-            <ToolsDropdown />
             <button
               type="button"
               onClick={() => { setMobileMenuOpen(false); navigate('/dashboard'); }}
@@ -201,10 +199,6 @@ export default function Header() {
             Servicios Directos
           </button>
 
-          <div className="px-3 py-2">
-            <ToolsDropdown mobile onClose={() => setMobileMenuOpen(false)} />
-          </div>
-
           <button
             type="button"
             onClick={() => {
@@ -213,9 +207,8 @@ export default function Header() {
             }}
             className="block w-full text-left px-3 py-2.5 rounded-lg text-base font-semibold text-[#333] hover:bg-gray-50 hover:text-[#D32323]"
           >
-            Dashboard interno
+            Dashboard
           </button>
-
           <button
             type="button"
             onClick={() => {

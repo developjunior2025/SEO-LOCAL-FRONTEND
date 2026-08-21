@@ -15,12 +15,15 @@ describe('authHelpers', () => {
     expect(mapBackendRoleToFrontend('sales_operator')).toBe('seller');
     expect(mapBackendRoleToFrontend('superadmin')).toBe('admin');
     expect(mapBackendRoleToFrontend('marketplace_admin')).toBe('admin');
-    expect(mapBackendRoleToFrontend(null)).toBe('admin');
+    expect(mapBackendRoleToFrontend('utilidades')).toBe('utilidades');
+    expect(mapBackendRoleToFrontend(null)).toBe('client');
+    expect(mapBackendRoleToFrontend('rol_desconocido')).toBe('client');
   });
 
   it('deriva dashboard path por rol', () => {
     expect(getDashboardPathForRole('client')).toBe('/herramientas/auditorias?tab=summary');
     expect(getDashboardPathForRole('admin')).toBe('/dashboard');
     expect(getDashboardPathForRole('seller')).toBe('/dashboard');
+    expect(getDashboardPathForRole('utilidades')).toBe('/utilidades');
   });
 });

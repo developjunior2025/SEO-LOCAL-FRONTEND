@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import Hero from '@/components/home/Hero';
+import LocalVisibilityScanner from '@/components/home/LocalVisibilityScanner';
 import Categories from '@/components/home/Categories';
 import MapView from '@/components/home/MapView';
 import FeaturedAgencies from '@/components/home/FeaturedAgencies';
@@ -77,6 +78,9 @@ export default function HomePage() {
         selectedKeyword={searchState.keyword}
         selectedLocation={searchState.location}
       />
+
+      {/* Experimental, reversible Local Visibility Scanner preview */}
+      <LocalVisibilityScanner />
 
       {/* 3. Category Grid Component */}
       <Categories

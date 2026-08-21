@@ -1,6 +1,7 @@
 const DEFAULT_DEV_API_URL = 'http://localhost:4001/api/v1';
 
 export const DASHBOARD_TOKEN_KEY = 'seo_local_dashboard_token';
+export const REFRESH_TOKEN_KEY = 'seo_local_dashboard_refresh_token';
 export const AUTH_STORAGE_KEY = 'seolocal_user_v1';
 
 export function getApiTimeout(): number {
@@ -59,9 +60,48 @@ function readStoredToken(): string | null {
   return window.localStorage.getItem(DASHBOARD_TOKEN_KEY);
 }
 
+function readStoredRefreshToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return window.localStorage.getItem(REFRESH_TOKEN_KEY);
+}
+
+function storeTokens(accessToken: string, refreshToken?: string): void {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(DASHBOARD_TOKEN_KEY, accessToken);
+  if (refreshToken) window.localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+}
+
+let refreshPromise: Promise<string | null> | null = null;
+
+async function refreshAccessToken(base: string): Promise<string | null> {
+  const refreshToken = readStoredRefreshToken();
+  if (!refreshToken) return null;
+  if (refreshPromise) return refreshPromise;
+  refreshPromise = (async () => {
+    try {
+      const response = await fetch(`${base}/admin/auth/refresh`, {
+        method: 'POST',
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken }),
+      });
+      if (!response.ok) return null;
+      const payload = await response.json() as { token?: string; refreshToken?: string };
+      if (!payload.token) return null;
+      storeTokens(payload.token, payload.refreshToken);
+      return payload.token;
+    } catch {
+      return null;
+    } finally {
+      refreshPromise = null;
+    }
+  })();
+  return refreshPromise;
+}
+
 function clearStoredAuth(): void {
   if (typeof window === 'undefined') return;
   window.localStorage.removeItem(DASHBOARD_TOKEN_KEY);
+  window.localStorage.removeItem(REFRESH_TOKEN_KEY);
   window.localStorage.removeItem(AUTH_STORAGE_KEY);
 }
 
@@ -73,6 +113,22 @@ function emitLogoutEvent(): void {
 export function clearApiSession(): void {
   clearStoredAuth();
   emitLogoutEvent();
+}
+
+// V5386_API_ERROR_DETAIL_PRESERVATION
+function extractApiErrorMessage(payload: unknown, status: number): string {
+  if (payload && typeof payload === 'object') {
+    const record = payload as Record<string, unknown>;
+    const message = record.message;
+    if (Array.isArray(message)) {
+      const details = message.map((item) => String(item)).filter(Boolean);
+      if (details.length) return details.join(' · ');
+    }
+    if (typeof message === 'string' && message.trim()) return message.trim();
+    const error = record.error;
+    if (typeof error === 'string' && error.trim()) return error.trim();
+  }
+  return `HTTP ${status}`;
 }
 
 function classifyError(error: unknown, status?: number): ApiErrorCode {
@@ -90,11 +146,13 @@ function classifyError(error: unknown, status?: number): ApiErrorCode {
 export async function apiFetch<T>(
   path: string,
   init: RequestInit = {},
-  options: { token?: string; signal?: AbortSignal } = {}
+  options: { token?: string; signal?: AbortSignal; retryAuth?: boolean; timeoutMs?: number } = {}
 ): Promise<T> {
   const base = getApiBaseUrl();
   const url = `${base}${path}`;
-  const timeout = getApiTimeout();
+  // SEOLOCAL_LOCAL_VISIBILITY_TIMEOUT_POLICY_V1
+  // Long-running tools may opt into a larger timeout without changing the global default.
+  const timeout = options.timeoutMs ?? getApiTimeout();
 
   const headers = new Headers(init.headers || {});
   if (!headers.has('Accept')) headers.set('Accept', 'application/json');
@@ -121,6 +179,14 @@ export async function apiFetch<T>(
     const response = await fetch(url, { ...init, headers, signal });
     window.clearTimeout(timeoutId);
 
+    const authEndpoint = /\/admin\/auth\/(login|refresh|logout|logout-refresh)$/.test(path);
+    if (response.status === 401 && !options.retryAuth && !authEndpoint) {
+      const refreshedToken = await refreshAccessToken(base);
+      if (refreshedToken) {
+        return apiFetch<T>(path, init, { ...options, token: refreshedToken, retryAuth: true });
+      }
+    }
+
     if (response.status === 204) {
       return undefined as T;
     }
@@ -139,12 +205,9 @@ export async function apiFetch<T>(
     }
 
     if (!response.ok) {
-      const message =
-        (payload && typeof payload === 'object' && ('error' in payload || 'message' in payload)
-          ? String((payload as Record<string, unknown>).error || (payload as Record<string, unknown>).message)
-          : null) || `HTTP ${response.status}`;
+      const message = extractApiErrorMessage(payload, response.status);
       const code = classifyError(new Error(message), response.status);
-      if (code === 'unauthorized' || code === 'forbidden') {
+      if (code === 'unauthorized') {
         clearStoredAuth();
         emitLogoutEvent();
       }

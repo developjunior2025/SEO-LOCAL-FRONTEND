@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+// V5385_CC360_STALE_REQUEST_GUARD
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ApiError } from '@/lib/apiConfig';
 import type { ClientAuditData } from '../types/audit';
 import { fetchClientAudit } from '../services/clientAuditApi';
@@ -11,6 +12,7 @@ export interface UseClientAuditReturn {
 }
 
 export function useClientAudit(): UseClientAuditReturn {
+  const requestIdRef = useRef(0);
   const [state, setState] = useState<{
     data: ClientAuditData | null;
     loading: boolean;
@@ -18,11 +20,16 @@ export function useClientAudit(): UseClientAuditReturn {
   }>({ data: null, loading: true, error: null });
 
   const load = useCallback(async (signal?: AbortSignal) => {
+    const requestId = ++requestIdRef.current;
     setState((prev) => ({ ...prev, loading: true, error: null }));
     try {
       const data = await fetchClientAudit(signal);
+      if (signal?.aborted || requestId !== requestIdRef.current) return;
       setState({ data, loading: false, error: null });
     } catch (error: unknown) {
+      // React StrictMode puede abortar la primera petición durante el remount de desarrollo.
+      // Esa respuesta cancelada no debe pisar una petición posterior ni mostrarse como fallo real.
+      if (signal?.aborted || requestId !== requestIdRef.current) return;
       const message =
         error instanceof ApiError
           ? error.code === 'unauthorized' || error.code === 'forbidden'
@@ -46,8 +53,7 @@ export function useClientAudit(): UseClientAuditReturn {
   /* eslint-enable react-hooks/set-state-in-effect */
 
   const retry = useCallback(() => {
-    const controller = new AbortController();
-    load(controller.signal);
+    load();
   }, [load]);
 
   return { ...state, retry };

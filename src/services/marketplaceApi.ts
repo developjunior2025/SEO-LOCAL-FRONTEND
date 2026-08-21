@@ -615,12 +615,213 @@ export interface ConsultingQuoteResponse {
   quote: ConsultingQuoteResult;
 }
 
+
+export interface LocalPackBusiness {
+  position: number;
+  title: string;
+  rating: number | null;
+  reviews: number | null;
+  price: string;
+  type: string;
+  types: string[];
+  address: string;
+  openState: string;
+  hours: string;
+  phone: string;
+  website: string;
+  description: string;
+  imageUrl: string;
+  imageFallbackUrl: string;
+  photosLink: string;
+  reviewsLink: string;
+  placeSearchLink: string;
+  serviceOptions: Record<string, boolean>;
+  lat: number | null;
+  lng: number | null;
+  placeId: string;
+  dataId: string;
+  dataCid: string;
+}
+
+export interface LocalPackMarketSummary {
+  returnedResults: number;
+  top3AverageRating: number | null;
+  top3AverageReviews: number | null;
+  top10AverageRating: number | null;
+  top10AverageReviews: number | null;
+  top10WebsiteCoverage: number;
+  top10PhoneCoverage: number;
+  top10HoursCoverage: number;
+  reviewLeader: {
+    title: string;
+    reviews: number;
+    position: number;
+  } | null;
+  ratingLeader: {
+    title: string;
+    rating: number;
+    position: number;
+  } | null;
+  dominantTypes: Array<{ type: string; count: number }>;
+}
+
+export interface LocalPlaceDetails {
+  imported: true;
+  sourceSearchId: string;
+  imageUrl: string;
+  images: Array<{
+    title: string;
+    url: string;
+    lastUpdated: string;
+  }>;
+  photosCount: number;
+  postsCount: number;
+  visibleSignals: {
+    phone: boolean;
+    website: boolean;
+    hours: boolean;
+    description: boolean;
+    image: boolean;
+    categories: boolean;
+    present: number;
+    total: 6;
+    score: number;
+  };
+}
+
+export interface ProductMatch {
+  code: string;
+  title: string;
+  route: string;
+  severity: 'critical' | 'opportunity' | 'positive';
+  evidence: string;
+  reason: string;
+}
+
+export interface LocalVisibilityPreviewPayload {
+  action: 'pack' | 'details' | 'grid';
+  query: string;
+  targetName?: string;
+  lat: number;
+  lng: number;
+  accuracyMeters?: number | null;
+  radiusKm?: number;
+  identity?: LocalPackBusiness;
+  market?: LocalPackMarketSummary | null;
+}
+
+export interface LocalVisibilityPreviewResponse {
+  ok: true;
+  version: 'V0.4';
+  mode: 'live-google-maps';
+  action: 'pack' | 'details' | 'grid';
+  reference: string;
+  generatedAt: string;
+  query: string;
+  searchInterpretation?: {
+    mode: 'local-pack' | 'direct-place' | 'business-match';
+    inputQuery: string;
+    resolvedQuery: string;
+    corrected: boolean;
+    rankingEligible: boolean;
+    message: string;
+  };
+  directMatch?: LocalPackBusiness | null;
+  keywordSuggestions?: string[];
+  origin: {
+    lat: number;
+    lng: number;
+    accuracyMeters: number | null;
+  };
+  localResults: LocalPackBusiness[];
+  market: LocalPackMarketSummary | null;
+  target: {
+    found: boolean;
+    position: number | null;
+    title: string;
+    rating: number | null;
+    reviews: number | null;
+    reviewGapVsTop3: number | null;
+    ratingGapVsTop3: number | null;
+    top3: boolean;
+  } | null;
+  productMatches: ProductMatch[];
+  selectedBusiness: LocalPackBusiness | null;
+  placeDetails: LocalPlaceDetails | null;
+  grid: Array<{
+    row: number;
+    col: number;
+    lat: number;
+    lng: number;
+    rank: number | null;
+    band: 'top3' | 'top10' | 'top20' | 'out';
+    distanceKm: number;
+    bearing: string;
+    searchId: string;
+    topCompetitors: Array<{
+      position: number;
+      title: string;
+      rating: number | null;
+      reviews: number | null;
+      type: string;
+      placeId: string;
+    }>;
+  }>;
+  metrics: {
+    visibilityScore: number;
+    averageRank: number | null;
+    centerRank: number | null;
+    top3Coverage: number;
+    top10Coverage: number;
+    top20Coverage: number;
+    outsideTop20: number;
+    notFound: number;
+    points: number;
+    radiusKm: number;
+    weakestDirection: string;
+    competitorLeaders: Array<{
+      title: string;
+      type: string;
+      placeId: string;
+      rating: number | null;
+      reviews: number | null;
+      appearances: number;
+      top3Appearances: number;
+      averagePosition: number;
+      bestPosition: number;
+    }>;
+  } | null;
+  providerSearchUrl: string | null;
+  sources: {
+    ranking: 'Google Maps via SerpApi';
+    map: 'OpenStreetMap';
+    fresh: true;
+    modeled: false;
+    detailImported: boolean;
+  };
+  usage: {
+    providerSearchesThisAction: number;
+    note: string;
+  };
+  notice: string;
+  attribution: string;
+}
+
 export type FunctionalModuleCode = 'audit-seo-local' | 'google-business-profile' | 'local-pack-ranking' | 'link-building-local' | 'seo-tecnico-local' | 'seo-on-page-local' | 'reputacion-y-resenas' | 'citaciones-y-nap' | 'reportes-y-analytics' | 'mapas-calor-local' | 'contenido-local' | 'seo-local-ecommerce' | 'consultoria-estrategia';
 
 export type FunctionalEvaluationPayload = Record<string, string | number | boolean | undefined | null>;
 
-async function requestJson<T>(path: string, init?: RequestInit, signal?: AbortSignal): Promise<T> {
-  return apiFetch<T>(path, init, { signal });
+async function requestJson<T>(
+  path: string,
+  init?: RequestInit,
+  signal?: AbortSignal,
+  timeoutMs?: number,
+): Promise<T> {
+  return apiFetch<T>(
+    path,
+    init,
+    timeoutMs ? { signal, timeoutMs } : { signal },
+  );
 }
 
 const toolPathByModule: Record<FunctionalModuleCode, string> = {
@@ -680,6 +881,21 @@ export const marketplaceApi = {
       method: 'POST',
       body: JSON.stringify(payload),
     });
+  },
+
+  localVisibilityPreview(payload: LocalVisibilityPreviewPayload) {
+    // SEOLOCAL_LOCAL_VISIBILITY_TIMEOUT_POLICY_V1
+    // Pack/details: 60s. GeoGrid: 180s. Global API default remains unchanged.
+    const timeoutMs = payload.action === 'grid' ? 180_000 : 60_000;
+    return requestJson<LocalVisibilityPreviewResponse>(
+      '/tools/local-visibility/preview',
+      {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      },
+      undefined,
+      timeoutMs,
+    );
   },
 
   evaluateFunctionalModule(moduleCode: FunctionalModuleCode, payload: FunctionalEvaluationPayload) {

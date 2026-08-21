@@ -1,3 +1,4 @@
+// FICHA_24_V5_37_53_ROUTE_MARKER
 // FICHA_23_V5_18_12_ROUTE_MARKER
 // FICHA_22_V5_18_11_ROUTE_MARKER
 // FICHA_21_V5_18_10_ROUTE_MARKER
@@ -22,10 +23,11 @@ import GbpAuditServicePage from '@/components/services/GbpAuditServicePage';
 import LocalPackMonthlyServicePage from '@/components/services/LocalPackMonthlyServicePage';
 import LocalCitationsOptimizationServicePage from '@/components/services/LocalCitationsOptimizationServicePage';
 import LocalSeoAuditServicePage from '@/components/services/LocalSeoAuditServicePage';
-import { CompetitorLocalAnalysisServicePage, LocalPackCustomStrategyServicePage, LocalBacklinksBasicServicePage, LocalBacklinksStandardServicePage, LocalBacklinksPremiumServicePage, NapLinksBuildingServicePage, OutreachPrLocalServicePage, TechnicalSeoAuditServicePage, SpeedOptimizationLocalServicePage, SeoOnPageTechnicalServicePage, SchemaLocalImplementationServicePage, TechnicalErrorsCorrectionServicePage, LocalContentWritingServicePage, BlogLocalMonthlyServicePage, OptimizedServicePagesServicePage } from '@/components/services/LocalAdvancedServicePages';
+import { CompetitorLocalAnalysisServicePage, LocalPackCustomStrategyServicePage, LocalBacklinksBasicServicePage, LocalBacklinksStandardServicePage, LocalBacklinksPremiumServicePage, NapLinksBuildingServicePage, OutreachPrLocalServicePage, TechnicalSeoAuditServicePage, SpeedOptimizationLocalServicePage, SeoOnPageTechnicalServicePage, SchemaLocalImplementationServicePage, TechnicalErrorsCorrectionServicePage, LocalContentWritingServicePage, BlogLocalMonthlyServicePage, OptimizedServicePagesServicePage, LandingPageLocalServicePage } from '@/components/services/LocalAdvancedServicePages';
 
 function formatBillingPeriod(period?: string) {
-  if (!period || period === 'único') return 'pago único';
+  if (!period || period === 'único' || period === 'unico') return 'pago único';
+  if (period === 'trimestre') return '/trimestre';
   if (period === 'mes') return '/mes';
   if (period === 'trimestre') return '/trimestre';
   return period;
@@ -287,6 +289,28 @@ export default function ServiceDetailPage() {
 
 
 
+
+const isLandingPageLocalService = Boolean(
+  service &&
+    (
+      currentHash.includes('/servicios/fur-s-ct-004') ||
+      serviceCode === 'FUR-S-CT-004' ||
+      serviceId === 'fur-s-ct-004' ||
+      serviceTitle === 'landing page local' ||
+      (serviceTitle.includes('landing') && serviceCategoryName.includes('contenido local'))
+    ),
+);
+
+if (isLandingPageLocalService) {
+  return (
+    <LandingPageLocalServicePage
+      service={service}
+      relatedServices={relatedServices}
+      onAddToCart={onAddToCart}
+      onBackToServices={onBackToServices}
+    />
+  );
+}
 
 const isOptimizedServicePagesService = Boolean(
   service &&

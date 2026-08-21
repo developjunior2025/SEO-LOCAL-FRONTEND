@@ -5029,3 +5029,6 @@ export function OptimizedServicePagesServicePage({ service, relatedServices, onA
   );
 }
 
+
+// FICHA_24_V5_37_53_REEXPORT_MARKER
+export { default as LandingPageLocalServicePage } from './LandingPageLocalServicePage';

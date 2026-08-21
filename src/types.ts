@@ -218,7 +218,7 @@ export interface AgencyProfilePayload {
   reviews: AgencyReview[];
 }
 
-export type UserRole = 'client' | 'seller' | 'admin';
+export type UserRole = 'client' | 'seller' | 'admin' | 'utilidades';
 
 export interface User {
   id: string;

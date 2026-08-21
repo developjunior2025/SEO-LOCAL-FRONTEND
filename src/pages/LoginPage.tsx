@@ -16,7 +16,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (user && !authLoading) {
-      navigate(redirectAfterLogin(user.role, returnTo));
+      navigate(redirectAfterLogin(returnTo));
     }
   }, [user, authLoading, returnTo, navigate]);
 
@@ -50,7 +50,7 @@ export default function LoginPage() {
           </div>
           <h1 className="font-black text-2xl text-[#333]">Accede a tu Panel Local</h1>
           <p className="text-xs text-gray-500 font-medium leading-relaxed">
-            Valora agencias, gestiona presupuestos en custodia o consulta tu Command Center 360.
+            Ingresa con tu usuario y SEOLOCAL abrirá automáticamente el panel que corresponde a tu rol.
           </p>
         </div>
 

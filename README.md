@@ -180,3 +180,123 @@ Tests actuales:
 - El backend PostgreSQL autónomo se consume cuando está disponible; de lo contrario se mantiene fallback mock solo si las flags demo están activas.
 - La integración real de autenticación y de las secciones de auditoría/citaciones ya está operativa; los datos se persisten en el backend.
 - **Citaciones:** Etapa 1 implementada como gestor manual de copiado y seguimiento en 20 directorios. La Etapa 2 no está implementada.
+
+## Panel Utilidades V17
+
+Ruta principal: `/utilidades`
+
+Rutas operativas:
+
+- `/utilidades/ubicaciones`
+- `/utilidades/ubicaciones/:id/:seccion`
+- `/utilidades/clientes`
+- `/utilidades/agencias`
+- `/utilidades/alertas`
+- `/utilidades/operaciones`
+- `/utilidades/acciones`
+- `/utilidades/ordenes-trabajo`
+- `/utilidades/campanas-resenas`
+- `/utilidades/campanas-citaciones`
+- `/utilidades/publicaciones-gbp`
+- `/utilidades/mercado`
+- `/utilidades/prospectos`
+- `/utilidades/marca-blanca`
+
+Usuario de desarrollo: `utilidades@seolocal.test`. La contraseña temporal se crea mediante el seed del backend. V17.2 prueba el logout del estado React, la conservación de sesión ante HTTP 403 y la rotación automática del refresh token.
+
+## Centro de Control Utilidades V18
+
+- URL: `/utilidades`
+- API: `/api/v1/utilidades`
+- Nuevas pantallas: Casos, Integraciones, Auditoría y Alcances.
+- Campañas de reseñas: destinatarios, plantillas, estados y ejecución manual/webhook.
+- Campañas de citaciones: NAP, directorios, fichas, evidencias y verificación.
+- GBP: borrador, programación y publicación confirmada por referencia/webhook.
+- Analytics/GSC: snapshots importados o sincronizados, nunca datos simulados.
+- Mercado: créditos separados por moneda y aprobación transaccional.
+
+<!-- V5_43_0_AUDITORIA_GBP_V25 -->
+## SEO LOCAL v5.43.0 — Auditoría GBP V25
+
+Ruta del workspace especializado:
+
+```text
+http://localhost:5173/utilidades/ubicaciones/:locationId/auditoria-gbp
+```
+
+La Utilidad #5 integra auditoría de perfil, categorías, reseñas, media, publicaciones, productos/servicios, Q&A, rendimiento, competencia y Change Monitor. Los datos de Local Lab permanecen explícitamente identificados como demostrativos.
+
+
+<!-- V5_43_4_AUDITORIA_GBP_V25_1 -->
+## SEO LOCAL v5.43.4 — Auditoría GBP V25.1 Data Integrity & Intelligence Closure
+
+Ruta:
+
+```text
+http://localhost:5173/utilidades/ubicaciones/:locationId/auditoria-gbp
+```
+
+V25.1 unifica un Current GBP Snapshot canónico para reseñas/fotos, separa señales web de los campos GBP, reconcilia publicaciones y media, añade Opportunity Score de categorías, brechas concretas de catálogo/Q&A, Performance Intelligence con 18m e Índice 100, y un benchmark Top 10 con índice competitivo explicable.
+
+<!-- V5_43_5_AUDITORIA_GBP_V25_1_1 -->
+## SEO LOCAL v5.43.5 — Auditoría GBP V25.1.1 Derived Intelligence Consistency
+
+Ruta:
+
+```text
+http://localhost:5173/utilidades/ubicaciones/:locationId/auditoria-gbp
+```
+
+V25.1.1 cierra la coherencia de inteligencia derivada: el Resumen consume la categoría prioridad #1 del Opportunity Score, la velocidad de respuesta usa el Review Audit canónico y el KPI/Resumen/Competencia comparten exactamente el benchmark SoLV de la keyword principal. Los tabs de competencia calculan índice, Top 5 y delta pp por keyword seleccionada.
+
+<!-- V5_44_0_REPUTATION_MANAGER_V26 -->
+## SEO LOCAL v5.44.0 — Reputation Manager V26 Operations & Intelligence
+
+Ruta especializada:
+
+```text
+http://localhost:5173/utilidades/ubicaciones/:locationId/reputacion
+```
+
+V26 convierte la Utilidad #6 en un centro operativo de reputación con Resumen, Inbox, Respuestas, Campañas, Feedback/NPS, Fuentes, Temas, Competencia, Showcase, Automatización e Historial. Se integra con Auditoría GBP, Rank Tracker, Search Grid, Publicaciones GBP y Acciones. El flujo de respuesta es Generar → Editar → Aprobar → Publicar, y no representa como publicación externa una operación que permanezca en Local Lab o sin conector verificado.
+
+## SEO LOCAL v5.44.1 — Reputation Manager V26.1
+
+Ruta: `/utilidades/ubicaciones/:locationId/reputacion`.
+
+V26.1 cierra integridad operacional: metodología Health 100% reconciliada, muestra Inbox vs. universo canónico, NPS estándar, atribución de campañas sin funnel imposible, SLA/respuesta ponderados por fuente, historial con fechas únicas/origen, Automation con prueba simulada sin crear trabajo y Showcase con vista previa/código de integración.
+
+## SEO LOCAL v5.44.2 — Reputation Manager V26.1.1
+
+Ruta: `/utilidades/ubicaciones/:locationId/reputacion`
+
+V26.1.1 cierra Response Center, fechas y consentimiento: genera borrador asistido al abrir una review pendiente, deshabilita aprobacion con texto vacio, adapta el CTA a la capacidad real de publicacion externa, formatea los valores DATE sin desplazamiento UTC y limita la vista previa Showcase a candidatas realmente elegibles. Las bloqueadas por consentimiento se explican fuera del widget publico.
+
+<!-- V5_44_3_REPUTATION_MANAGER_V26_1_2 -->
+## SEO LOCAL v5.44.3 - Reputation Manager V26.1.2 Canonical Queue & UX Closure
+
+Ruta:
+
+```text
+http://localhost:5173/utilidades/ubicaciones/:locationId/reputacion
+```
+
+V26.1.2 cierra la coherencia visual final de la Utilidad #6: Resumen y Showcase comparten elegibilidad canonica, Response Center muestra toda la cola pendiente priorizada, Competencia declara alcance Google/GBP, Topics separa variacion de menciones y sentimiento, y Showcase indica cuando la vista previa aun corresponde a la ultima politica guardada.
+
+
+<!-- SEOLOCAL_LOCAL_VISIBILITY_PREVIEW_V0_1 -->
+## Local Visibility Scanner Preview V0.1
+Se muestra en el Home entre Hero y Categorias. Puede ocultarse con VITE_LOCAL_VISIBILITY_SCANNER=false o retirarse con el desinstalador v5.44.4.
+
+
+
+<!-- SEOLOCAL_ROUTE_LOCAL_VISIBILITY_EXECUTIVE_V2 -->
+## Local Visibility Executive Workspace V2
+
+- Ruta pública: `/local-visibility`
+- Entrada: scanner LIVE del Home → botón **Executive Workspace**.
+- Vistas: Overview, GeoGrid, Competidores, SERP Local, Diagnóstico y Acciones.
+- Datos: reutiliza `/api/v1/tools/local-visibility/preview` con acciones `pack`, `details` y `grid`.
+- El traspaso Home → Workspace usa `sessionStorage` más parámetros URL; no guarda secretos.
+- GeoGrid de competidor requiere confirmación porque ejecuta 25 búsquedas LIVE adicionales.
+<!-- SEOLOCAL_ROUTE_LOCAL_VISIBILITY_EXECUTIVE_V2 -->

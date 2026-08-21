@@ -8,7 +8,7 @@
     "dev:all": "node scripts/dev-orchestrator.mjs",
     "dev:frontend": "vite --open",
     "dev:backend": "npm --prefix ../../SEO-LOCAL-BACKEND-main run start:dev",
-    "dev:database": "node scripts/start-database.mjs",
+    "dev:database": "node scripts/canonical-database.mjs --start-if-stopped",
     "dev:wait-db": "wait-on tcp:127.0.0.1:5434 --timeout 120000",
     "build": "tsc -b && vite build",
     "lint": "eslint . --ignore-pattern \"backend-patches/**\" --ignore-pattern \"dist/**\" --ignore-pattern \"coverage/**\"",
@@ -16,7 +16,8 @@
     "test": "vitest run --config vitest.config.ts",
     "images:sync": "node scripts/sync-marketplace-images.mjs",
     "lint:source": "eslint src scripts vite.config.ts --ignore-pattern \"backend-patches/**\" --ignore-pattern \"dist/**\" --ignore-pattern \"coverage/**\"",
-    "test:source": "vitest run --config vitest.config.ts src"
+    "test:source": "vitest run --config vitest.config.ts src",
+    "dev:database:verify": "node scripts/canonical-database.mjs --verify"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
